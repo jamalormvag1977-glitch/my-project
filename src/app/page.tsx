@@ -273,6 +273,7 @@ export default function Dashboard() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterEntity, setFilterEntity] = useState('all');
   const [filterNature, setFilterNature] = useState('all');
+  const [filterType, setFilterType] = useState('all');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [fileChanged, setFileChanged] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
@@ -360,8 +361,8 @@ export default function Dashboard() {
   const { projects, kpis, statusCount, entityBudget, natureBudget, typeBudget, monthlyTimeline, entityEngagementRate } = data;
 
   /* ── Derived data ── */
-  const statusData = Object.entries(statusCount).map(([name, value]) => ({ name, value }));
-  const entityData = Object.entries(entityBudget).map(([name, d]) => ({
+  const statusData = Object.entries(filteredStatusCount).map(([name, value]) => ({ name, value }));
+  const entityData = Object.entries(filteredEntityBudget).map(([name, d]) => ({
     name,
     cp: Math.round(d.cp),
     ce: Math.round(d.ce),
@@ -369,7 +370,7 @@ export default function Dashboard() {
     engagement: Math.round(d.engagement),
     count: d.count,
   }));
-  const timelineData = Object.entries(monthlyTimeline)
+  const timelineData = Object.entries(filteredMonthlyTimeline)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, d]) => ({
       month: monthLabel(month),
@@ -377,19 +378,19 @@ export default function Dashboard() {
       engagement: Math.round(d.engagement),
       count: d.count,
     }));
-  const natureData = Object.entries(natureBudget).map(([name, d]) => ({
+  const natureData = Object.entries(filteredNatureBudget).map(([name, d]) => ({
     name,
     cp: Math.round(d.cp),
     ce: Math.round(d.ce),
     count: d.count,
   }));
-  const typeData = Object.entries(typeBudget).map(([name, d]) => ({
+  const typeData = Object.entries(filteredTypeBudget).map(([name, d]) => ({
     name,
     cp: Math.round(d.cp),
     ce: Math.round(d.ce),
     count: d.count,
   }));
-  const engagementRateData = Object.entries(entityEngagementRate).map(([name, rate]) => ({ name, rate }));
+  const engagementRateData = Object.entries(filteredEntityEngagementRate).map(([name, rate]) => ({ name, rate }));
 
   /* ── Filtered projects ── */
   const filtered = projects.filter(p => {
@@ -400,19 +401,74 @@ export default function Dashboard() {
     const matchStatus = filterStatus === 'all' || p.situationAvancement === filterStatus;
     const matchEntity = filterEntity === 'all' || p.entite === filterEntity;
     const matchNature = filterNature === 'all' || p.natureBudget === filterNature;
-    return matchSearch && matchStatus && matchEntity && matchNature;
+    const matchType = filterType === 'all' || p.typeBudget === filterType;
+    return matchSearch && matchStatus && matchEntity && matchNature && matchType;
   });
 
   const entities = [...new Set(projects.map(p => p.entite))].sort();
   const natures = [...new Set(projects.map(p => p.natureBudget))].sort();
+  const types = [...new Set(projects.map(p => p.typeBudget))].sort();
   const statuses = [...new Set(projects.map(p => p.situationAvancement))].sort();
 
-  const engagedCount = statusCount['Engagé'] || 0;
-  const judgedCount = statusCount['Jugé'] || 0;
-  const inProgressCount = statusCount['En cours de jugement'] || 0;
-  const pmpCount = statusCount['Publié sur PMP'] || 0;
-  const toProgramCount = statusCount['A programmer'] || 0;
-  const failedCount = (statusCount['Infructueux'] || 0) + (statusCount['Annulé'] || 0);
+  // Compute KPIs from filtered data
+  const filteredKpis = {
+    totalProjects: filtered.length,
+    totalCP: filtered.reduce((s, p) => s + (p.cp || 0), 0),
+    totalCE: filtered.reduce((s, p) => s + (p.ce || 0), 0),
+    totalBudget: filtered.reduce((s, p) => s + (p.cp || 0) + (p.ce || 0), 0),
+    totalEstimation: filtered.reduce((s, p) => s + (p.estimationAdmin || 0), 0),
+    totalEngagement: filtered.reduce((s, p) => s + (p.montantEngagement || 0), 0),
+    totalMontantExtrait: filtered.reduce((s, p) => s + (p.montantExtrait || 0), 0),
+  };
+  const filteredStatusCount: Record<string, number> = {};
+  filtered.forEach(p => { filteredStatusCount[p.situationAvancement] = (filteredStatusCount[p.situationAvancement] || 0) + 1; });
+  const filteredEntityBudget: Record<string, { cp: number; ce: number; estimation: number; engagement: number; count: number }> = {};
+  filtered.forEach(p => {
+    if (!filteredEntityBudget[p.entite]) filteredEntityBudget[p.entite] = { cp: 0, ce: 0, estimation: 0, engagement: 0, count: 0 };
+    filteredEntityBudget[p.entite].cp += p.cp || 0;
+    filteredEntityBudget[p.entite].ce += p.ce || 0;
+    filteredEntityBudget[p.entite].estimation += p.estimationAdmin || 0;
+    filteredEntityBudget[p.entite].engagement += p.montantEngagement || 0;
+    filteredEntityBudget[p.entite].count += 1;
+  });
+  const filteredNatureBudget: Record<string, { cp: number; ce: number; count: number }> = {};
+  filtered.forEach(p => {
+    if (!filteredNatureBudget[p.natureBudget]) filteredNatureBudget[p.natureBudget] = { cp: 0, ce: 0, count: 0 };
+    filteredNatureBudget[p.natureBudget].cp += p.cp || 0;
+    filteredNatureBudget[p.natureBudget].ce += p.ce || 0;
+    filteredNatureBudget[p.natureBudget].count += 1;
+  });
+  const filteredTypeBudget: Record<string, { cp: number; ce: number; count: number }> = {};
+  filtered.forEach(p => {
+    if (!filteredTypeBudget[p.typeBudget]) filteredTypeBudget[p.typeBudget] = { cp: 0, ce: 0, count: 0 };
+    filteredTypeBudget[p.typeBudget].cp += p.cp || 0;
+    filteredTypeBudget[p.typeBudget].ce += p.ce || 0;
+    filteredTypeBudget[p.typeBudget].count += 1;
+  });
+  const filteredMonthlyTimeline: Record<string, { count: number; estimation: number; engagement: number }> = {};
+  filtered.forEach(p => {
+    if (p.dateOuverture) {
+      const month = p.dateOuverture.substring(0, 7);
+      if (!filteredMonthlyTimeline[month]) filteredMonthlyTimeline[month] = { count: 0, estimation: 0, engagement: 0 };
+      filteredMonthlyTimeline[month].count += 1;
+      filteredMonthlyTimeline[month].estimation += p.estimationAdmin || 0;
+      filteredMonthlyTimeline[month].engagement += p.montantEngagement || 0;
+    }
+  });
+  const filteredEntityEngagementRate: Record<string, number> = {};
+  Object.entries(filteredEntityBudget).forEach(([entity, d]) => {
+    filteredEntityEngagementRate[entity] = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
+  });
+
+  const hasActiveFilters = filterStatus !== 'all' || filterEntity !== 'all' || filterNature !== 'all' || filterType !== 'all';
+  const clearAllFilters = () => { setFilterStatus('all'); setFilterEntity('all'); setFilterNature('all'); setFilterType('all'); setSearchTerm(''); };
+
+  const engagedCount = filteredStatusCount['Engagé'] || 0;
+  const judgedCount = filteredStatusCount['Jugé'] || 0;
+  const inProgressCount = filteredStatusCount['En cours de jugement'] || 0;
+  const pmpCount = filteredStatusCount['Publié sur PMP'] || 0;
+  const toProgramCount = filteredStatusCount['A programmer'] || 0;
+  const failedCount = (filteredStatusCount['Infructueux'] || 0) + (filteredStatusCount['Annulé'] || 0);
   const completedCount = engagedCount + judgedCount;
 
   return (
@@ -587,46 +643,175 @@ export default function Dashboard() {
           </Card>
         )}
 
+        {/* ── Global Filters Bar ── */}
+        <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="flex flex-col gap-4">
+              {/* Filter row */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                {/* Search */}
+                <div className="relative flex-1 min-w-0">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    placeholder="Rechercher par objet, entité, attributaire..."
+                    className="pl-9 h-10 text-sm bg-slate-50/80 border-slate-200 focus:bg-white"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+
+                {/* Nature filter */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Nature</span>
+                  <Select value={filterNature} onValueChange={setFilterNature}>
+                    <SelectTrigger className="w-full sm:w-44 h-10 text-sm bg-slate-50/80 border-slate-200">
+                      <SelectValue placeholder="Nature" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes natures</SelectItem>
+                      {natures.map(n => (
+                        <SelectItem key={n} value={n}>{n} ({projects.filter(p => p.natureBudget === n).length})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Type filter */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Type</span>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="w-full sm:w-40 h-10 text-sm bg-slate-50/80 border-slate-200">
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous types</SelectItem>
+                      {types.map(t => (
+                        <SelectItem key={t} value={t}>{t} ({projects.filter(p => p.typeBudget === t).length})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Entity filter */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Entité</span>
+                  <Select value={filterEntity} onValueChange={setFilterEntity}>
+                    <SelectTrigger className="w-full sm:w-36 h-10 text-sm bg-slate-50/80 border-slate-200">
+                      <SelectValue placeholder="Entité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes entités</SelectItem>
+                      {entities.map(e => (
+                        <SelectItem key={e} value={e}>{e} ({projects.filter(p => p.entite === e).length})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status filter */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Statut</span>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-full sm:w-52 h-10 text-sm bg-slate-50/80 border-slate-200">
+                      <SelectValue placeholder="Statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous statuts</SelectItem>
+                      {statuses.map(s => (
+                        <SelectItem key={s} value={s}>
+                          <span className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: statusColor[s] }} />
+                            {s} ({projects.filter(p => p.situationAvancement === s).length})
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Active filters + result count */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {hasActiveFilters && (
+                    <>
+                      {filterNature !== 'all' && (
+                        <Badge className="bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-100 gap-1 cursor-pointer" onClick={() => setFilterNature('all')}>
+                          Nature: {filterNature} <XCircle className="w-3 h-3" />
+                        </Badge>
+                      )}
+                      {filterType !== 'all' && (
+                        <Badge className="bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100 gap-1 cursor-pointer" onClick={() => setFilterType('all')}>
+                          Type: {filterType} <XCircle className="w-3 h-3" />
+                        </Badge>
+                      )}
+                      {filterEntity !== 'all' && (
+                        <Badge className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 gap-1 cursor-pointer" onClick={() => setFilterEntity('all')}>
+                          Entité: {filterEntity} <XCircle className="w-3 h-3" />
+                        </Badge>
+                      )}
+                      {filterStatus !== 'all' && (
+                        <Badge className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 gap-1 cursor-pointer" onClick={() => setFilterStatus('all')}>
+                          Statut: {filterStatus} <XCircle className="w-3 h-3" />
+                        </Badge>
+                      )}
+                      <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-[10px] h-6 text-slate-400 hover:text-red-500">
+                        Effacer tout
+                      </Button>
+                    </>
+                  )}
+                  {!hasActiveFilters && !searchTerm && (
+                    <span className="text-[10px] text-slate-400">Aucun filtre actif — affichage de tous les marchés</span>
+                  )}
+                </div>
+                <span className="text-xs font-medium text-slate-500">
+                  {filtered.length} / {projects.length} marchés
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* ── KPI Cards ── */}
         <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <KPICard
             title="Total Projets"
-            value={kpis.totalProjects.toString()}
+            value={filteredKpis.totalProjects.toString()}
             subtitle={`${completedCount} traités · ${toProgramCount} à programmer`}
             icon={<FileText className="w-5 h-5" />}
-            trend={{ value: Math.round(completedCount / kpis.totalProjects * 100), label: '% traités', up: true }}
+            trend={{ value: filteredKpis.totalProjects > 0 ? Math.round(completedCount / filteredKpis.totalProjects * 100) : 0, label: '% traités', up: true }}
             color="blue"
           />
           <KPICard
             title="Budget Total"
-            value={fmtM(kpis.totalBudget) + ' DH'}
-            subtitle={`CP: ${fmtM(kpis.totalCP)} · CE: ${fmtM(kpis.totalCE)}`}
+            value={fmtM(filteredKpis.totalBudget) + ' DH'}
+            subtitle={`CP: ${fmtM(filteredKpis.totalCP)} · CE: ${fmtM(filteredKpis.totalCE)}`}
             icon={<DollarSign className="w-5 h-5" />}
-            trend={{ value: kpis.engagementRate, label: '% engagé', up: kpis.engagementRate > 50 }}
+            trend={{ value: filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0, label: '% engagé', up: filteredKpis.totalEngagement > filteredKpis.totalEstimation * 0.5 }}
             color="green"
           />
           <KPICard
             title="Estimation"
-            value={fmtM(kpis.totalEstimation) + ' DH'}
-            subtitle={`Montant extrait: ${fmtM(kpis.totalMontantExtrait)}`}
+            value={fmtM(filteredKpis.totalEstimation) + ' DH'}
+            subtitle={`Montant extrait: ${fmtM(filteredKpis.totalMontantExtrait)}`}
             icon={<TrendingUp className="w-5 h-5" />}
-            trend={{ value: kpis.extractionRate, label: '% extraction', up: kpis.extractionRate > 50 }}
+            trend={{ value: filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalMontantExtrait / filteredKpis.totalEstimation * 100) : 0, label: '% extraction', up: filteredKpis.totalMontantExtrait > filteredKpis.totalEstimation * 0.5 }}
             color="amber"
           />
           <KPICard
             title="Engagements"
-            value={fmtM(kpis.totalEngagement) + ' DH'}
+            value={fmtM(filteredKpis.totalEngagement) + ' DH'}
             subtitle={`${completedCount + inProgressCount + pmpCount} marchés en cours`}
             icon={<CheckCircle2 className="w-5 h-5" />}
-            trend={{ value: Math.round(kpis.totalEngagement / kpis.totalEstimation * 100), label: '%/estim.', up: true }}
+            trend={{ value: filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0, label: '%/estim.', up: true }}
             color="violet"
           />
           <KPICard
             title="Échoués / Annulés"
             value={failedCount.toString()}
-            subtitle={`${statusCount['Infructueux'] || 0} infructueux · ${statusCount['Annulé'] || 0} annulés`}
+            subtitle={`${filteredStatusCount['Infructueux'] || 0} infructueux · ${filteredStatusCount['Annulé'] || 0} annulés`}
             icon={<XCircle className="w-5 h-5" />}
-            trend={{ value: Math.round(failedCount / kpis.totalProjects * 100), label: '% du total', up: false }}
+            trend={{ value: filteredKpis.totalProjects > 0 ? Math.round(failedCount / filteredKpis.totalProjects * 100) : 0, label: '% du total', up: false }}
             color="red"
           />
         </section>
@@ -636,24 +821,24 @@ export default function Dashboard() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-slate-700">Avancement Global des Marchés</h3>
-              <span className="text-xs text-slate-400">{completedCount} / {kpis.totalProjects} traités</span>
+              <span className="text-xs text-slate-400">{completedCount} / {filteredKpis.totalProjects} traités</span>
             </div>
             <div className="flex h-5 rounded-full overflow-hidden bg-slate-100">
-              {Object.entries(statusCount).map(([status, count]) => (
+              {Object.entries(filteredStatusCount).map(([status, count]) => (
                 <div
                   key={status}
-                  style={{ width: `${(count / kpis.totalProjects) * 100}%`, backgroundColor: statusColor[status] || '#6b7280' }}
+                  style={{ width: `${(count / filteredKpis.totalProjects) * 100}%`, backgroundColor: statusColor[status] || '#6b7280' }}
                   className="flex items-center justify-center transition-all duration-700"
-                  title={`${status}: ${count} (${Math.round(count / kpis.totalProjects * 100)}%)`}
+                  title={`${status}: ${count} (${Math.round(count / filteredKpis.totalProjects * 100)}%)`}
                 >
-                  {(count / kpis.totalProjects * 100) > 6 && (
+                  {(count / filteredKpis.totalProjects * 100) > 6 && (
                     <span className="text-[10px] font-bold text-white drop-shadow-sm">{count}</span>
                   )}
                 </div>
               ))}
             </div>
             <div className="flex flex-wrap gap-3 mt-3">
-              {Object.entries(statusCount).map(([status, count]) => (
+              {Object.entries(filteredStatusCount).map(([status, count]) => (
                 <div key={status} className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: statusColor[status] }} />
                   <span className="text-[11px] text-slate-500">{status} ({count})</span>
@@ -856,7 +1041,7 @@ export default function Dashboard() {
             Détail par Entité
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
-            {Object.entries(entityBudget).sort(([,a], [,b]) => b.estimation - a.estimation).map(([name, d]) => (
+            {Object.entries(filteredEntityBudget).sort(([,a], [,b]) => b.estimation - a.estimation).map(([name, d]) => (
               <Card key={name} className="border-0 shadow-sm bg-white/80 hover:shadow-md transition-shadow">
                 <CardContent className="p-4 text-center space-y-2">
                   <div className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
@@ -878,8 +1063,8 @@ export default function Dashboard() {
                     </div>
                     <div className="flex justify-between text-[10px]">
                       <span className="text-slate-400">Taux</span>
-                      <span className={`font-bold ${entityEngagementRate[name] >= 50 ? 'text-green-600' : 'text-amber-600'}`}>
-                        {entityEngagementRate[name]}%
+                      <span className={`font-bold ${filteredEntityEngagementRate[name] >= 50 ? 'text-green-600' : 'text-amber-600'}`}>
+                        {filteredEntityEngagementRate[name]}%
                       </span>
                     </div>
                   </div>
@@ -906,50 +1091,15 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent className="px-5 pb-5">
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  placeholder="Rechercher par objet, entité, attributaire..."
-                  className="pl-9 h-9 text-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-full sm:w-48 h-9 text-sm">
-                  <SelectValue placeholder="Statut" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  {statuses.map(s => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={filterEntity} onValueChange={setFilterEntity}>
-                <SelectTrigger className="w-full sm:w-36 h-9 text-sm">
-                  <SelectValue placeholder="Entité" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toutes entités</SelectItem>
-                  {entities.map(e => (
-                    <SelectItem key={e} value={e}>{e}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={filterNature} onValueChange={setFilterNature}>
-                <SelectTrigger className="w-full sm:w-40 h-9 text-sm">
-                  <SelectValue placeholder="Nature" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toutes natures</SelectItem>
-                  {natures.map(n => (
-                    <SelectItem key={n} value={n}>{n}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Filters hint */}
+            <div className="flex items-center gap-2 mb-3">
+              <Search className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-xs text-slate-400">
+                Utilisez les filtres en haut de page pour affiner les résultats
+              </span>
+              <span className="text-xs font-medium text-slate-500 ml-auto">
+                {filtered.length} résultats
+              </span>
             </div>
 
             {/* Table */}

@@ -17,7 +17,8 @@ import {
   CheckCircle2, Clock, AlertCircle, XCircle, Search,
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
-  CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown
+  CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown,
+  PanelLeft, PanelRight, X, ClipboardList, History, Eye
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -281,6 +282,10 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [tablePageSize, setTablePageSize] = useState(25);
   const lastChecksumRef = useRef<string | null>(null);
+  const [showLeftSidebar, setShowLeftSidebar] = useState(false);
+  const [showRightSidebar, setShowRightSidebar] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [sidebarSearch, setSidebarSearch] = useState('');
 
   const fetchData = useCallback(async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
@@ -386,6 +391,16 @@ export default function Dashboard() {
   const natures = [...new Set(projects.map(p => p.natureBudget))].sort();
   const types = [...new Set(projects.map(p => p.typeBudget))].sort();
   const statuses = [...new Set(projects.map(p => p.situationAvancement))].sort();
+
+  // Daily openings computation for right sidebar
+  const dailyOpenings: Record<string, PPMProject[]> = {};
+  filtered.forEach(p => {
+    if (p.dateOuverture) {
+      if (!dailyOpenings[p.dateOuverture]) dailyOpenings[p.dateOuverture] = [];
+      dailyOpenings[p.dateOuverture].push(p);
+    }
+  });
+  const sortedDailyOpenings = Object.entries(dailyOpenings).sort(([a], [b]) => a.localeCompare(b));
 
   // Compute KPIs from filtered data
   const filteredKpis = {
@@ -580,12 +595,171 @@ export default function Dashboard() {
                 <Upload className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Charger fichier</span>
               </Button>
+              <Button
+                variant={showLeftSidebar ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setShowLeftSidebar(!showLeftSidebar)}
+                className={`text-xs h-8 gap-1.5 ${showLeftSidebar ? 'bg-blue-600 hover:bg-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+              >
+                <PanelLeft className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Détail AO</span>
+              </Button>
+              <Button
+                variant={showRightSidebar ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setShowRightSidebar(!showRightSidebar)}
+                className={`text-xs h-8 gap-1.5 ${showRightSidebar ? 'bg-blue-600 hover:bg-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+              >
+                <PanelRight className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Ouvertures</span>
+              </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex gap-0 relative">
+        {/* ── Left Sidebar — Détail des AO ── */}
+        <aside
+          className={`${showLeftSidebar ? 'w-80' : 'w-0'} transition-all duration-300 ease-in-out overflow-hidden shrink-0 border-r border-slate-200 bg-white shadow-xl relative z-30 ${showLeftSidebar ? 'fixed sm:relative inset-y-0 left-0 sm:inset-auto' : 'fixed sm:relative inset-y-0 left-0 sm:inset-auto'}`}
+        >
+          {showLeftSidebar && (
+            <div className="w-80 h-full flex flex-col">
+              {/* Sticky Header */}
+              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-4 py-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <ClipboardList className="w-4 h-4 text-blue-500" />
+                    Détail des AO
+                  </h2>
+                  <Button variant="ghost" size="sm" onClick={() => setShowLeftSidebar(false)} className="h-7 w-7 p-0 hover:bg-slate-100">
+                    <X className="w-4 h-4 text-slate-400" />
+                  </Button>
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                  <Input
+                    placeholder="Filtrer les AO..."
+                    className="pl-8 h-8 text-xs bg-slate-50/80 border-slate-200"
+                    value={sidebarSearch}
+                    onChange={(e) => setSidebarSearch(e.target.value)}
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1.5">{filtered.filter(p => !sidebarSearch || p.objet.toLowerCase().includes(sidebarSearch.toLowerCase()) || p.entite.toLowerCase().includes(sidebarSearch.toLowerCase())).length} projets</p>
+              </div>
+              {/* Scrollable List */}
+              <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[calc(100vh-120px)] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+                {filtered
+                  .filter(p => !sidebarSearch || p.objet.toLowerCase().includes(sidebarSearch.toLowerCase()) || p.entite.toLowerCase().includes(sidebarSearch.toLowerCase()))
+                  .map(p => (
+                  <div key={p.id}>
+                    <div
+                      className={`p-3 rounded-xl border cursor-pointer transition-all duration-200 ${selectedProjectId === p.id ? 'border-blue-200 bg-blue-50/30' : 'border-slate-100 hover:border-blue-200 hover:bg-blue-50/30'}`}
+                      onClick={() => setSelectedProjectId(selectedProjectId === p.id ? null : p.id)}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <Badge variant="outline" className="text-[9px] h-5 bg-slate-50 border-slate-200 text-slate-600 shrink-0">{p.entite}</Badge>
+                        <Badge
+                          className="text-[9px] h-5 gap-1 shrink-0 border-0 text-white"
+                          style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
+                        >
+                          {statusIcon[p.situationAvancement]}
+                          {p.situationAvancement}
+                        </Badge>
+                      </div>
+                      <p className="text-xs font-medium text-slate-700 line-clamp-2 mb-1">{p.objet}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-slate-400">Estim: {fmtM(p.estimationAdmin || 0)} DH</span>
+                        {selectedProjectId === p.id && <Eye className="w-3 h-3 text-blue-400" />}
+                      </div>
+                    </div>
+                    {selectedProjectId === p.id && (
+                      <div className="bg-gradient-to-br from-blue-50/50 to-white p-3 rounded-xl border border-blue-100 mt-1 space-y-2">
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">N° AO</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{p.numAO ?? '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Entité</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{p.entite}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Nature</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{p.natureBudget}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Type</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{p.typeBudget}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">CP</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{fmtFull(p.cp)} DH</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">CE</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{fmtFull(p.ce)} DH</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Estimation</p>
+                            <p className="text-[11px] text-blue-600 font-medium">{fmtFull(p.estimationAdmin || 0)} DH</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Statut</p>
+                            <Badge className="text-[9px] h-4 gap-0.5 border-0 text-white" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>
+                              {statusIcon[p.situationAvancement]}{p.situationAvancement}
+                            </Badge>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Date ouverture</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{p.dateOuverture ?? '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Date jugement</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{p.dateJugement ?? '—'}</p>
+                          </div>
+                          <div className="col-span-2">
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Attributaire</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{p.attributaire ?? '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Montant extrait</p>
+                            <p className="text-[11px] text-green-600 font-medium">{p.montantExtrait ? fmtFull(p.montantExtrait) + ' DH' : '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">N° Marché</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{p.numMarche ?? '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Montant engagement</p>
+                            <p className="text-[11px] text-amber-600 font-medium">{p.montantEngagement ? fmtFull(p.montantEngagement) + ' DH' : '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Engagement CP</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{p.engagementCP ? fmtFull(p.engagementCP) + ' DH' : '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Engagement CE</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{p.engagementCE ? fmtFull(p.engagementCE) + ' DH' : '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Date engagement</p>
+                            <p className="text-[11px] text-slate-700 font-medium">{p.dateEngagement ?? '—'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </aside>
+        {/* Mobile overlay for left sidebar */}
+        {showLeftSidebar && <div className="fixed inset-0 bg-black/20 z-20 sm:hidden" onClick={() => setShowLeftSidebar(false)} />}
+
+        {/* ── Center Content ── */}
+        <div className="flex-1 min-w-0 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ── Upload Section ── */}
         {showUpload && (
           <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm border-blue-100">
@@ -1246,31 +1420,31 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="px-2 pb-4 sm:px-5 sm:pb-5">
             {/* Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-200/80 shadow-sm">
+            <div className="overflow-x-auto rounded-xl border border-slate-200/80 shadow-sm max-h-[70vh] overflow-y-auto">
               <table className="w-full text-xs border-collapse">
-                <thead>
+                <thead className="sticky top-0 z-10">
                   {/* Main header groups */}
-                  <tr className="bg-gradient-to-r from-slate-100 to-slate-50 border-b border-slate-200">
-                    <th rowSpan={2} className="px-2 py-2 text-left font-bold text-slate-600 w-9 bg-slate-100">#</th>
-                    <th rowSpan={2} className="px-2 py-2 text-left font-bold text-slate-600 bg-slate-100">Entité</th>
-                    <th rowSpan={2} className="px-2 py-2 text-left font-bold text-slate-600 min-w-[220px] bg-slate-100">Objet du Marché</th>
-                    <th rowSpan={2} className="px-2 py-2 text-center font-bold text-slate-600 bg-slate-100">Nature</th>
-                    <th colSpan={3} className="px-2 py-1.5 text-center font-bold text-blue-700 bg-blue-50/60 border-b border-blue-100 text-[10px] uppercase tracking-wider">Budget</th>
-                    <th rowSpan={2} className="px-2 py-2 text-center font-bold text-slate-600 bg-slate-100">Statut</th>
-                    <th colSpan={3} className="px-2 py-1.5 text-center font-bold text-green-700 bg-green-50/60 border-b border-green-100 text-[10px] uppercase tracking-wider">Engagement</th>
-                    <th colSpan={3} className="px-2 py-1.5 text-center font-bold text-violet-700 bg-violet-50/60 border-b border-violet-100 text-[10px] uppercase tracking-wider">Dates Clés</th>
-                    <th rowSpan={2} className="px-2 py-2 text-left font-bold text-slate-600 min-w-[120px] bg-slate-100">Attributaire</th>
+                  <tr className="bg-gradient-to-r from-slate-200/90 to-slate-100/90 backdrop-blur-sm border-b border-slate-300">
+                    <th rowSpan={2} className="px-2.5 py-2.5 text-left font-bold text-slate-700 w-9 bg-slate-200/90 backdrop-blur-sm">#</th>
+                    <th rowSpan={2} className="px-2.5 py-2.5 text-left font-bold text-slate-700 bg-slate-200/90 backdrop-blur-sm">Entité</th>
+                    <th rowSpan={2} className="px-2.5 py-2.5 text-left font-bold text-slate-700 min-w-[240px] bg-slate-200/90 backdrop-blur-sm">Objet du Marché</th>
+                    <th rowSpan={2} className="px-2.5 py-2.5 text-center font-bold text-slate-700 bg-slate-200/90 backdrop-blur-sm">Nature</th>
+                    <th colSpan={3} className="px-2.5 py-2 text-center font-bold text-blue-700 bg-blue-100/80 backdrop-blur-sm border-b border-blue-200/60 text-[10px] uppercase tracking-wider">Budget</th>
+                    <th rowSpan={2} className="px-2.5 py-2.5 text-center font-bold text-slate-700 bg-slate-200/90 backdrop-blur-sm">Statut</th>
+                    <th colSpan={3} className="px-2.5 py-2 text-center font-bold text-green-700 bg-green-100/80 backdrop-blur-sm border-b border-green-200/60 text-[10px] uppercase tracking-wider">Engagement</th>
+                    <th colSpan={3} className="px-2.5 py-2 text-center font-bold text-violet-700 bg-violet-100/80 backdrop-blur-sm border-b border-violet-200/60 text-[10px] uppercase tracking-wider">Dates Clés</th>
+                    <th rowSpan={2} className="px-2.5 py-2.5 text-left font-bold text-slate-700 min-w-[120px] bg-slate-200/90 backdrop-blur-sm">Attributaire</th>
                   </tr>
-                  <tr className="bg-slate-50/80 border-b-2 border-slate-300">
-                    <th className="px-2 py-1.5 text-right font-semibold text-slate-500 text-[10px]">CP</th>
-                    <th className="px-2 py-1.5 text-right font-semibold text-slate-500 text-[10px]">CE</th>
-                    <th className="px-2 py-1.5 text-right font-semibold text-slate-500 text-[10px]">Estimation</th>
-                    <th className="px-2 py-1.5 text-right font-semibold text-slate-500 text-[10px]">Montant</th>
-                    <th className="px-2 py-1.5 text-center font-semibold text-slate-500 text-[10px]">Engag. CP</th>
-                    <th className="px-2 py-1.5 text-center font-semibold text-slate-500 text-[10px]">Engag. CE</th>
-                    <th className="px-2 py-1.5 text-center font-semibold text-slate-500 text-[10px]">Ouverture Plis</th>
-                    <th className="px-2 py-1.5 text-center font-semibold text-slate-500 text-[10px]">Jugement</th>
-                    <th className="px-2 py-1.5 text-center font-semibold text-slate-500 text-[10px]">Engagement</th>
+                  <tr className="bg-slate-100/90 backdrop-blur-sm border-b-2 border-slate-300">
+                    <th className="px-2.5 py-1.5 text-right font-semibold text-slate-600 text-[10px]">CP</th>
+                    <th className="px-2.5 py-1.5 text-right font-semibold text-slate-600 text-[10px]">CE</th>
+                    <th className="px-2.5 py-1.5 text-right font-semibold text-slate-600 text-[10px]">Estimation</th>
+                    <th className="px-2.5 py-1.5 text-right font-semibold text-slate-600 text-[10px]">Montant</th>
+                    <th className="px-2.5 py-1.5 text-center font-semibold text-slate-600 text-[10px]">Engag. CP</th>
+                    <th className="px-2.5 py-1.5 text-center font-semibold text-slate-600 text-[10px]">Engag. CE</th>
+                    <th className="px-2.5 py-1.5 text-center font-semibold text-slate-600 text-[10px]">Ouverture Plis</th>
+                    <th className="px-2.5 py-1.5 text-center font-semibold text-slate-600 text-[10px]">Jugement</th>
+                    <th className="px-2.5 py-1.5 text-center font-semibold text-slate-600 text-[10px]">Engagement</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1280,38 +1454,41 @@ export default function Dashboard() {
                     return (
                       <Fragment key={p.id}>
                         <tr
-                          className={`border-b border-slate-100 cursor-pointer transition-all duration-150
-                            ${isExpanded ? 'bg-blue-50/60 border-l-2 border-l-blue-500' : 'hover:bg-slate-50/80'}
-                            ${globalIdx % 2 === 0 ? 'bg-white' : 'bg-slate-25/30'}`}
+                          className={`border-b border-slate-100/80 cursor-pointer transition-all duration-200 group
+                            ${isExpanded
+                              ? 'bg-blue-50/70 border-l-[3px] border-l-blue-500 shadow-inner'
+                              : 'hover:bg-blue-50/30 hover:border-l-[3px] hover:border-l-blue-300 border-l-[3px] border-l-transparent'
+                            }
+                            ${globalIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}
                           onClick={() => setExpandedRow(isExpanded ? null : p.id)}
                         >
-                          <td className="px-2 py-2.5 text-slate-400 font-mono text-[10px]">{p.id}</td>
-                          <td className="px-2 py-2.5">
+                          <td className="px-2.5 py-3 text-slate-400 font-mono text-[10px]">{p.id}</td>
+                          <td className="px-2.5 py-3">
                             <span className="inline-flex items-center justify-center w-9 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-[10px] shadow-sm">
                               {p.entite}
                             </span>
                           </td>
-                          <td className="px-2 py-2.5 text-slate-700 max-w-[280px]">
+                          <td className="px-2.5 py-3 text-slate-700 max-w-[300px]">
                             <div className="flex items-start gap-1.5">
-                              <span className="line-clamp-2 leading-relaxed" title={p.objet}>{p.objet}</span>
+                              <span className="line-clamp-2 leading-relaxed text-[11px]" title={p.objet}>{p.objet}</span>
                               {isExpanded ? (
                                 <ChevronUp className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
                               ) : (
-                                <ChevronDown className="w-3.5 h-3.5 text-slate-300 shrink-0 mt-0.5" />
+                                <ChevronDown className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
                               )}
                             </div>
                           </td>
-                          <td className="px-2 py-2.5 text-center">
-                            <Badge variant="outline" className="text-[9px] h-5 font-medium border-slate-200">
+                          <td className="px-2.5 py-3 text-center">
+                            <Badge variant="outline" className="text-[9px] h-5 font-medium border-slate-200 bg-white">
                               {p.natureBudget}
                             </Badge>
                           </td>
-                          <td className="px-2 py-2.5 text-right font-mono text-slate-600 text-[10px]">{p.cp ? fmtFull(p.cp) : '—'}</td>
-                          <td className="px-2 py-2.5 text-right font-mono text-slate-600 text-[10px]">{p.ce ? fmtFull(p.ce) : '—'}</td>
-                          <td className="px-2 py-2.5 text-right font-mono font-semibold text-slate-800 text-[10px]">
-                            {p.estimationAdmin ? fmtFull(p.estimationAdmin) : '—'}
+                          <td className="px-2.5 py-3 text-right font-mono text-slate-600 text-[10px]">{p.cp ? fmtFull(p.cp) : <span className="text-slate-300">—</span>}</td>
+                          <td className="px-2.5 py-3 text-right font-mono text-slate-600 text-[10px]">{p.ce ? fmtFull(p.ce) : <span className="text-slate-300">—</span>}</td>
+                          <td className="px-2.5 py-3 text-right font-mono font-semibold text-slate-800 text-[10px]">
+                            {p.estimationAdmin ? fmtFull(p.estimationAdmin) : <span className="text-slate-300">—</span>}
                           </td>
-                          <td className="px-2 py-2.5 text-center">
+                          <td className="px-2.5 py-3 text-center">
                             <Badge
                               className="text-[8px] h-5 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap"
                               style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
@@ -1320,40 +1497,40 @@ export default function Dashboard() {
                               {p.situationAvancement}
                             </Badge>
                           </td>
-                          <td className="px-2 py-2.5 text-right font-mono font-semibold text-green-700 text-[10px]">
+                          <td className="px-2.5 py-3 text-right font-mono font-semibold text-green-700 text-[10px]">
                             {p.montantEngagement ? fmtFull(p.montantEngagement) : <span className="text-slate-300">—</span>}
                           </td>
-                          <td className="px-2 py-2.5 text-center font-mono text-slate-500 text-[10px]">
+                          <td className="px-2.5 py-3 text-center font-mono text-slate-500 text-[10px]">
                             {p.engagementCP ? fmtFull(p.engagementCP) : <span className="text-slate-300">—</span>}
                           </td>
-                          <td className="px-2 py-2.5 text-center font-mono text-slate-500 text-[10px]">
+                          <td className="px-2.5 py-3 text-center font-mono text-slate-500 text-[10px]">
                             {p.engagementCE ? fmtFull(p.engagementCE) : <span className="text-slate-300">—</span>}
                           </td>
-                          <td className="px-2 py-2.5 text-center font-mono text-[10px]">
+                          <td className="px-2.5 py-3 text-center font-mono text-[10px]">
                             {p.dateOuverture ? (
-                              <span className="inline-flex items-center gap-0.5 text-slate-600">
+                              <span className="inline-flex items-center gap-1 text-slate-600 bg-violet-50 px-1.5 py-0.5 rounded">
                                 <CalendarDays className="w-3 h-3 text-violet-400" />
                                 {p.dateOuverture}
                               </span>
                             ) : <span className="text-slate-300">—</span>}
                           </td>
-                          <td className="px-2 py-2.5 text-center font-mono text-[10px]">
+                          <td className="px-2.5 py-3 text-center font-mono text-[10px]">
                             {p.dateJugement ? (
-                              <span className="inline-flex items-center gap-0.5 text-slate-600">
+                              <span className="inline-flex items-center gap-1 text-slate-600 bg-amber-50 px-1.5 py-0.5 rounded">
                                 <CalendarDays className="w-3 h-3 text-amber-400" />
                                 {p.dateJugement}
                               </span>
                             ) : <span className="text-slate-300">—</span>}
                           </td>
-                          <td className="px-2 py-2.5 text-center font-mono text-[10px]">
+                          <td className="px-2.5 py-3 text-center font-mono text-[10px]">
                             {p.dateEngagement ? (
-                              <span className="inline-flex items-center gap-0.5 text-slate-600">
+                              <span className="inline-flex items-center gap-1 text-slate-600 bg-green-50 px-1.5 py-0.5 rounded">
                                 <CalendarDays className="w-3 h-3 text-green-400" />
                                 {p.dateEngagement}
                               </span>
                             ) : <span className="text-slate-300">—</span>}
                           </td>
-                          <td className="px-2 py-2.5 text-slate-600 max-w-[130px]">
+                          <td className="px-2.5 py-3 text-slate-600 max-w-[130px]">
                             <span className="line-clamp-1 text-[10px]" title={p.attributaire || ''}>{p.attributaire || <span className="text-slate-300">—</span>}</span>
                           </td>
                         </tr>
@@ -1511,6 +1688,79 @@ export default function Dashboard() {
             </p>
           )}
         </footer>
+        </div>{/* end center content */}
+
+        {/* Mobile overlay for right sidebar */}
+        {showRightSidebar && <div className="fixed inset-0 bg-black/20 z-20 sm:hidden" onClick={() => setShowRightSidebar(false)} />}
+
+        {/* ── Right Sidebar — Historique Ouvertures Plis ── */}
+        <aside
+          className={`${showRightSidebar ? 'w-80' : 'w-0'} transition-all duration-300 ease-in-out overflow-hidden shrink-0 border-l border-slate-200 bg-white shadow-xl relative z-30 ${showRightSidebar ? 'fixed sm:relative inset-y-0 right-0 sm:inset-auto' : 'fixed sm:relative inset-y-0 right-0 sm:inset-auto'}`}
+        >
+          {showRightSidebar && (
+            <div className="w-80 h-full flex flex-col">
+              {/* Sticky Header */}
+              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-4 py-3">
+                <div className="flex items-center justify-between mb-1">
+                  <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <History className="w-4 h-4 text-violet-500" />
+                    Historique Ouvertures Plis
+                  </h2>
+                  <Button variant="ghost" size="sm" onClick={() => setShowRightSidebar(false)} className="h-7 w-7 p-0 hover:bg-slate-100">
+                    <X className="w-4 h-4 text-slate-400" />
+                  </Button>
+                </div>
+                <p className="text-[10px] text-slate-400">{sortedDailyOpenings.length} jours · {filtered.filter(p => p.dateOuverture).length} projets avec date d&apos;ouverture</p>
+              </div>
+              {/* Scrollable Timeline */}
+              <div className="flex-1 overflow-y-auto p-3 space-y-3 max-h-[calc(100vh-100px)] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+                {sortedDailyOpenings.length === 0 && (
+                  <div className="text-center py-8">
+                    <CalendarDays className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs text-slate-400">Aucune date d&apos;ouverture trouvée</p>
+                  </div>
+                )}
+                {sortedDailyOpenings.map(([date, projectsList]) => (
+                  <div key={date}>
+                    {/* Date group header */}
+                    <div className="bg-slate-50 px-3 py-2 rounded-lg flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <CalendarDays className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="text-xs font-semibold text-slate-700">{date}</span>
+                      </div>
+                      <Badge variant="secondary" className="text-[9px] h-5">{projectsList.length}</Badge>
+                    </div>
+                    {/* Projects under this date */}
+                    <div className="space-y-1.5">
+                      {projectsList.map(p => (
+                        <div
+                          key={p.id}
+                          className="p-2.5 rounded-lg border border-slate-100 hover:border-violet-200 hover:bg-violet-50/20 transition-all cursor-pointer"
+                          onClick={() => { setShowLeftSidebar(true); setSelectedProjectId(p.id); }}
+                        >
+                          <div className="flex items-start justify-between gap-1.5 mb-1">
+                            <Badge variant="outline" className="text-[8px] h-4 bg-slate-50 border-slate-200 text-slate-500 shrink-0">{p.entite}</Badge>
+                            <Badge
+                              className="text-[8px] h-4 gap-0.5 shrink-0 border-0 text-white"
+                              style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
+                            >
+                              {statusIcon[p.situationAvancement]}
+                            </Badge>
+                          </div>
+                          <p className="text-[11px] font-medium text-slate-700 line-clamp-2 mb-1">{p.objet}</p>
+                          <div className="flex items-center justify-between text-[9px]">
+                            <span className="text-blue-600 font-medium">Estim: {fmtM(p.estimationAdmin || 0)} DH</span>
+                            {p.attributaire && <span className="text-slate-400 truncate max-w-[100px]">{p.attributaire}</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </aside>
       </main>
     </div>
   );

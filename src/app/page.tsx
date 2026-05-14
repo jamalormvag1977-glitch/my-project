@@ -1241,6 +1241,9 @@ export default function Dashboard() {
                     <th className="px-3 py-2.5 text-right font-semibold text-slate-500">Estim.</th>
                     <th className="px-3 py-2.5 text-center font-semibold text-slate-500">Statut</th>
                     <th className="px-3 py-2.5 text-right font-semibold text-slate-500">Engagement</th>
+                    <th className="px-3 py-2.5 text-center font-semibold text-slate-500 min-w-[90px]">Date Ouverture</th>
+                    <th className="px-3 py-2.5 text-center font-semibold text-slate-500 min-w-[90px]">Date Jugement</th>
+                    <th className="px-3 py-2.5 text-center font-semibold text-slate-500 min-w-[90px]">Date Engagement</th>
                     <th className="px-3 py-2.5 text-left font-semibold text-slate-500">Attributaire</th>
                   </tr>
                 </thead>
@@ -1280,6 +1283,15 @@ export default function Dashboard() {
                       </td>
                       <td className="px-3 py-2 text-right font-mono font-medium text-green-700">
                         {p.montantEngagement ? fmtFull(p.montantEngagement) : '—'}
+                      </td>
+                      <td className="px-3 py-2 text-center font-mono text-slate-600">
+                        {p.dateOuverture ? <span className="inline-flex items-center gap-1"><CalendarDays className="w-3 h-3 text-slate-400" />{p.dateOuverture}</span> : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-3 py-2 text-center font-mono text-slate-600">
+                        {p.dateJugement ? <span className="inline-flex items-center gap-1"><CalendarDays className="w-3 h-3 text-slate-400" />{p.dateJugement}</span> : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-3 py-2 text-center font-mono text-slate-600">
+                        {p.dateEngagement ? <span className="inline-flex items-center gap-1"><CalendarDays className="w-3 h-3 text-slate-400" />{p.dateEngagement}</span> : <span className="text-slate-300">—</span>}
                       </td>
                       <td className="px-3 py-2 text-slate-600 max-w-[120px]">
                         <span className="line-clamp-1" title={p.attributaire || ''}>{p.attributaire || '—'}</span>

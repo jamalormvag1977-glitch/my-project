@@ -280,7 +280,7 @@ export default function Dashboard() {
   const [showUpload, setShowUpload] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [tablePageSize, setTablePageSize] = useState(25);
+  const [tablePageSize, setTablePageSize] = useState(9999);
   const lastChecksumRef = useRef<string | null>(null);
   const [showLeftSidebar, setShowLeftSidebar] = useState(false);
   const [showRightSidebar, setShowRightSidebar] = useState(false);
@@ -1401,26 +1401,15 @@ export default function Dashboard() {
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400">
-                  {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
-                </span>
-                <Select value={String(tablePageSize)} onValueChange={(v) => { setTablePageSize(Number(v)); setCurrentPage(1); }}>
-                  <SelectTrigger className="w-[90px] h-7 text-[10px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 / page</SelectItem>
-                    <SelectItem value="25">25 / page</SelectItem>
-                    <SelectItem value="50">50 / page</SelectItem>
-                    <SelectItem value="100">100 / page</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Badge variant="outline" className="text-[10px] h-6 border-slate-200 bg-slate-50 text-slate-600">
+                  {filtered.length} marché{filtered.length > 1 ? 's' : ''} sur une seule page
+                </Badge>
               </div>
             </div>
           </CardHeader>
           <CardContent className="px-2 pb-4 sm:px-5 sm:pb-5">
             {/* Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-200/80 shadow-sm max-h-[70vh] overflow-y-auto">
+            <div className="overflow-x-auto rounded-xl border border-slate-200/80 shadow-sm">
               <table className="w-full text-xs border-collapse">
                 <thead className="sticky top-0 z-10">
                   {/* Main header groups */}
@@ -1448,8 +1437,8 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedFiltered.map((p, idx) => {
-                    const globalIdx = (currentPage - 1) * tablePageSize + idx;
+                  {filtered.map((p, idx) => {
+                    const globalIdx = idx;
                     const isExpanded = expandedRow === p.id;
                     return (
                       <Fragment key={p.id}>
@@ -1607,75 +1596,12 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Pagination */}
-            {filtered.length > tablePageSize && (
-              <div className="flex items-center justify-between mt-3 px-1">
-                <span className="text-[10px] text-slate-400">
-                  Affichage {((currentPage - 1) * tablePageSize) + 1}–{Math.min(currentPage * tablePageSize, filtered.length)} sur {filtered.length}
-                </span>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(1)}
-                    disabled={currentPage === 1}
-                    className="h-7 w-7 p-0 text-[10px]"
-                  >
-                    «
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="h-7 w-7 p-0 text-[10px]"
-                  >
-                    ‹
-                  </Button>
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let page: number;
-                    if (totalPages <= 5) {
-                      page = i + 1;
-                    } else if (currentPage <= 3) {
-                      page = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      page = totalPages - 4 + i;
-                    } else {
-                      page = currentPage - 2 + i;
-                    }
-                    return (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(page)}
-                        className={`h-7 w-7 p-0 text-[10px] ${currentPage === page ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-                      >
-                        {page}
-                      </Button>
-                    );
-                  })}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                    className="h-7 w-7 p-0 text-[10px]"
-                  >
-                    ›
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(totalPages)}
-                    disabled={currentPage === totalPages}
-                    className="h-7 w-7 p-0 text-[10px]"
-                  >
-                    »
-                  </Button>
-                </div>
-              </div>
-            )}
+            {/* Total count indicator */}
+            <div className="flex items-center justify-center mt-3 px-1">
+              <span className="text-[10px] text-slate-400">
+                {filtered.length} marché{filtered.length > 1 ? 's' : ''} affiché{filtered.length > 1 ? 's' : ''} sur {projects.length}
+              </span>
+            </div>
           </CardContent>
         </Card>
 

@@ -360,38 +360,6 @@ export default function Dashboard() {
 
   const { projects, kpis, statusCount, entityBudget, natureBudget, typeBudget, monthlyTimeline, entityEngagementRate } = data;
 
-  /* ── Derived data ── */
-  const statusData = Object.entries(filteredStatusCount).map(([name, value]) => ({ name, value }));
-  const entityData = Object.entries(filteredEntityBudget).map(([name, d]) => ({
-    name,
-    cp: Math.round(d.cp),
-    ce: Math.round(d.ce),
-    estimation: Math.round(d.estimation),
-    engagement: Math.round(d.engagement),
-    count: d.count,
-  }));
-  const timelineData = Object.entries(filteredMonthlyTimeline)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, d]) => ({
-      month: monthLabel(month),
-      estimation: Math.round(d.estimation),
-      engagement: Math.round(d.engagement),
-      count: d.count,
-    }));
-  const natureData = Object.entries(filteredNatureBudget).map(([name, d]) => ({
-    name,
-    cp: Math.round(d.cp),
-    ce: Math.round(d.ce),
-    count: d.count,
-  }));
-  const typeData = Object.entries(filteredTypeBudget).map(([name, d]) => ({
-    name,
-    cp: Math.round(d.cp),
-    ce: Math.round(d.ce),
-    count: d.count,
-  }));
-  const engagementRateData = Object.entries(filteredEntityEngagementRate).map(([name, rate]) => ({ name, rate }));
-
   /* ── Filtered projects ── */
   const filtered = projects.filter(p => {
     const matchSearch = !searchTerm ||
@@ -459,6 +427,38 @@ export default function Dashboard() {
   Object.entries(filteredEntityBudget).forEach(([entity, d]) => {
     filteredEntityEngagementRate[entity] = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
   });
+
+  /* ── Derived chart data ── */
+  const statusData = Object.entries(filteredStatusCount).map(([name, value]) => ({ name, value }));
+  const entityData = Object.entries(filteredEntityBudget).map(([name, d]) => ({
+    name,
+    cp: Math.round(d.cp),
+    ce: Math.round(d.ce),
+    estimation: Math.round(d.estimation),
+    engagement: Math.round(d.engagement),
+    count: d.count,
+  }));
+  const timelineData = Object.entries(filteredMonthlyTimeline)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, d]) => ({
+      month: monthLabel(month),
+      estimation: Math.round(d.estimation),
+      engagement: Math.round(d.engagement),
+      count: d.count,
+    }));
+  const natureData = Object.entries(filteredNatureBudget).map(([name, d]) => ({
+    name,
+    cp: Math.round(d.cp),
+    ce: Math.round(d.ce),
+    count: d.count,
+  }));
+  const typeData = Object.entries(filteredTypeBudget).map(([name, d]) => ({
+    name,
+    cp: Math.round(d.cp),
+    ce: Math.round(d.ce),
+    count: d.count,
+  }));
+  const engagementRateData = Object.entries(filteredEntityEngagementRate).map(([name, rate]) => ({ name, rate }));
 
   const hasActiveFilters = filterStatus !== 'all' || filterEntity !== 'all' || filterNature !== 'all' || filterType !== 'all';
   const clearAllFilters = () => { setFilterStatus('all'); setFilterEntity('all'); setFilterNature('all'); setFilterType('all'); setSearchTerm(''); };

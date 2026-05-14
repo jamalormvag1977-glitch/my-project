@@ -11,6 +11,17 @@ const UPLOAD_DIR = path.join(process.cwd(), 'upload');
 function formatDate(val: unknown): string | null {
   if (!val) return null;
   if (val instanceof Date) return val.toISOString().split('T')[0];
+  // Handle Excel serial date numbers (e.g., 46037 = a date in 2026)
+  if (typeof val === 'number' && val > 40000 && val < 60000) {
+    try {
+      const d = XLSX.SSF.parse_date_code(val);
+      if (d) {
+        const mm = String(d.m).padStart(2, '0');
+        const dd = String(d.d).padStart(2, '0');
+        return `${d.y}-${mm}-${dd}`;
+      }
+    } catch { /* fallthrough */ }
+  }
   return String(val);
 }
 

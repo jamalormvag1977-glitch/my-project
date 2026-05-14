@@ -18,7 +18,8 @@ import {
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown,
-  PanelLeft, PanelRight, X, ClipboardList, History, Eye
+  PanelLeft, PanelRight, X, ClipboardList, History, Eye,
+  LayoutDashboard, BarChart3 as BarChartIcon2, Settings, HelpCircle, LogOut, ChevronLeft, Menu
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -284,8 +285,7 @@ export default function Dashboard() {
   const lastChecksumRef = useRef<string | null>(null);
   const [showLeftSidebar, setShowLeftSidebar] = useState(false);
   const [showRightSidebar, setShowRightSidebar] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
-  const [sidebarSearch, setSidebarSearch] = useState('');
+  const [activeNav, setActiveNav] = useState('dashboard');
 
   const fetchData = useCallback(async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
@@ -596,13 +596,13 @@ export default function Dashboard() {
                 <span className="hidden sm:inline">Charger fichier</span>
               </Button>
               <Button
-                variant={showLeftSidebar ? 'default' : 'outline'}
+                variant="outline"
                 size="sm"
                 onClick={() => setShowLeftSidebar(!showLeftSidebar)}
-                className={`text-xs h-8 gap-1.5 ${showLeftSidebar ? 'bg-blue-600 hover:bg-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                className="text-xs h-8 gap-1.5 border-slate-200 text-slate-600 hover:bg-slate-50 lg:hidden"
               >
-                <PanelLeft className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Détail AO</span>
+                <Menu className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Menu</span>
               </Button>
               <Button
                 variant={showRightSidebar ? 'default' : 'outline'}
@@ -619,144 +619,115 @@ export default function Dashboard() {
       </header>
 
       <main className="flex gap-0 relative">
-        {/* ── Left Sidebar — Détail des AO ── */}
+        {/* ── Left Sidebar — Dark Navigation ── */}
         <aside
-          className={`${showLeftSidebar ? 'w-80' : 'w-0'} transition-all duration-300 ease-in-out overflow-hidden shrink-0 border-r border-slate-200 bg-white shadow-xl relative z-30 ${showLeftSidebar ? 'fixed sm:relative inset-y-0 left-0 sm:inset-auto' : 'fixed sm:relative inset-y-0 left-0 sm:inset-auto'}`}
+          className={`${showLeftSidebar ? 'w-64' : 'w-0 lg:w-64'} transition-all duration-300 ease-in-out overflow-hidden shrink-0 relative z-30 ${showLeftSidebar ? 'fixed lg:relative inset-y-0 left-0 lg:inset-auto z-50' : 'fixed lg:relative inset-y-0 left-0 lg:inset-auto'}`}
         >
-          {showLeftSidebar && (
-            <div className="w-80 h-full flex flex-col">
-              {/* Sticky Header */}
-              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-4 py-3">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <ClipboardList className="w-4 h-4 text-blue-500" />
-                    Détail des AO
-                  </h2>
-                  <Button variant="ghost" size="sm" onClick={() => setShowLeftSidebar(false)} className="h-7 w-7 p-0 hover:bg-slate-100">
-                    <X className="w-4 h-4 text-slate-400" />
-                  </Button>
+          <div className="w-64 h-screen flex flex-col bg-[#1A2332] text-white sticky top-0">
+            {/* Header with logo */}
+            <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                  <BarChart3 className="w-5 h-5 text-white" />
                 </div>
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                  <Input
-                    placeholder="Filtrer les AO..."
-                    className="pl-8 h-8 text-xs bg-slate-50/80 border-slate-200"
-                    value={sidebarSearch}
-                    onChange={(e) => setSidebarSearch(e.target.value)}
-                  />
+                <div>
+                  <h1 className="text-sm font-bold text-white tracking-tight">PPM 2026</h1>
+                  <p className="text-[9px] text-slate-400">ORMVAG</p>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1.5">{filtered.filter(p => !sidebarSearch || p.objet.toLowerCase().includes(sidebarSearch.toLowerCase()) || p.entite.toLowerCase().includes(sidebarSearch.toLowerCase())).length} projets</p>
               </div>
-              {/* Scrollable List */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[calc(100vh-120px)] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full">
-                {filtered
-                  .filter(p => !sidebarSearch || p.objet.toLowerCase().includes(sidebarSearch.toLowerCase()) || p.entite.toLowerCase().includes(sidebarSearch.toLowerCase()))
-                  .map(p => (
-                  <div key={p.id}>
-                    <div
-                      className={`p-3 rounded-xl border cursor-pointer transition-all duration-200 ${selectedProjectId === p.id ? 'border-blue-200 bg-blue-50/30' : 'border-slate-100 hover:border-blue-200 hover:bg-blue-50/30'}`}
-                      onClick={() => setSelectedProjectId(selectedProjectId === p.id ? null : p.id)}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-1.5">
-                        <Badge variant="outline" className="text-[9px] h-5 bg-slate-50 border-slate-200 text-slate-600 shrink-0">{p.entite}</Badge>
-                        <Badge
-                          className="text-[9px] h-5 gap-1 shrink-0 border-0 text-white"
-                          style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
-                        >
-                          {statusIcon[p.situationAvancement]}
-                          {p.situationAvancement}
-                        </Badge>
-                      </div>
-                      <p className="text-xs font-medium text-slate-700 line-clamp-2 mb-1">{p.objet}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-slate-400">Estim: {fmtM(p.estimationAdmin || 0)} DH</span>
-                        {selectedProjectId === p.id && <Eye className="w-3 h-3 text-blue-400" />}
-                      </div>
-                    </div>
-                    {selectedProjectId === p.id && (
-                      <div className="bg-gradient-to-br from-blue-50/50 to-white p-3 rounded-xl border border-blue-100 mt-1 space-y-2">
-                        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">N° AO</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{p.numAO ?? '—'}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Entité</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{p.entite}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Nature</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{p.natureBudget}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Type</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{p.typeBudget}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">CP</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{fmtFull(p.cp)} DH</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">CE</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{fmtFull(p.ce)} DH</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Estimation</p>
-                            <p className="text-[11px] text-blue-600 font-medium">{fmtFull(p.estimationAdmin || 0)} DH</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Statut</p>
-                            <Badge className="text-[9px] h-4 gap-0.5 border-0 text-white" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>
-                              {statusIcon[p.situationAvancement]}{p.situationAvancement}
-                            </Badge>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Date ouverture</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{p.dateOuverture ?? '—'}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Date jugement</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{p.dateJugement ?? '—'}</p>
-                          </div>
-                          <div className="col-span-2">
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Attributaire</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{p.attributaire ?? '—'}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Montant extrait</p>
-                            <p className="text-[11px] text-green-600 font-medium">{p.montantExtrait ? fmtFull(p.montantExtrait) + ' DH' : '—'}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">N° Marché</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{p.numMarche ?? '—'}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Montant engagement</p>
-                            <p className="text-[11px] text-amber-600 font-medium">{p.montantEngagement ? fmtFull(p.montantEngagement) + ' DH' : '—'}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Engagement CP</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{p.engagementCP ? fmtFull(p.engagementCP) + ' DH' : '—'}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Engagement CE</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{p.engagementCE ? fmtFull(p.engagementCE) + ' DH' : '—'}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-slate-400 uppercase font-semibold">Date engagement</p>
-                            <p className="text-[11px] text-slate-700 font-medium">{p.dateEngagement ?? '—'}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+              <Button variant="ghost" size="sm" onClick={() => setShowLeftSidebar(false)} className="h-7 w-7 p-0 hover:bg-white/10 text-slate-400 lg:hidden">
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Main Navigation */}
+            <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+              <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest px-3 mb-2">Navigation</p>
+
+              {[
+                { id: 'dashboard', icon: <LayoutDashboard className="w-4 h-4" />, label: 'Tableau de bord', count: null },
+                { id: 'ao', icon: <ClipboardList className="w-4 h-4" />, label: 'Appels d\'offres', count: filtered.length },
+                { id: 'history', icon: <History className="w-4 h-4" />, label: 'Ouvertures Plis', count: sortedDailyOpenings.length },
+                { id: 'entities', icon: <Building2 className="w-4 h-4" />, label: 'Entités', count: entities.length },
+                { id: 'budget', icon: <DollarSign className="w-4 h-4" />, label: 'Budget', count: null },
+                { id: 'engagement', icon: <CheckCircle2 className="w-4 h-4" />, label: 'Engagements', count: null },
+                { id: 'stats', icon: <BarChartIcon2 className="w-4 h-4" />, label: 'Statistiques', count: null },
+                { id: 'calendar', icon: <CalendarDays className="w-4 h-4" />, label: 'Calendrier', count: null },
+              ].map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveNav(item.id);
+                    if (item.id === 'history') {
+                      setShowRightSidebar(true);
+                    } else if (item.id === 'ao') {
+                      const tableEl = document.getElementById('projects-table');
+                      tableEl?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                    if (window.innerWidth < 1024) setShowLeftSidebar(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200
+                    ${activeNav === item.id
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                      : 'text-slate-300 hover:bg-white/8 hover:text-white'
+                    }`}
+                >
+                  {item.icon}
+                  <span className="flex-1 text-left font-medium">{item.label}</span>
+                  {item.count !== null && (
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full
+                      ${activeNav === item.id ? 'bg-white/20 text-white' : 'bg-white/8 text-slate-400'}`}>
+                      {item.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+
+              <div className="pt-4">
+                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest px-3 mb-2">Statuts</p>
+                {Object.entries(filteredStatusCount).map(([status, count]) => (
+                  <button
+                    key={status}
+                    onClick={() => {
+                      setFilterStatus(filterStatus === status ? 'all' : status);
+                      setActiveNav('ao');
+                      if (window.innerWidth < 1024) setShowLeftSidebar(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[12px] transition-all duration-200
+                      ${filterStatus === status ? 'bg-blue-600/30 text-blue-300' : 'text-slate-400 hover:bg-white/8 hover:text-slate-200'}`}
+                  >
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: statusColor[status] || '#6b7280' }} />
+                    <span className="flex-1 text-left truncate">{status}</span>
+                    <span className="text-[10px] font-semibold text-slate-500">{count}</span>
+                  </button>
                 ))}
               </div>
+            </nav>
+
+            {/* Footer */}
+            <div className="border-t border-white/10 pt-3 pb-4 px-3 space-y-1">
+              <button
+                onClick={() => { setShowUpload(true); if (window.innerWidth < 1024) setShowLeftSidebar(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:bg-white/8 hover:text-white transition-all duration-200"
+              >
+                <Upload className="w-4 h-4" />
+                <span className="font-medium">Charger fichier</span>
+              </button>
+              <button
+                onClick={() => { setAutoRefresh(!autoRefresh); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:bg-white/8 hover:text-white transition-all duration-200"
+              >
+                <RefreshCw className={`w-4 h-4 ${autoRefresh ? 'text-green-400' : ''}`} />
+                <span className="font-medium">Sync {autoRefresh ? 'ON' : 'OFF'}</span>
+                <span className={`w-2 h-2 rounded-full ml-auto ${autoRefresh ? 'bg-green-400 animate-pulse' : 'bg-slate-600'}`} />
+              </button>
             </div>
-          )}
+          </div>
         </aside>
         {/* Mobile overlay for left sidebar */}
-        {showLeftSidebar && <div className="fixed inset-0 bg-black/20 z-20 sm:hidden" onClick={() => setShowLeftSidebar(false)} />}
+        {showLeftSidebar && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setShowLeftSidebar(false)} />}
 
         {/* ── Center Content ── */}
         <div className="flex-1 min-w-0 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -1387,7 +1358,7 @@ export default function Dashboard() {
         </section>
 
         {/* ── Projects Table ── */}
-        <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
+        <Card id="projects-table" className="border-0 shadow-md bg-white/80 backdrop-blur-sm scroll-mt-20">
           <CardHeader className="pb-3 pt-5 px-5">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
@@ -1662,7 +1633,7 @@ export default function Dashboard() {
                         <div
                           key={p.id}
                           className="p-2.5 rounded-lg border border-slate-100 hover:border-violet-200 hover:bg-violet-50/20 transition-all cursor-pointer"
-                          onClick={() => { setShowLeftSidebar(true); setSelectedProjectId(p.id); }}
+                          onClick={() => { setActiveNav('ao'); const tableEl = document.getElementById('projects-table'); tableEl?.scrollIntoView({ behavior: 'smooth' }); }}
                         >
                           <div className="flex items-start justify-between gap-1.5 mb-1">
                             <Badge variant="outline" className="text-[8px] h-4 bg-slate-50 border-slate-200 text-slate-500 shrink-0">{p.entite}</Badge>

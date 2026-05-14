@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, AreaChart, Area,
+  PieChart, Pie, Cell, AreaChart, Area,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,8 @@ import {
   RefreshCw, TrendingUp, TrendingDown, FileText, DollarSign,
   CheckCircle2, Clock, AlertCircle, XCircle, Search,
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
-  CalendarDays, ArrowUpRight, ArrowDownRight, Minus
+  CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
+  CloudUpload, AlertTriangle, CheckCircle
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -56,6 +57,10 @@ interface KPIs {
 
 interface PPMData {
   lastUpdated: string;
+  fileChecksum?: string;
+  fileName?: string;
+  fileLastModified?: string;
+  fileSize?: number;
   projects: PPMProject[];
   kpis: KPIs;
   statusCount: Record<string, number>;
@@ -76,6 +81,12 @@ const fmtM = (n: number) => {
 
 const fmtFull = (n: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
+
+const fmtFileSize = (bytes: number) => {
+  if (bytes >= 1_048_576) return (bytes / 1_048_576).toFixed(1) + ' Mo';
+  if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' Ko';
+  return bytes + ' octets';
+};
 
 const statusColor: Record<string, string> = {
   'Engagé': '#16a34a',
@@ -121,6 +132,137 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   );
 }
 
+/* ── Upload Component ─────────────────────────────────── */
+function FileUploader({ onUploadSuccess }: { onUploadSuccess: (data: PPMData) => void }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState<{ success: boolean; message: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = useCallback(async (file: File) => {
+    const validExts = ['.xlsx', '.xls'];
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    if (!validExts.includes(ext)) {
+      setUploadResult({ success: false, message: 'Format non supporté. Utilisez .xlsx ou .xls' });
+      return;
+    }
+
+    setUploading(true);
+    setUploadResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/ppm', { method: 'POST', body: formData });
+      const json = await res.json();
+
+      if (res.ok && json.uploadSuccess) {
+        setUploadResult({ success: true, message: json.message });
+        onUploadSuccess(json);
+      } else {
+        setUploadResult({ success: false, message: json.error || 'Erreur inconnue' });
+      }
+    } catch {
+      setUploadResult({ success: false, message: 'Erreur réseau lors du chargement' });
+    } finally {
+      setUploading(false);
+    }
+  }, [onUploadSuccess]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  }, [handleFile]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  }, [handleFile]);
+
+  return (
+    <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer
+        ${isDragging
+          ? 'border-blue-500 bg-blue-50/60 scale-[1.02] shadow-lg shadow-blue-100'
+          : 'border-slate-300 bg-slate-50/50 hover:border-blue-400 hover:bg-blue-50/30'
+        }
+        ${uploading ? 'pointer-events-none opacity-60' : ''}
+      `}
+      onClick={() => fileInputRef.current?.click()}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx,.xls"
+        className="hidden"
+        onChange={handleInputChange}
+      />
+
+      {uploading ? (
+        <div className="space-y-3">
+          <div className="relative w-14 h-14 mx-auto">
+            <div className="absolute inset-0 rounded-full border-4 border-slate-200" />
+            <div className="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+          </div>
+          <p className="text-sm font-medium text-blue-600">Chargement en cours...</p>
+          <p className="text-xs text-slate-400">Analyse du fichier Excel</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center transition-all duration-300
+            ${isDragging ? 'bg-blue-100 scale-110' : 'bg-gradient-to-br from-blue-50 to-blue-100'}`}>
+            {isDragging ? (
+              <CloudUpload className="w-8 h-8 text-blue-500 animate-bounce" />
+            ) : (
+              <FileSpreadsheet className="w-8 h-8 text-blue-500" />
+            )}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-700">
+              {isDragging ? 'Déposez le fichier ici' : 'Glissez-déposez votre fichier Excel'}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              ou <span className="text-blue-500 underline font-medium">cliquez pour parcourir</span>
+            </p>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400">
+            <Badge variant="outline" className="text-[9px] h-5">.xlsx</Badge>
+            <Badge variant="outline" className="text-[9px] h-5">.xls</Badge>
+          </div>
+        </div>
+      )}
+
+      {uploadResult && (
+        <div className={`mt-4 p-3 rounded-xl flex items-center gap-2 text-sm
+          ${uploadResult.success ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+          {uploadResult.success ? (
+            <CheckCircle className="w-4 h-4 shrink-0" />
+          ) : (
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+          )}
+          <span className="text-xs font-medium">{uploadResult.message}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Main Page ────────────────────────────────────────── */
 export default function Dashboard() {
   const [data, setData] = useState<PPMData | null>(null);
@@ -131,6 +273,9 @@ export default function Dashboard() {
   const [filterEntity, setFilterEntity] = useState('all');
   const [filterNature, setFilterNature] = useState('all');
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [fileChanged, setFileChanged] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
+  const lastChecksumRef = useRef<string | null>(null);
 
   const fetchData = useCallback(async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
@@ -138,7 +283,11 @@ export default function Dashboard() {
     try {
       const res = await fetch('/api/ppm');
       const json = await res.json();
-      setData(json);
+      if (res.ok) {
+        setData(json);
+        lastChecksumRef.current = json.fileChecksum || null;
+        setFileChanged(false);
+      }
     } catch (e) {
       console.error('Fetch error:', e);
     } finally {
@@ -147,16 +296,47 @@ export default function Dashboard() {
     }
   }, []);
 
+  // Initial load
   useEffect(() => {
     fetchData(true);
   }, [fetchData]);
 
-  // Auto-refresh every 30 seconds
+  // Intelligent auto-refresh: check checksum every 5s, full data fetch only if changed
   useEffect(() => {
-    if (!autoRefresh) return;
-    const interval = setInterval(() => fetchData(false), 30000);
-    return () => clearInterval(interval);
-  }, [autoRefresh, fetchData]);
+    if (!autoRefresh || !lastChecksumRef.current) return;
+
+    const checkInterval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/ppm', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ checksum: lastChecksumRef.current }),
+        });
+        const json = await res.json();
+        if (json.changed) {
+          setFileChanged(true);
+          // Auto-fetch new data
+          const dataRes = await fetch('/api/ppm');
+          const newData = await dataRes.json();
+          if (dataRes.ok) {
+            setData(newData);
+            lastChecksumRef.current = newData.fileChecksum || null;
+            setFileChanged(false);
+          }
+        }
+      } catch {
+        // silently ignore
+      }
+    }, 5000);
+
+    return () => clearInterval(checkInterval);
+  }, [autoRefresh]);
+
+  const handleUploadSuccess = useCallback((newData: PPMData) => {
+    setData(newData);
+    lastChecksumRef.current = newData.fileChecksum || null;
+    setShowUpload(false);
+  }, []);
 
   /* ── Loading skeleton ── */
   if (loading || !data) {
@@ -248,16 +428,29 @@ export default function Dashboard() {
                 <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
                   Dashboard PPM 2026
                 </h1>
-                <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                <div className="flex items-center gap-2 text-xs text-slate-400">
                   <CalendarDays className="w-3 h-3" />
-                  ORMVAG — Situation au 10/05/2026
-                </p>
+                  <span>ORMVAG — {data.fileName ? data.fileName.replace(/\.xlsx?$/i, '') : 'PPM 2026'}</span>
+                  {data.fileLastModified && (
+                    <span className="text-slate-300">|</span>
+                  )}
+                  {data.fileLastModified && (
+                    <span>Modifié : {new Date(data.fileLastModified).toLocaleString('fr-FR')}</span>
+                  )}
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* File changed notification */}
+              {fileChanged && (
+                <div className="flex items-center gap-1.5 text-xs bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg animate-pulse">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  Fichier mis à jour détecté...
+                </div>
+              )}
               <div className="flex items-center gap-2 text-xs text-slate-400">
                 <span className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
-                {autoRefresh ? 'Auto-rafraîchissement (30s)' : 'Auto-rafraîchissement off'}
+                <span className="hidden sm:inline">{autoRefresh ? 'Auto-sync (5s)' : 'Sync off'}</span>
               </div>
               <Button
                 variant="outline"
@@ -277,12 +470,115 @@ export default function Dashboard() {
                 <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
                 Actualiser
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowUpload(!showUpload)}
+                className="text-xs h-8 gap-1.5 border-blue-200 text-blue-600 hover:bg-blue-50"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Charger fichier</span>
+              </Button>
             </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* ── Upload Section ── */}
+        {showUpload && (
+          <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm border-blue-100">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <Upload className="w-4 h-4 text-blue-500" />
+                    Mettre à jour le fichier source
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Uploadez un nouveau fichier Excel pour actualiser automatiquement tout le dashboard
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowUpload(false)} className="text-xs h-7">
+                  Fermer
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Upload zone */}
+                <FileUploader onUploadSuccess={handleUploadSuccess} />
+
+                {/* Current file info */}
+                <div className="space-y-4">
+                  <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fichier actuel</h4>
+                    {data.fileName ? (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                            <FileSpreadsheet className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-700">{data.fileName}</p>
+                            <p className="text-xs text-slate-400">
+                              {data.fileSize ? fmtFileSize(data.fileSize) : ''} — Checksum: {data.fileChecksum?.substring(0, 8)}...
+                            </p>
+                          </div>
+                        </div>
+                        <Separator />
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-[10px] text-slate-400">Dernière modification</p>
+                            <p className="text-xs font-medium text-slate-600">
+                              {data.fileLastModified ? new Date(data.fileLastModified).toLocaleString('fr-FR') : '—'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400">Marchés détectés</p>
+                            <p className="text-xs font-medium text-slate-600">{projects.length} projets</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400">Dernière lecture</p>
+                            <p className="text-xs font-medium text-slate-600">
+                              {new Date(data.lastUpdated).toLocaleString('fr-FR')}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400">Sync auto</p>
+                            <p className="text-xs font-medium text-green-600">
+                              {autoRefresh ? 'Active (5s)' : 'En pause'}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-xs text-slate-400">Aucun fichier chargé</p>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-50 rounded-xl p-4 space-y-2">
+                    <h4 className="text-xs font-semibold text-blue-700">Comment ça marche ?</h4>
+                    <ul className="space-y-1.5 text-xs text-blue-600">
+                      <li className="flex items-start gap-2">
+                        <span className="w-4 h-4 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5">1</span>
+                        Uploadez un nouveau fichier Excel (.xlsx ou .xls)
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-4 h-4 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5">2</span>
+                        Le dashboard se recharge automatiquement avec les nouvelles données
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-4 h-4 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5">3</span>
+                        Si vous remplacez le fichier sur le serveur, la détection auto le repère en 5 secondes
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* ── KPI Cards ── */}
         <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <KPICard
@@ -724,8 +1020,13 @@ export default function Dashboard() {
         </Card>
 
         {/* ── Footer ── */}
-        <footer className="text-center text-xs text-slate-400 pb-6 pt-2">
-          Dashboard PPM 2026 — ORMVA du Gharb · Dernière mise à jour : {new Date(data.lastUpdated).toLocaleString('fr-FR')}
+        <footer className="text-center text-xs text-slate-400 pb-6 pt-2 space-y-1">
+          <p>Dashboard PPM 2026 — ORMVA du Gharb · Dernière lecture : {new Date(data.lastUpdated).toLocaleString('fr-FR')}</p>
+          {data.fileChecksum && (
+            <p className="text-[10px] text-slate-300">
+              Checksum : {data.fileChecksum.substring(0, 12)}... · Sync auto : {autoRefresh ? 'ON (5s)' : 'OFF'}
+            </p>
+          )}
         </footer>
       </main>
     </div>

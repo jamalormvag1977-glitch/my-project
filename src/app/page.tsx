@@ -389,7 +389,13 @@ export default function Dashboard() {
     totalMontantExtrait: filtered.reduce((s, p) => s + (p.montantExtrait || 0), 0),
   };
   const filteredStatusCount: Record<string, number> = {};
-  filtered.forEach(p => { filteredStatusCount[p.situationAvancement] = (filteredStatusCount[p.situationAvancement] || 0) + 1; });
+  const filteredStatusBudget: Record<string, { estimation: number; engagement: number }> = {};
+  filtered.forEach(p => {
+    filteredStatusCount[p.situationAvancement] = (filteredStatusCount[p.situationAvancement] || 0) + 1;
+    if (!filteredStatusBudget[p.situationAvancement]) filteredStatusBudget[p.situationAvancement] = { estimation: 0, engagement: 0 };
+    filteredStatusBudget[p.situationAvancement].estimation += p.estimationAdmin || 0;
+    filteredStatusBudget[p.situationAvancement].engagement += p.montantEngagement || 0;
+  });
   const filteredEntityBudget: Record<string, { cp: number; ce: number; estimation: number; engagement: number; count: number }> = {};
   filtered.forEach(p => {
     if (!filteredEntityBudget[p.entite]) filteredEntityBudget[p.entite] = { cp: 0, ce: 0, estimation: 0, engagement: 0, count: 0 };
@@ -399,18 +405,22 @@ export default function Dashboard() {
     filteredEntityBudget[p.entite].engagement += p.montantEngagement || 0;
     filteredEntityBudget[p.entite].count += 1;
   });
-  const filteredNatureBudget: Record<string, { cp: number; ce: number; count: number }> = {};
+  const filteredNatureBudget: Record<string, { cp: number; ce: number; estimation: number; engagement: number; count: number }> = {};
   filtered.forEach(p => {
-    if (!filteredNatureBudget[p.natureBudget]) filteredNatureBudget[p.natureBudget] = { cp: 0, ce: 0, count: 0 };
+    if (!filteredNatureBudget[p.natureBudget]) filteredNatureBudget[p.natureBudget] = { cp: 0, ce: 0, estimation: 0, engagement: 0, count: 0 };
     filteredNatureBudget[p.natureBudget].cp += p.cp || 0;
     filteredNatureBudget[p.natureBudget].ce += p.ce || 0;
+    filteredNatureBudget[p.natureBudget].estimation += p.estimationAdmin || 0;
+    filteredNatureBudget[p.natureBudget].engagement += p.montantEngagement || 0;
     filteredNatureBudget[p.natureBudget].count += 1;
   });
-  const filteredTypeBudget: Record<string, { cp: number; ce: number; count: number }> = {};
+  const filteredTypeBudget: Record<string, { cp: number; ce: number; estimation: number; engagement: number; count: number }> = {};
   filtered.forEach(p => {
-    if (!filteredTypeBudget[p.typeBudget]) filteredTypeBudget[p.typeBudget] = { cp: 0, ce: 0, count: 0 };
+    if (!filteredTypeBudget[p.typeBudget]) filteredTypeBudget[p.typeBudget] = { cp: 0, ce: 0, estimation: 0, engagement: 0, count: 0 };
     filteredTypeBudget[p.typeBudget].cp += p.cp || 0;
     filteredTypeBudget[p.typeBudget].ce += p.ce || 0;
+    filteredTypeBudget[p.typeBudget].estimation += p.estimationAdmin || 0;
+    filteredTypeBudget[p.typeBudget].engagement += p.montantEngagement || 0;
     filteredTypeBudget[p.typeBudget].count += 1;
   });
   const filteredMonthlyTimeline: Record<string, { count: number; estimation: number; engagement: number }> = {};
@@ -429,7 +439,12 @@ export default function Dashboard() {
   });
 
   /* ── Derived chart data ── */
-  const statusData = Object.entries(filteredStatusCount).map(([name, value]) => ({ name, value }));
+  const statusData = Object.entries(filteredStatusCount).map(([name, value]) => ({
+    name,
+    value,
+    estimation: Math.round(filteredStatusBudget[name]?.estimation || 0),
+    engagement: Math.round(filteredStatusBudget[name]?.engagement || 0),
+  }));
   const entityData = Object.entries(filteredEntityBudget).map(([name, d]) => ({
     name,
     cp: Math.round(d.cp),
@@ -450,15 +465,24 @@ export default function Dashboard() {
     name,
     cp: Math.round(d.cp),
     ce: Math.round(d.ce),
+    estimation: Math.round(d.estimation),
+    engagement: Math.round(d.engagement),
     count: d.count,
   }));
   const typeData = Object.entries(filteredTypeBudget).map(([name, d]) => ({
     name,
     cp: Math.round(d.cp),
     ce: Math.round(d.ce),
+    estimation: Math.round(d.estimation),
+    engagement: Math.round(d.engagement),
     count: d.count,
   }));
-  const engagementRateData = Object.entries(filteredEntityEngagementRate).map(([name, rate]) => ({ name, rate }));
+  const engagementRateData = Object.entries(filteredEntityEngagementRate).map(([name, rate]) => ({
+    name,
+    rate,
+    estimation: Math.round(filteredEntityBudget[name]?.estimation || 0),
+    engagement: Math.round(filteredEntityBudget[name]?.engagement || 0),
+  }));
 
   const hasActiveFilters = filterStatus !== 'all' || filterEntity !== 'all' || filterNature !== 'all' || filterType !== 'all';
   const clearAllFilters = () => { setFilterStatus('all'); setFilterEntity('all'); setFilterNature('all'); setFilterType('all'); setSearchTerm(''); };
@@ -821,7 +845,7 @@ export default function Dashboard() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-slate-700">Avancement Global des Marchés</h3>
-              <span className="text-xs text-slate-400">{completedCount} / {filteredKpis.totalProjects} traités</span>
+              <span className="text-xs text-slate-400">{completedCount} / {filteredKpis.totalProjects} traités — Engagé: {fmtM(filteredKpis.totalEngagement)} DH</span>
             </div>
             <div className="flex h-5 rounded-full overflow-hidden bg-slate-100">
               {Object.entries(filteredStatusCount).map(([status, count]) => (
@@ -829,7 +853,7 @@ export default function Dashboard() {
                   key={status}
                   style={{ width: `${(count / filteredKpis.totalProjects) * 100}%`, backgroundColor: statusColor[status] || '#6b7280' }}
                   className="flex items-center justify-center transition-all duration-700"
-                  title={`${status}: ${count} (${Math.round(count / filteredKpis.totalProjects * 100)}%)`}
+                  title={`${status}: ${count} (${Math.round(count / filteredKpis.totalProjects * 100)}%) — Estim: ${fmtM(filteredStatusBudget[status]?.estimation || 0)} DH — Engagé: ${fmtM(filteredStatusBudget[status]?.engagement || 0)} DH`}
                 >
                   {(count / filteredKpis.totalProjects * 100) > 6 && (
                     <span className="text-[10px] font-bold text-white drop-shadow-sm">{count}</span>
@@ -842,6 +866,7 @@ export default function Dashboard() {
                 <div key={status} className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: statusColor[status] }} />
                   <span className="text-[11px] text-slate-500">{status} ({count})</span>
+                  <span className="text-[9px] text-blue-600 font-medium">{fmtM(filteredStatusBudget[status]?.estimation || 0)} DH</span>
                 </div>
               ))}
             </div>
@@ -857,6 +882,7 @@ export default function Dashboard() {
                 <PieChartIcon className="w-4 h-4 text-blue-500" />
                 Répartition par Statut
               </CardTitle>
+              <p className="text-[10px] text-slate-400 mt-0.5">Montants d'estimation et d'engagement par statut</p>
             </CardHeader>
             <CardContent className="px-5 pb-5">
               <div className="h-72">
@@ -877,7 +903,22 @@ export default function Dashboard() {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: number, name: string) => [`${value} marchés`, name]}
+                      formatter={(value: number, name: string, props: { payload: { estimation: number; engagement: number; value: number } }) => {
+                        if (name === 'value') {
+                          const d = props.payload;
+                          return [
+                            <span key="v">
+                              <strong>{d.value} marchés</strong>
+                              <br />
+                              <span className="text-blue-600">Estim: {fmtM(d.estimation)} DH</span>
+                              <br />
+                              <span className="text-green-600">Engagé: {fmtM(d.engagement)} DH</span>
+                            </span>,
+                            name
+                          ];
+                        }
+                        return [value, name];
+                      }}
                       contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
                     />
                     <Legend
@@ -886,10 +927,29 @@ export default function Dashboard() {
                       verticalAlign="middle"
                       iconType="circle"
                       iconSize={8}
-                      formatter={(value) => <span className="text-xs text-slate-600">{value}</span>}
+                      formatter={(value, entry) => {
+                        const item = statusData.find(d => d.name === value);
+                        const amt = item ? fmtM(item.estimation) : '';
+                        return <span className="text-[11px] text-slate-600">{value} <span className="text-[9px] text-slate-400">({amt} DH)</span></span>;
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
+              </div>
+              {/* Status amounts summary */}
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                {statusData.map((item) => (
+                  <div key={item.name} className="flex items-center gap-2 bg-slate-50 rounded-lg px-2.5 py-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: statusColor[item.name] }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-medium text-slate-700 truncate">{item.name}</p>
+                      <div className="flex items-center gap-2 text-[9px]">
+                        <span className="text-blue-600">Estim: {fmtM(item.estimation)}</span>
+                        <span className="text-green-600">Engagé: {fmtM(item.engagement)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -899,20 +959,25 @@ export default function Dashboard() {
             <CardHeader className="pb-2 pt-5 px-5">
               <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-green-500" />
-                Budget par Entité (CP vs CE)
+                Budget par Entité (Montants DH)
               </CardTitle>
+              <p className="text-[10px] text-slate-400 mt-0.5">Estimations, engagements, CP et CE par entité</p>
             </CardHeader>
             <CardContent className="px-5 pb-5">
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={entityData} layout="vertical" margin={{ left: 20, right: 20 }}>
+                  <BarChart data={entityData} layout="vertical" margin={{ left: 20, right: 40 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis type="number" tickFormatter={fmtM} tick={{ fontSize: 10 }} stroke="#94a3b8" />
                     <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#475569' }} width={40} />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="cp" name="CP" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={12} />
-                    <Bar dataKey="ce" name="CE" fill="#16a34a" radius={[0, 4, 4, 0]} barSize={12} />
+                    <Bar dataKey="estimation" name="Estimation" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={8}
+                      label={{ position: 'right', formatter: (v: number) => fmtM(v), fontSize: 9, fill: '#3b82f6' }} />
+                    <Bar dataKey="engagement" name="Engagement" fill="#16a34a" radius={[0, 4, 4, 0]} barSize={8}
+                      label={{ position: 'right', formatter: (v: number) => fmtM(v), fontSize: 9, fill: '#16a34a' }} />
+                    <Bar dataKey="cp" name="CP" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={8} />
+                    <Bar dataKey="ce" name="CE" fill="#0891b2" radius={[0, 4, 4, 0]} barSize={8} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -927,8 +992,9 @@ export default function Dashboard() {
             <CardHeader className="pb-2 pt-5 px-5">
               <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-violet-500" />
-                Chronologie des Estimations & Engagements
+                Chronologie des Estimations & Engagements (DH)
               </CardTitle>
+              <p className="text-[10px] text-slate-400 mt-0.5">Évolution des montants par date d'ouverture des plis</p>
             </CardHeader>
             <CardContent className="px-5 pb-5">
               <div className="h-72">
@@ -949,10 +1015,22 @@ export default function Dashboard() {
                     <YAxis tickFormatter={fmtM} tick={{ fontSize: 10 }} stroke="#94a3b8" />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                    <Area type="monotone" dataKey="estimation" name="Estimation" stroke="#2563eb" strokeWidth={2.5} fill="url(#gradEstim)" />
-                    <Area type="monotone" dataKey="engagement" name="Engagement" stroke="#16a34a" strokeWidth={2.5} fill="url(#gradEngage)" />
+                    <Area type="monotone" dataKey="estimation" name="Estimation" stroke="#2563eb" strokeWidth={2.5} fill="url(#gradEstim)"
+                      label={{ formatter: (v: number) => fmtM(v), position: 'top', fontSize: 9, fill: '#2563eb' }} />
+                    <Area type="monotone" dataKey="engagement" name="Engagement" stroke="#16a34a" strokeWidth={2.5} fill="url(#gradEngage)"
+                      label={{ formatter: (v: number) => fmtM(v), position: 'top', fontSize: 9, fill: '#16a34a' }} />
                   </AreaChart>
                 </ResponsiveContainer>
+              </div>
+              {/* Monthly amounts summary */}
+              <div className="flex flex-wrap gap-2 mt-3">
+                {timelineData.map((item, idx) => (
+                  <div key={idx} className="bg-slate-50 rounded-lg px-2.5 py-1.5 text-center min-w-[80px]">
+                    <p className="text-[9px] font-medium text-slate-500">{item.month}</p>
+                    <p className="text-[10px] font-bold text-blue-600">{fmtM(item.estimation)}</p>
+                    <p className="text-[10px] font-bold text-green-600">{fmtM(item.engagement)}</p>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -964,6 +1042,7 @@ export default function Dashboard() {
                 <Activity className="w-4 h-4 text-amber-500" />
                 Taux d&apos;Engagement par Entité
               </CardTitle>
+              <p className="text-[10px] text-slate-400 mt-0.5">Montants engagés vs estimés</p>
             </CardHeader>
             <CardContent className="px-5 pb-5 space-y-4">
               {engagementRateData.sort((a, b) => b.rate - a.rate).map((item) => (
@@ -975,6 +1054,10 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <Progress value={item.rate} className="h-2" />
+                  <div className="flex items-center justify-between text-[9px]">
+                    <span className="text-blue-600">Estim: {fmtM(item.estimation)} DH</span>
+                    <span className="text-green-600">Engagé: {fmtM(item.engagement)} DH</span>
+                  </div>
                 </div>
               ))}
             </CardContent>
@@ -988,8 +1071,9 @@ export default function Dashboard() {
             <CardHeader className="pb-2 pt-5 px-5">
               <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-cyan-500" />
-                Budget par Nature
+                Budget par Nature (Montants DH)
               </CardTitle>
+              <p className="text-[10px] text-slate-400 mt-0.5">Estimations, engagements, CP et CE par nature de budget</p>
             </CardHeader>
             <CardContent className="px-5 pb-5">
               <div className="h-56">
@@ -1000,10 +1084,26 @@ export default function Dashboard() {
                     <YAxis tickFormatter={fmtM} tick={{ fontSize: 10 }} stroke="#94a3b8" />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="cp" name="CP" fill="#0891b2" radius={[4, 4, 0, 0]} barSize={40} />
-                    <Bar dataKey="ce" name="CE" fill="#be185d" radius={[4, 4, 0, 0]} barSize={40} />
+                    <Bar dataKey="estimation" name="Estimation" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20}
+                      label={{ position: 'top', formatter: (v: number) => fmtM(v), fontSize: 9, fill: '#3b82f6' }} />
+                    <Bar dataKey="engagement" name="Engagement" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={20}
+                      label={{ position: 'top', formatter: (v: number) => fmtM(v), fontSize: 9, fill: '#16a34a' }} />
+                    <Bar dataKey="cp" name="CP" fill="#0891b2" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar dataKey="ce" name="CE" fill="#be185d" radius={[4, 4, 0, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
+              </div>
+              {/* Nature amounts summary */}
+              <div className="flex flex-wrap gap-2 mt-3">
+                {natureData.map((item) => (
+                  <div key={item.name} className="bg-slate-50 rounded-lg px-2.5 py-1.5 text-center min-w-[100px]">
+                    <p className="text-[10px] font-medium text-slate-700">{item.name}</p>
+                    <div className="flex items-center gap-2 justify-center text-[9px]">
+                      <span className="text-blue-600">Estim: {fmtM(item.estimation)}</span>
+                      <span className="text-green-600">Engagé: {fmtM(item.engagement)}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -1013,8 +1113,9 @@ export default function Dashboard() {
             <CardHeader className="pb-2 pt-5 px-5">
               <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-rose-500" />
-                Budget par Type (Initial vs Mi-parcours)
+                Budget par Type — Initial vs Mi-parcours (Montants DH)
               </CardTitle>
+              <p className="text-[10px] text-slate-400 mt-0.5">Estimations, engagements, CP et CE par type de budget</p>
             </CardHeader>
             <CardContent className="px-5 pb-5">
               <div className="h-56">
@@ -1025,10 +1126,26 @@ export default function Dashboard() {
                     <YAxis tickFormatter={fmtM} tick={{ fontSize: 10 }} stroke="#94a3b8" />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="cp" name="CP" fill="#7c3aed" radius={[4, 4, 0, 0]} barSize={40} />
-                    <Bar dataKey="ce" name="CE" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={40} />
+                    <Bar dataKey="estimation" name="Estimation" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20}
+                      label={{ position: 'top', formatter: (v: number) => fmtM(v), fontSize: 9, fill: '#3b82f6' }} />
+                    <Bar dataKey="engagement" name="Engagement" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={20}
+                      label={{ position: 'top', formatter: (v: number) => fmtM(v), fontSize: 9, fill: '#16a34a' }} />
+                    <Bar dataKey="cp" name="CP" fill="#7c3aed" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar dataKey="ce" name="CE" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
+              </div>
+              {/* Type amounts summary */}
+              <div className="flex flex-wrap gap-2 mt-3">
+                {typeData.map((item) => (
+                  <div key={item.name} className="bg-slate-50 rounded-lg px-2.5 py-1.5 text-center min-w-[100px]">
+                    <p className="text-[10px] font-medium text-slate-700">{item.name}</p>
+                    <div className="flex items-center gap-2 justify-center text-[9px]">
+                      <span className="text-blue-600">Estim: {fmtM(item.estimation)}</span>
+                      <span className="text-green-600">Engagé: {fmtM(item.engagement)}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -1038,7 +1155,7 @@ export default function Dashboard() {
         <section>
           <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
             <Building2 className="w-4 h-4 text-blue-500" />
-            Détail par Entité
+            Détail par Entité — Montants en DH
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
             {Object.entries(filteredEntityBudget).sort(([,a], [,b]) => b.estimation - a.estimation).map(([name, d]) => (
@@ -1053,6 +1170,14 @@ export default function Dashboard() {
                   </div>
                   <Separator />
                   <div className="space-y-1 text-left">
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-slate-400">CP</span>
+                      <span className="font-medium text-blue-600">{fmtM(d.cp)}</span>
+                    </div>
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-slate-400">CE</span>
+                      <span className="font-medium text-cyan-600">{fmtM(d.ce)}</span>
+                    </div>
                     <div className="flex justify-between text-[10px]">
                       <span className="text-slate-400">Estim.</span>
                       <span className="font-medium text-slate-700">{fmtM(d.estimation)}</span>

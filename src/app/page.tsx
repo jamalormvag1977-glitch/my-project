@@ -18,8 +18,8 @@ import {
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown,
-  PanelLeft, PanelRight, X, ClipboardList, History, Eye,
-  LayoutDashboard, BarChart3 as BarChartIcon2, Settings, HelpCircle, LogOut, ChevronLeft, Menu
+  X, ClipboardList, History,
+  BarChart3 as BarChartIcon2, ChevronLeft, PanelRightOpen, PanelRightClose
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -280,12 +280,11 @@ export default function Dashboard() {
   const [fileChanged, setFileChanged] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [tablePageSize, setTablePageSize] = useState(9999);
   const lastChecksumRef = useRef<string | null>(null);
-  const [showLeftSidebar, setShowLeftSidebar] = useState(false);
-  const [showRightSidebar, setShowRightSidebar] = useState(false);
-  const [activeNav, setActiveNav] = useState('dashboard');
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [sidebarTab, setSidebarTab] = useState<'ao' | 'history'>('ao');
+  const [expandedAO, setExpandedAO] = useState<number | null>(null);
+  const [sidebarSearch, setSidebarSearch] = useState('');
 
   const fetchData = useCallback(async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
@@ -348,9 +347,8 @@ export default function Dashboard() {
     setShowUpload(false);
   }, []);
 
-  // Reset pagination when filters change
+  // Reset expanded when filters change
   useEffect(() => {
-    setCurrentPage(1);
     setExpandedRow(null);
   }, [filterStatus, filterEntity, filterNature, filterType, searchTerm]);
 
@@ -392,7 +390,7 @@ export default function Dashboard() {
   const types = [...new Set(projects.map(p => p.typeBudget))].sort();
   const statuses = [...new Set(projects.map(p => p.situationAvancement))].sort();
 
-  // Daily openings computation for right sidebar
+  // Daily openings computation for sidebar history tab
   const dailyOpenings: Record<string, PPMProject[]> = {};
   filtered.forEach(p => {
     if (p.dateOuverture) {
@@ -508,10 +506,6 @@ export default function Dashboard() {
     engagement: Math.round(filteredEntityBudget[name]?.engagement || 0),
   }));
 
-  // Table pagination
-  const totalPages = Math.max(1, Math.ceil(filtered.length / tablePageSize));
-  const paginatedFiltered = filtered.slice((currentPage - 1) * tablePageSize, currentPage * tablePageSize);
-
   const hasActiveFilters = filterStatus !== 'all' || filterEntity !== 'all' || filterNature !== 'all' || filterType !== 'all';
   const clearAllFilters = () => { setFilterStatus('all'); setFilterEntity('all'); setFilterNature('all'); setFilterType('all'); setSearchTerm(''); };
 
@@ -527,7 +521,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
       {/* ── Header ── */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -550,14 +544,12 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {/* File changed notification */}
               {fileChanged && (
                 <div className="flex items-center gap-1.5 text-xs bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg animate-pulse">
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                   Fichier mis à jour détecté...
                 </div>
               )}
-              {/* Data saved indicator */}
               {data.dataSaved && (
                 <div className="flex items-center gap-1.5 text-xs bg-green-50 border border-green-200 text-green-700 px-2.5 py-1.5 rounded-lg">
                   <CheckCircle2 className="w-3.5 h-3.5" />
@@ -596,22 +588,13 @@ export default function Dashboard() {
                 <span className="hidden sm:inline">Charger fichier</span>
               </Button>
               <Button
-                variant="outline"
+                variant={showSidebar ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setShowLeftSidebar(!showLeftSidebar)}
-                className="text-xs h-8 gap-1.5 border-slate-200 text-slate-600 hover:bg-slate-50 lg:hidden"
+                onClick={() => setShowSidebar(!showSidebar)}
+                className={`text-xs h-8 gap-1.5 ${showSidebar ? 'bg-blue-600 hover:bg-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
               >
-                <Menu className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Menu</span>
-              </Button>
-              <Button
-                variant={showRightSidebar ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setShowRightSidebar(!showRightSidebar)}
-                className={`text-xs h-8 gap-1.5 ${showRightSidebar ? 'bg-blue-600 hover:bg-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-              >
-                <PanelRight className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Ouvertures</span>
+                {showSidebar ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
+                <span className="hidden sm:inline">Panneau</span>
               </Button>
             </div>
           </div>
@@ -619,118 +602,338 @@ export default function Dashboard() {
       </header>
 
       <main className="flex gap-0 relative">
-        {/* ── Left Sidebar — Dark Navigation ── */}
+        {/* ── Left Sidebar — Détail AO + Historique Ouvertures Plis ── */}
         <aside
-          className={`${showLeftSidebar ? 'w-64' : 'w-0 lg:w-64'} transition-all duration-300 ease-in-out overflow-hidden shrink-0 relative z-30 ${showLeftSidebar ? 'fixed lg:relative inset-y-0 left-0 lg:inset-auto z-50' : 'fixed lg:relative inset-y-0 left-0 lg:inset-auto'}`}
+          className={`${showSidebar ? 'w-[340px]' : 'w-0'} transition-all duration-300 ease-in-out overflow-hidden shrink-0 border-r border-slate-200 bg-white relative z-30`}
         >
-          <div className="w-64 h-screen flex flex-col bg-[#1A2332] text-white sticky top-0">
-            {/* Header with logo */}
-            <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                  <BarChart3 className="w-5 h-5 text-white" />
+          {showSidebar && (
+            <div className="w-[340px] h-screen flex flex-col sticky top-0">
+              {/* Sidebar Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md shadow-blue-500/20">
+                    <BarChart3 className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-xs font-bold text-slate-800">PPM 2026</h1>
+                    <p className="text-[9px] text-slate-400">ORMVAG</p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-sm font-bold text-white tracking-tight">PPM 2026</h1>
-                  <p className="text-[9px] text-slate-400">ORMVAG</p>
-                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowSidebar(false)} className="h-7 w-7 p-0 hover:bg-slate-100">
+                  <ChevronLeft className="w-4 h-4 text-slate-400" />
+                </Button>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setShowLeftSidebar(false)} className="h-7 w-7 p-0 hover:bg-white/10 text-slate-400 lg:hidden">
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
 
-            {/* Main Navigation */}
-            <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-              <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest px-3 mb-2">Navigation</p>
-
-              {[
-                { id: 'dashboard', icon: <LayoutDashboard className="w-4 h-4" />, label: 'Tableau de bord', count: null },
-                { id: 'ao', icon: <ClipboardList className="w-4 h-4" />, label: 'Appels d\'offres', count: filtered.length },
-                { id: 'history', icon: <History className="w-4 h-4" />, label: 'Ouvertures Plis', count: sortedDailyOpenings.length },
-                { id: 'entities', icon: <Building2 className="w-4 h-4" />, label: 'Entités', count: entities.length },
-                { id: 'budget', icon: <DollarSign className="w-4 h-4" />, label: 'Budget', count: null },
-                { id: 'engagement', icon: <CheckCircle2 className="w-4 h-4" />, label: 'Engagements', count: null },
-                { id: 'stats', icon: <BarChartIcon2 className="w-4 h-4" />, label: 'Statistiques', count: null },
-                { id: 'calendar', icon: <CalendarDays className="w-4 h-4" />, label: 'Calendrier', count: null },
-              ].map(item => (
+              {/* Tab Switcher */}
+              <div className="flex border-b border-slate-100">
                 <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveNav(item.id);
-                    if (item.id === 'history') {
-                      setShowRightSidebar(true);
-                    } else if (item.id === 'ao') {
-                      const tableEl = document.getElementById('projects-table');
-                      tableEl?.scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                    if (window.innerWidth < 1024) setShowLeftSidebar(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200
-                    ${activeNav === item.id
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                      : 'text-slate-300 hover:bg-white/8 hover:text-white'
+                  onClick={() => setSidebarTab('ao')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-all duration-200 border-b-2
+                    ${sidebarTab === 'ao'
+                      ? 'text-blue-600 border-blue-600 bg-blue-50/50'
+                      : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-slate-50'
                     }`}
                 >
-                  {item.icon}
-                  <span className="flex-1 text-left font-medium">{item.label}</span>
-                  {item.count !== null && (
-                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full
-                      ${activeNav === item.id ? 'bg-white/20 text-white' : 'bg-white/8 text-slate-400'}`}>
-                      {item.count}
-                    </span>
-                  )}
+                  <ClipboardList className="w-3.5 h-3.5" />
+                  Détail des AO
+                  <Badge variant="secondary" className="text-[9px] h-4 px-1.5">{filtered.length}</Badge>
                 </button>
-              ))}
-
-              <div className="pt-4">
-                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest px-3 mb-2">Statuts</p>
-                {Object.entries(filteredStatusCount).map(([status, count]) => (
-                  <button
-                    key={status}
-                    onClick={() => {
-                      setFilterStatus(filterStatus === status ? 'all' : status);
-                      setActiveNav('ao');
-                      if (window.innerWidth < 1024) setShowLeftSidebar(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[12px] transition-all duration-200
-                      ${filterStatus === status ? 'bg-blue-600/30 text-blue-300' : 'text-slate-400 hover:bg-white/8 hover:text-slate-200'}`}
-                  >
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: statusColor[status] || '#6b7280' }} />
-                    <span className="flex-1 text-left truncate">{status}</span>
-                    <span className="text-[10px] font-semibold text-slate-500">{count}</span>
-                  </button>
-                ))}
+                <button
+                  onClick={() => setSidebarTab('history')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-all duration-200 border-b-2
+                    ${sidebarTab === 'history'
+                      ? 'text-violet-600 border-violet-600 bg-violet-50/50'
+                      : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-slate-50'
+                    }`}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  Historique Plis
+                  <Badge variant="secondary" className="text-[9px] h-4 px-1.5">{sortedDailyOpenings.length}</Badge>
+                </button>
               </div>
-            </nav>
 
-            {/* Footer */}
-            <div className="border-t border-white/10 pt-3 pb-4 px-3 space-y-1">
-              <button
-                onClick={() => { setShowUpload(true); if (window.innerWidth < 1024) setShowLeftSidebar(false); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:bg-white/8 hover:text-white transition-all duration-200"
-              >
-                <Upload className="w-4 h-4" />
-                <span className="font-medium">Charger fichier</span>
-              </button>
-              <button
-                onClick={() => { setAutoRefresh(!autoRefresh); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:bg-white/8 hover:text-white transition-all duration-200"
-              >
-                <RefreshCw className={`w-4 h-4 ${autoRefresh ? 'text-green-400' : ''}`} />
-                <span className="font-medium">Sync {autoRefresh ? 'ON' : 'OFF'}</span>
-                <span className={`w-2 h-2 rounded-full ml-auto ${autoRefresh ? 'bg-green-400 animate-pulse' : 'bg-slate-600'}`} />
-              </button>
+              {/* ── Tab: Détail des AO ── */}
+              {sidebarTab === 'ao' && (
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  {/* Search */}
+                  <div className="px-3 py-2 border-b border-slate-50">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-300" />
+                      <Input
+                        placeholder="Rechercher un AO..."
+                        className="pl-8 h-8 text-xs bg-slate-50 border-slate-150"
+                        value={sidebarSearch}
+                        onChange={(e) => setSidebarSearch(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  {/* Quick Status Filters */}
+                  <div className="px-3 py-2 border-b border-slate-50 flex flex-wrap gap-1">
+                    {Object.entries(filteredStatusCount).map(([status, count]) => (
+                      <button
+                        key={status}
+                        onClick={() => setFilterStatus(filterStatus === status ? 'all' : status)}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-medium transition-all
+                          ${filterStatus === status
+                            ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-200'
+                            : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                          }`}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor[status] }} />
+                        {count}
+                      </button>
+                    ))}
+                  </div>
+                  {/* AO List */}
+                  <div className="flex-1 overflow-y-auto p-3 space-y-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+                    {filtered
+                      .filter(p => !sidebarSearch ||
+                        p.objet.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+                        p.entite.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+                        p.attributaire?.toLowerCase().includes(sidebarSearch.toLowerCase())
+                      )
+                      .map(p => {
+                        const isExpanded = expandedAO === p.id;
+                        return (
+                          <div
+                            key={p.id}
+                            className={`rounded-xl border transition-all duration-200 cursor-pointer
+                              ${isExpanded
+                                ? 'border-blue-200 bg-blue-50/30 shadow-md'
+                                : 'border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm'
+                              }`}
+                          >
+                            {/* Card Header */}
+                            <div
+                              className="px-3 py-2.5"
+                              onClick={() => setExpandedAO(isExpanded ? null : p.id)}
+                            >
+                              <div className="flex items-start justify-between gap-2 mb-1.5">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="inline-flex items-center justify-center w-6 h-5 rounded bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-[8px] shadow-sm">
+                                    {p.entite}
+                                  </span>
+                                  <Badge
+                                    className="text-[8px] h-4 gap-0.5 border-0 text-white shrink-0"
+                                    style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
+                                  >
+                                    {statusIcon[p.situationAvancement]}
+                                  </Badge>
+                                </div>
+                                <span className="text-[9px] text-slate-300 font-mono">#{p.id}</span>
+                              </div>
+                              <p className="text-[11px] font-medium text-slate-700 line-clamp-2 leading-relaxed mb-1.5">{p.objet}</p>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-[9px]">
+                                  <span className="text-blue-600 font-medium">Estim: {fmtM(p.estimationAdmin || 0)}</span>
+                                  {p.montantEngagement > 0 && (
+                                    <span className="text-green-600 font-medium">Engagé: {fmtM(p.montantEngagement)}</span>
+                                  )}
+                                </div>
+                                {isExpanded ? (
+                                  <ChevronUp className="w-3.5 h-3.5 text-blue-400" />
+                                ) : (
+                                  <ChevronDown className="w-3.5 h-3.5 text-slate-300" />
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Expanded Detail */}
+                            {isExpanded && (
+                              <div className="px-3 pb-3 pt-0 border-t border-slate-100/80">
+                                <div className="space-y-2 mt-2">
+                                  <div className="bg-slate-50 rounded-lg p-2">
+                                    <p className="text-[8px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Budget</p>
+                                    <div className="grid grid-cols-3 gap-1.5">
+                                      <div className="text-center">
+                                        <p className="text-[9px] text-slate-500">CP</p>
+                                        <p className="text-[10px] font-bold text-blue-600">{p.cp ? fmtM(p.cp) : '—'}</p>
+                                      </div>
+                                      <div className="text-center">
+                                        <p className="text-[9px] text-slate-500">CE</p>
+                                        <p className="text-[10px] font-bold text-cyan-600">{p.ce ? fmtM(p.ce) : '—'}</p>
+                                      </div>
+                                      <div className="text-center">
+                                        <p className="text-[9px] text-slate-500">Estim.</p>
+                                        <p className="text-[10px] font-bold text-slate-800">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="bg-slate-50 rounded-lg p-2">
+                                    <p className="text-[8px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Engagement</p>
+                                    <div className="grid grid-cols-2 gap-1.5">
+                                      <div>
+                                        <p className="text-[9px] text-slate-500">Montant</p>
+                                        <p className="text-[10px] font-bold text-green-700">{p.montantEngagement ? fmtFull(p.montantEngagement) : '—'}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-[9px] text-slate-500">Extrait</p>
+                                        <p className="text-[10px] font-bold text-amber-600">{p.montantExtrait ? fmtM(p.montantExtrait) : '—'}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-[9px] text-slate-500">Eng. CP</p>
+                                        <p className="text-[10px] font-medium text-slate-600">{p.engagementCP ? fmtM(p.engagementCP) : '—'}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-[9px] text-slate-500">Eng. CE</p>
+                                        <p className="text-[10px] font-medium text-slate-600">{p.engagementCE ? fmtM(p.engagementCE) : '—'}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="bg-slate-50 rounded-lg p-2">
+                                    <p className="text-[8px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Dates</p>
+                                    <div className="space-y-1">
+                                      <div className="flex justify-between text-[10px]">
+                                        <span className="text-slate-500">Ouverture Plis</span>
+                                        <span className="font-mono font-medium text-violet-600">{p.dateOuverture || '—'}</span>
+                                      </div>
+                                      <div className="flex justify-between text-[10px]">
+                                        <span className="text-slate-500">Jugement</span>
+                                        <span className="font-mono font-medium text-amber-600">{p.dateJugement || '—'}</span>
+                                      </div>
+                                      <div className="flex justify-between text-[10px]">
+                                        <span className="text-slate-500">Engagement</span>
+                                        <span className="font-mono font-medium text-green-600">{p.dateEngagement || '—'}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="bg-slate-50 rounded-lg p-2">
+                                    <p className="text-[8px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Infos</p>
+                                    <div className="space-y-1">
+                                      <div className="flex justify-between text-[10px]">
+                                        <span className="text-slate-500">N° AO</span>
+                                        <span className="font-mono text-slate-700">{p.numAO || '—'}</span>
+                                      </div>
+                                      <div className="flex justify-between text-[10px]">
+                                        <span className="text-slate-500">N° Marché</span>
+                                        <span className="font-mono text-slate-700">{p.numMarche || '—'}</span>
+                                      </div>
+                                      <div className="flex justify-between text-[10px]">
+                                        <span className="text-slate-500">Attributaire</span>
+                                        <span className="text-slate-700 truncate max-w-[150px] text-right">{p.attributaire || '—'}</span>
+                                      </div>
+                                      <div className="flex justify-between text-[10px]">
+                                        <span className="text-slate-500">Nature</span>
+                                        <span className="text-slate-700">{p.natureBudget}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {/* Engagement rate bar */}
+                                  {p.estimationAdmin && p.estimationAdmin > 0 && p.montantEngagement ? (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[8px] text-slate-400">Taux:</span>
+                                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div
+                                          className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-600"
+                                          style={{ width: `${Math.min(100, Math.round((p.montantEngagement / p.estimationAdmin) * 100))}%` }}
+                                        />
+                                      </div>
+                                      <span className="text-[9px] font-bold text-green-600">
+                                        {Math.round((p.montantEngagement / p.estimationAdmin) * 100)}%
+                                      </span>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    {filtered.filter(p => !sidebarSearch ||
+                      p.objet.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+                      p.entite.toLowerCase().includes(sidebarSearch.toLowerCase())
+                    ).length === 0 && (
+                      <div className="text-center py-8">
+                        <FileText className="w-8 h-8 text-slate-200 mx-auto mb-2" />
+                        <p className="text-xs text-slate-400">Aucun AO trouvé</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Tab: Historique Ouvertures Plis ── */}
+              {sidebarTab === 'history' && (
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  <div className="px-3 py-2 border-b border-slate-50">
+                    <p className="text-[10px] text-slate-400">{sortedDailyOpenings.length} jours · {filtered.filter(p => p.dateOuverture).length} projets avec date d&apos;ouverture</p>
+                  </div>
+                  {/* Timeline */}
+                  <div className="flex-1 overflow-y-auto p-3 space-y-3 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+                    {sortedDailyOpenings.length === 0 && (
+                      <div className="text-center py-8">
+                        <CalendarDays className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                        <p className="text-xs text-slate-400">Aucune date d&apos;ouverture trouvée</p>
+                      </div>
+                    )}
+                    {sortedDailyOpenings.map(([date, projectsList]) => (
+                      <div key={date}>
+                        {/* Date group header */}
+                        <div className="bg-gradient-to-r from-violet-50 to-slate-50 px-3 py-2 rounded-lg flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <CalendarDays className="w-3.5 h-3.5 text-violet-400" />
+                            <span className="text-xs font-semibold text-slate-700">{date}</span>
+                          </div>
+                          <Badge variant="secondary" className="text-[9px] h-5">{projectsList.length} AO</Badge>
+                        </div>
+                        {/* Projects under this date */}
+                        <div className="space-y-1.5">
+                          {projectsList.map(p => (
+                            <div
+                              key={p.id}
+                              className="p-2.5 rounded-lg border border-slate-100 hover:border-violet-200 hover:bg-violet-50/20 transition-all cursor-pointer"
+                              onClick={() => {
+                                setSidebarTab('ao');
+                                setExpandedAO(p.id);
+                              }}
+                            >
+                              <div className="flex items-start justify-between gap-1.5 mb-1">
+                                <Badge variant="outline" className="text-[8px] h-4 bg-slate-50 border-slate-200 text-slate-500 shrink-0">{p.entite}</Badge>
+                                <Badge
+                                  className="text-[8px] h-4 gap-0.5 shrink-0 border-0 text-white"
+                                  style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
+                                >
+                                  {statusIcon[p.situationAvancement]}
+                                </Badge>
+                              </div>
+                              <p className="text-[11px] font-medium text-slate-700 line-clamp-2 mb-1">{p.objet}</p>
+                              <div className="flex items-center justify-between text-[9px]">
+                                <span className="text-blue-600 font-medium">Estim: {fmtM(p.estimationAdmin || 0)} DH</span>
+                                {p.attributaire && <span className="text-slate-400 truncate max-w-[100px]">{p.attributaire}</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sidebar Footer */}
+              <div className="border-t border-slate-100 px-3 py-2 flex items-center gap-2">
+                <button
+                  onClick={() => { setShowUpload(true); }}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  Charger
+                </button>
+                <button
+                  onClick={() => { setAutoRefresh(!autoRefresh); }}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${autoRefresh ? 'text-green-500' : ''}`} />
+                  Sync {autoRefresh ? 'ON' : 'OFF'}
+                  <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </aside>
-        {/* Mobile overlay for left sidebar */}
-        {showLeftSidebar && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setShowLeftSidebar(false)} />}
 
         {/* ── Center Content ── */}
-        <div className="flex-1 min-w-0 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <div className="flex-1 min-w-0 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ── Upload Section ── */}
         {showUpload && (
           <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm border-blue-100">
@@ -1586,78 +1789,6 @@ export default function Dashboard() {
           )}
         </footer>
         </div>{/* end center content */}
-
-        {/* Mobile overlay for right sidebar */}
-        {showRightSidebar && <div className="fixed inset-0 bg-black/20 z-20 sm:hidden" onClick={() => setShowRightSidebar(false)} />}
-
-        {/* ── Right Sidebar — Historique Ouvertures Plis ── */}
-        <aside
-          className={`${showRightSidebar ? 'w-80' : 'w-0'} transition-all duration-300 ease-in-out overflow-hidden shrink-0 border-l border-slate-200 bg-white shadow-xl relative z-30 ${showRightSidebar ? 'fixed sm:relative inset-y-0 right-0 sm:inset-auto' : 'fixed sm:relative inset-y-0 right-0 sm:inset-auto'}`}
-        >
-          {showRightSidebar && (
-            <div className="w-80 h-full flex flex-col">
-              {/* Sticky Header */}
-              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-4 py-3">
-                <div className="flex items-center justify-between mb-1">
-                  <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <History className="w-4 h-4 text-violet-500" />
-                    Historique Ouvertures Plis
-                  </h2>
-                  <Button variant="ghost" size="sm" onClick={() => setShowRightSidebar(false)} className="h-7 w-7 p-0 hover:bg-slate-100">
-                    <X className="w-4 h-4 text-slate-400" />
-                  </Button>
-                </div>
-                <p className="text-[10px] text-slate-400">{sortedDailyOpenings.length} jours · {filtered.filter(p => p.dateOuverture).length} projets avec date d&apos;ouverture</p>
-              </div>
-              {/* Scrollable Timeline */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-3 max-h-[calc(100vh-100px)] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full">
-                {sortedDailyOpenings.length === 0 && (
-                  <div className="text-center py-8">
-                    <CalendarDays className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                    <p className="text-xs text-slate-400">Aucune date d&apos;ouverture trouvée</p>
-                  </div>
-                )}
-                {sortedDailyOpenings.map(([date, projectsList]) => (
-                  <div key={date}>
-                    {/* Date group header */}
-                    <div className="bg-slate-50 px-3 py-2 rounded-lg flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <CalendarDays className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="text-xs font-semibold text-slate-700">{date}</span>
-                      </div>
-                      <Badge variant="secondary" className="text-[9px] h-5">{projectsList.length}</Badge>
-                    </div>
-                    {/* Projects under this date */}
-                    <div className="space-y-1.5">
-                      {projectsList.map(p => (
-                        <div
-                          key={p.id}
-                          className="p-2.5 rounded-lg border border-slate-100 hover:border-violet-200 hover:bg-violet-50/20 transition-all cursor-pointer"
-                          onClick={() => { setActiveNav('ao'); const tableEl = document.getElementById('projects-table'); tableEl?.scrollIntoView({ behavior: 'smooth' }); }}
-                        >
-                          <div className="flex items-start justify-between gap-1.5 mb-1">
-                            <Badge variant="outline" className="text-[8px] h-4 bg-slate-50 border-slate-200 text-slate-500 shrink-0">{p.entite}</Badge>
-                            <Badge
-                              className="text-[8px] h-4 gap-0.5 shrink-0 border-0 text-white"
-                              style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
-                            >
-                              {statusIcon[p.situationAvancement]}
-                            </Badge>
-                          </div>
-                          <p className="text-[11px] font-medium text-slate-700 line-clamp-2 mb-1">{p.objet}</p>
-                          <div className="flex items-center justify-between text-[9px]">
-                            <span className="text-blue-600 font-medium">Estim: {fmtM(p.estimationAdmin || 0)} DH</span>
-                            {p.attributaire && <span className="text-slate-400 truncate max-w-[100px]">{p.attributaire}</span>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </aside>
       </main>
     </div>
   );

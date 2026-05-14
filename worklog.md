@@ -31,3 +31,25 @@ Stage Summary:
 - Build successful ✓
 - Two sidebars fully functional with smooth slide animations
 - Table presentation significantly improved with sticky headers, better hover, consistent padding
+---
+Task ID: 1
+Agent: Main Agent
+Task: Replace dark navigation sidebar + right sidebar with single left sidebar containing two tabs (Détail des AO + Historique Ouvertures Plis)
+
+Work Log:
+- Read full page.tsx (1702 lines) to understand current sidebar implementations
+- Removed dark navigation sidebar (left, with nav links, status filters, upload/sync buttons)
+- Removed right sidebar (Historique Ouvertures Plis overlay)
+- Created new unified left sidebar with two tab sections:
+  - "Détail des AO" tab: Searchable list of all filtered AO cards with expandable detail (budget, engagement, dates, info), quick status filter pills
+  - "Historique Plis" tab: Timeline of openings grouped by date, with clickable items that navigate to AO detail
+- Added sidebar toggle button ("Panneau") in header
+- Updated state variables: removed showLeftSidebar, showRightSidebar, activeNav; added showSidebar, sidebarTab, expandedAO, sidebarSearch
+- Cleaned up unused imports (PanelLeft, LayoutDashboard, Settings, HelpCircle, LogOut, Menu)
+- Build verified successfully
+
+Stage Summary:
+- Single left sidebar with tab-based navigation replacing two separate sidebars
+- Sidebar width: 340px, with smooth toggle animation
+- Both sections fully functional with search, filtering, and interactivity
+- Build passes with no errors

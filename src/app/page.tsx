@@ -61,6 +61,7 @@ interface PPMData {
   fileName?: string;
   fileLastModified?: string;
   fileSize?: number;
+  dataSaved?: boolean;
   projects: PPMProject[];
   kpis: KPIs;
   statusCount: Record<string, number>;
@@ -446,6 +447,13 @@ export default function Dashboard() {
                 <div className="flex items-center gap-1.5 text-xs bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg animate-pulse">
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                   Fichier mis à jour détecté...
+                </div>
+              )}
+              {/* Data saved indicator */}
+              {data.dataSaved && (
+                <div className="flex items-center gap-1.5 text-xs bg-green-50 border border-green-200 text-green-700 px-2.5 py-1.5 rounded-lg">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Données sauvegardées</span>
                 </div>
               )}
               <div className="flex items-center gap-2 text-xs text-slate-400">
@@ -1024,7 +1032,7 @@ export default function Dashboard() {
           <p>Dashboard PPM 2026 — ORMVA du Gharb · Dernière lecture : {new Date(data.lastUpdated).toLocaleString('fr-FR')}</p>
           {data.fileChecksum && (
             <p className="text-[10px] text-slate-300">
-              Checksum : {data.fileChecksum.substring(0, 12)}... · Sync auto : {autoRefresh ? 'ON (5s)' : 'OFF'}
+              Checksum : {data.fileChecksum.substring(0, 12)}... · Sync auto : {autoRefresh ? 'ON (5s)' : 'OFF'} · Base de données : {data.dataSaved ? 'SQLite ✓' : 'Non synchronisée'}
             </p>
           )}
         </footer>

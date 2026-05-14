@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, Fragment } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area,
@@ -17,7 +17,7 @@ import {
   CheckCircle2, Clock, AlertCircle, XCircle, Search,
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
-  CloudUpload, AlertTriangle, CheckCircle
+  CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -277,6 +277,9 @@ export default function Dashboard() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [fileChanged, setFileChanged] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [tablePageSize, setTablePageSize] = useState(25);
   const lastChecksumRef = useRef<string | null>(null);
 
   const fetchData = useCallback(async (showSpinner = false) => {
@@ -339,6 +342,12 @@ export default function Dashboard() {
     lastChecksumRef.current = newData.fileChecksum || null;
     setShowUpload(false);
   }, []);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+    setExpandedRow(null);
+  }, [filterStatus, filterEntity, filterNature, filterType, searchTerm]);
 
   /* ── Loading skeleton ── */
   if (loading || !data) {
@@ -483,6 +492,10 @@ export default function Dashboard() {
     estimation: Math.round(filteredEntityBudget[name]?.estimation || 0),
     engagement: Math.round(filteredEntityBudget[name]?.engagement || 0),
   }));
+
+  // Table pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / tablePageSize));
+  const paginatedFiltered = filtered.slice((currentPage - 1) * tablePageSize, currentPage * tablePageSize);
 
   const hasActiveFilters = filterStatus !== 'all' || filterEntity !== 'all' || filterNature !== 'all' || filterType !== 'all';
   const clearAllFilters = () => { setFilterStatus('all'); setFilterEntity('all'); setFilterNature('all'); setFilterType('all'); setSearchTerm(''); };
@@ -1210,107 +1223,282 @@ export default function Dashboard() {
                   <Badge variant="secondary" className="text-[10px] ml-1">{filtered.length} / {projects.length}</Badge>
                 </CardTitle>
                 <CardDescription className="text-xs text-slate-400 mt-0.5">
-                  Cliquez sur les filtres pour affiner la recherche
+                  Cliquez sur une ligne pour voir les détails complets du marché
                 </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400">
+                  {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
+                </span>
+                <Select value={String(tablePageSize)} onValueChange={(v) => { setTablePageSize(Number(v)); setCurrentPage(1); }}>
+                  <SelectTrigger className="w-[90px] h-7 text-[10px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 / page</SelectItem>
+                    <SelectItem value="25">25 / page</SelectItem>
+                    <SelectItem value="50">50 / page</SelectItem>
+                    <SelectItem value="100">100 / page</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="px-5 pb-5">
-            {/* Filters hint */}
-            <div className="flex items-center gap-2 mb-3">
-              <Search className="w-3.5 h-3.5 text-slate-400" />
-              <span className="text-xs text-slate-400">
-                Utilisez les filtres en haut de page pour affiner les résultats
-              </span>
-              <span className="text-xs font-medium text-slate-500 ml-auto">
-                {filtered.length} résultats
-              </span>
-            </div>
-
+          <CardContent className="px-2 pb-4 sm:px-5 sm:pb-5">
             {/* Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-200">
-              <table className="w-full text-xs">
+            <div className="overflow-x-auto rounded-xl border border-slate-200/80 shadow-sm">
+              <table className="w-full text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-3 py-2.5 text-left font-semibold text-slate-500 w-10">#</th>
-                    <th className="px-3 py-2.5 text-left font-semibold text-slate-500">Entité</th>
-                    <th className="px-3 py-2.5 text-left font-semibold text-slate-500 min-w-[200px]">Objet</th>
-                    <th className="px-3 py-2.5 text-left font-semibold text-slate-500">Type</th>
-                    <th className="px-3 py-2.5 text-right font-semibold text-slate-500">CP</th>
-                    <th className="px-3 py-2.5 text-right font-semibold text-slate-500">CE</th>
-                    <th className="px-3 py-2.5 text-right font-semibold text-slate-500">Estim.</th>
-                    <th className="px-3 py-2.5 text-center font-semibold text-slate-500">Statut</th>
-                    <th className="px-3 py-2.5 text-right font-semibold text-slate-500">Engagement</th>
-                    <th className="px-3 py-2.5 text-center font-semibold text-slate-500 min-w-[90px]">Date Ouverture</th>
-                    <th className="px-3 py-2.5 text-center font-semibold text-slate-500 min-w-[90px]">Date Jugement</th>
-                    <th className="px-3 py-2.5 text-center font-semibold text-slate-500 min-w-[90px]">Date Engagement</th>
-                    <th className="px-3 py-2.5 text-left font-semibold text-slate-500">Attributaire</th>
+                  {/* Main header groups */}
+                  <tr className="bg-gradient-to-r from-slate-100 to-slate-50 border-b border-slate-200">
+                    <th rowSpan={2} className="px-2 py-2 text-left font-bold text-slate-600 w-9 bg-slate-100">#</th>
+                    <th rowSpan={2} className="px-2 py-2 text-left font-bold text-slate-600 bg-slate-100">Entité</th>
+                    <th rowSpan={2} className="px-2 py-2 text-left font-bold text-slate-600 min-w-[220px] bg-slate-100">Objet du Marché</th>
+                    <th rowSpan={2} className="px-2 py-2 text-center font-bold text-slate-600 bg-slate-100">Nature</th>
+                    <th colSpan={3} className="px-2 py-1.5 text-center font-bold text-blue-700 bg-blue-50/60 border-b border-blue-100 text-[10px] uppercase tracking-wider">Budget</th>
+                    <th rowSpan={2} className="px-2 py-2 text-center font-bold text-slate-600 bg-slate-100">Statut</th>
+                    <th colSpan={3} className="px-2 py-1.5 text-center font-bold text-green-700 bg-green-50/60 border-b border-green-100 text-[10px] uppercase tracking-wider">Engagement</th>
+                    <th colSpan={3} className="px-2 py-1.5 text-center font-bold text-violet-700 bg-violet-50/60 border-b border-violet-100 text-[10px] uppercase tracking-wider">Dates Clés</th>
+                    <th rowSpan={2} className="px-2 py-2 text-left font-bold text-slate-600 min-w-[120px] bg-slate-100">Attributaire</th>
+                  </tr>
+                  <tr className="bg-slate-50/80 border-b-2 border-slate-300">
+                    <th className="px-2 py-1.5 text-right font-semibold text-slate-500 text-[10px]">CP</th>
+                    <th className="px-2 py-1.5 text-right font-semibold text-slate-500 text-[10px]">CE</th>
+                    <th className="px-2 py-1.5 text-right font-semibold text-slate-500 text-[10px]">Estimation</th>
+                    <th className="px-2 py-1.5 text-right font-semibold text-slate-500 text-[10px]">Montant</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-slate-500 text-[10px]">Engag. CP</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-slate-500 text-[10px]">Engag. CE</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-slate-500 text-[10px]">Ouverture Plis</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-slate-500 text-[10px]">Jugement</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-slate-500 text-[10px]">Engagement</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.slice(0, 50).map((p, idx) => (
-                    <tr
-                      key={p.id}
-                      className={`border-b border-slate-100 hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}
-                    >
-                      <td className="px-3 py-2 text-slate-400 font-mono">{p.id}</td>
-                      <td className="px-3 py-2">
-                        <span className="inline-flex items-center justify-center w-8 h-6 rounded bg-blue-100 text-blue-700 font-bold text-[10px]">
-                          {p.entite}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-slate-700 max-w-[300px]">
-                        <span className="line-clamp-2" title={p.objet}>{p.objet}</span>
-                      </td>
-                      <td className="px-3 py-2">
-                        <Badge variant="outline" className="text-[9px] h-5 font-medium">
-                          {p.natureBudget}
-                        </Badge>
-                      </td>
-                      <td className="px-3 py-2 text-right font-mono text-slate-600">{p.cp ? fmtFull(p.cp) : '—'}</td>
-                      <td className="px-3 py-2 text-right font-mono text-slate-600">{p.ce ? fmtFull(p.ce) : '—'}</td>
-                      <td className="px-3 py-2 text-right font-mono text-slate-700 font-medium">
-                        {p.estimationAdmin ? fmtFull(p.estimationAdmin) : '—'}
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <Badge
-                          className="text-[9px] h-5 gap-1 font-medium border-0 text-white"
-                          style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
+                  {paginatedFiltered.map((p, idx) => {
+                    const globalIdx = (currentPage - 1) * tablePageSize + idx;
+                    const isExpanded = expandedRow === p.id;
+                    return (
+                      <Fragment key={p.id}>
+                        <tr
+                          className={`border-b border-slate-100 cursor-pointer transition-all duration-150
+                            ${isExpanded ? 'bg-blue-50/60 border-l-2 border-l-blue-500' : 'hover:bg-slate-50/80'}
+                            ${globalIdx % 2 === 0 ? 'bg-white' : 'bg-slate-25/30'}`}
+                          onClick={() => setExpandedRow(isExpanded ? null : p.id)}
                         >
-                          {statusIcon[p.situationAvancement]}
-                          {p.situationAvancement}
-                        </Badge>
-                      </td>
-                      <td className="px-3 py-2 text-right font-mono font-medium text-green-700">
-                        {p.montantEngagement ? fmtFull(p.montantEngagement) : '—'}
-                      </td>
-                      <td className="px-3 py-2 text-center font-mono text-slate-600">
-                        {p.dateOuverture ? <span className="inline-flex items-center gap-1"><CalendarDays className="w-3 h-3 text-slate-400" />{p.dateOuverture}</span> : <span className="text-slate-300">—</span>}
-                      </td>
-                      <td className="px-3 py-2 text-center font-mono text-slate-600">
-                        {p.dateJugement ? <span className="inline-flex items-center gap-1"><CalendarDays className="w-3 h-3 text-slate-400" />{p.dateJugement}</span> : <span className="text-slate-300">—</span>}
-                      </td>
-                      <td className="px-3 py-2 text-center font-mono text-slate-600">
-                        {p.dateEngagement ? <span className="inline-flex items-center gap-1"><CalendarDays className="w-3 h-3 text-slate-400" />{p.dateEngagement}</span> : <span className="text-slate-300">—</span>}
-                      </td>
-                      <td className="px-3 py-2 text-slate-600 max-w-[120px]">
-                        <span className="line-clamp-1" title={p.attributaire || ''}>{p.attributaire || '—'}</span>
-                      </td>
-                    </tr>
-                  ))}
+                          <td className="px-2 py-2.5 text-slate-400 font-mono text-[10px]">{p.id}</td>
+                          <td className="px-2 py-2.5">
+                            <span className="inline-flex items-center justify-center w-9 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-[10px] shadow-sm">
+                              {p.entite}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2.5 text-slate-700 max-w-[280px]">
+                            <div className="flex items-start gap-1.5">
+                              <span className="line-clamp-2 leading-relaxed" title={p.objet}>{p.objet}</span>
+                              {isExpanded ? (
+                                <ChevronUp className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5 text-slate-300 shrink-0 mt-0.5" />
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-2 py-2.5 text-center">
+                            <Badge variant="outline" className="text-[9px] h-5 font-medium border-slate-200">
+                              {p.natureBudget}
+                            </Badge>
+                          </td>
+                          <td className="px-2 py-2.5 text-right font-mono text-slate-600 text-[10px]">{p.cp ? fmtFull(p.cp) : '—'}</td>
+                          <td className="px-2 py-2.5 text-right font-mono text-slate-600 text-[10px]">{p.ce ? fmtFull(p.ce) : '—'}</td>
+                          <td className="px-2 py-2.5 text-right font-mono font-semibold text-slate-800 text-[10px]">
+                            {p.estimationAdmin ? fmtFull(p.estimationAdmin) : '—'}
+                          </td>
+                          <td className="px-2 py-2.5 text-center">
+                            <Badge
+                              className="text-[8px] h-5 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap"
+                              style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
+                            >
+                              {statusIcon[p.situationAvancement]}
+                              {p.situationAvancement}
+                            </Badge>
+                          </td>
+                          <td className="px-2 py-2.5 text-right font-mono font-semibold text-green-700 text-[10px]">
+                            {p.montantEngagement ? fmtFull(p.montantEngagement) : <span className="text-slate-300">—</span>}
+                          </td>
+                          <td className="px-2 py-2.5 text-center font-mono text-slate-500 text-[10px]">
+                            {p.engagementCP ? fmtFull(p.engagementCP) : <span className="text-slate-300">—</span>}
+                          </td>
+                          <td className="px-2 py-2.5 text-center font-mono text-slate-500 text-[10px]">
+                            {p.engagementCE ? fmtFull(p.engagementCE) : <span className="text-slate-300">—</span>}
+                          </td>
+                          <td className="px-2 py-2.5 text-center font-mono text-[10px]">
+                            {p.dateOuverture ? (
+                              <span className="inline-flex items-center gap-0.5 text-slate-600">
+                                <CalendarDays className="w-3 h-3 text-violet-400" />
+                                {p.dateOuverture}
+                              </span>
+                            ) : <span className="text-slate-300">—</span>}
+                          </td>
+                          <td className="px-2 py-2.5 text-center font-mono text-[10px]">
+                            {p.dateJugement ? (
+                              <span className="inline-flex items-center gap-0.5 text-slate-600">
+                                <CalendarDays className="w-3 h-3 text-amber-400" />
+                                {p.dateJugement}
+                              </span>
+                            ) : <span className="text-slate-300">—</span>}
+                          </td>
+                          <td className="px-2 py-2.5 text-center font-mono text-[10px]">
+                            {p.dateEngagement ? (
+                              <span className="inline-flex items-center gap-0.5 text-slate-600">
+                                <CalendarDays className="w-3 h-3 text-green-400" />
+                                {p.dateEngagement}
+                              </span>
+                            ) : <span className="text-slate-300">—</span>}
+                          </td>
+                          <td className="px-2 py-2.5 text-slate-600 max-w-[130px]">
+                            <span className="line-clamp-1 text-[10px]" title={p.attributaire || ''}>{p.attributaire || <span className="text-slate-300">—</span>}</span>
+                          </td>
+                        </tr>
+                        {/* Expanded detail row */}
+                        {isExpanded && (
+                          <tr className="bg-gradient-to-r from-blue-50/50 to-white border-b border-blue-100/50">
+                            <td colSpan={15} className="px-4 py-3">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                                <div className="bg-white rounded-lg p-2.5 shadow-sm border border-slate-100">
+                                  <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Objet complet</p>
+                                  <p className="text-[10px] text-slate-700 leading-relaxed">{p.objet}</p>
+                                </div>
+                                <div className="bg-white rounded-lg p-2.5 shadow-sm border border-slate-100">
+                                  <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-1">N° AO / N° Marché</p>
+                                  <p className="text-[10px] text-slate-700">AO: <span className="font-mono font-medium">{p.numAO || '—'}</span></p>
+                                  <p className="text-[10px] text-slate-700">Marché: <span className="font-mono font-medium">{p.numMarche || '—'}</span></p>
+                                </div>
+                                <div className="bg-white rounded-lg p-2.5 shadow-sm border border-slate-100">
+                                  <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Budget Détaillé</p>
+                                  <div className="space-y-0.5">
+                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">CP</span><span className="font-mono font-medium text-blue-600">{p.cp ? fmtFull(p.cp) : '—'}</span></div>
+                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">CE</span><span className="font-mono font-medium text-cyan-600">{p.ce ? fmtFull(p.ce) : '—'}</span></div>
+                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Estimation</span><span className="font-mono font-semibold text-slate-800">{p.estimationAdmin ? fmtFull(p.estimationAdmin) : '—'}</span></div>
+                                  </div>
+                                </div>
+                                <div className="bg-white rounded-lg p-2.5 shadow-sm border border-slate-100">
+                                  <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Engagement Détaillé</p>
+                                  <div className="space-y-0.5">
+                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Montant</span><span className="font-mono font-semibold text-green-700">{p.montantEngagement ? fmtFull(p.montantEngagement) : '—'}</span></div>
+                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Engag. CP</span><span className="font-mono text-slate-600">{p.engagementCP ? fmtFull(p.engagementCP) : '—'}</span></div>
+                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Engag. CE</span><span className="font-mono text-slate-600">{p.engagementCE ? fmtFull(p.engagementCE) : '—'}</span></div>
+                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Montant extrait</span><span className="font-mono text-amber-600">{p.montantExtrait ? fmtFull(p.montantExtrait) : '—'}</span></div>
+                                  </div>
+                                </div>
+                                <div className="bg-white rounded-lg p-2.5 shadow-sm border border-slate-100">
+                                  <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Dates & Attributaire</p>
+                                  <div className="space-y-0.5">
+                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Ouverture</span><span className="font-mono text-violet-600">{p.dateOuverture || '—'}</span></div>
+                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Jugement</span><span className="font-mono text-amber-600">{p.dateJugement || '—'}</span></div>
+                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Engagement</span><span className="font-mono text-green-600">{p.dateEngagement || '—'}</span></div>
+                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Attributaire</span><span className="font-medium text-slate-700 truncate max-w-[100px]">{p.attributaire || '—'}</span></div>
+                                  </div>
+                                </div>
+                              </div>
+                              {/* Engagement rate mini bar */}
+                              {p.estimationAdmin && p.estimationAdmin > 0 && p.montantEngagement && (
+                                <div className="mt-2 flex items-center gap-2">
+                                  <span className="text-[9px] text-slate-400">Taux engagement:</span>
+                                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[200px]">
+                                    <div
+                                      className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-600"
+                                      style={{ width: `${Math.min(100, Math.round((p.montantEngagement / p.estimationAdmin) * 100))}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-[10px] font-bold text-green-600">
+                                    {Math.round((p.montantEngagement / p.estimationAdmin) * 100)}%
+                                  </span>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
-              {filtered.length > 50 && (
-                <div className="text-center py-3 text-xs text-slate-400 bg-slate-50/50">
-                  Affichage de 50 sur {filtered.length} résultats. Utilisez les filtres pour affiner.
-                </div>
-              )}
               {filtered.length === 0 && (
-                <div className="text-center py-10 text-sm text-slate-400">
-                  Aucun résultat trouvé. Modifiez vos critères de recherche.
+                <div className="text-center py-12 text-sm text-slate-400">
+                  <FileText className="w-10 h-10 mx-auto text-slate-200 mb-2" />
+                  <p className="font-medium">Aucun résultat trouvé</p>
+                  <p className="text-xs mt-1">Modifiez vos critères de recherche ou filtres</p>
                 </div>
               )}
             </div>
+
+            {/* Pagination */}
+            {filtered.length > tablePageSize && (
+              <div className="flex items-center justify-between mt-3 px-1">
+                <span className="text-[10px] text-slate-400">
+                  Affichage {((currentPage - 1) * tablePageSize) + 1}–{Math.min(currentPage * tablePageSize, filtered.length)} sur {filtered.length}
+                </span>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="h-7 w-7 p-0 text-[10px]"
+                  >
+                    «
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="h-7 w-7 p-0 text-[10px]"
+                  >
+                    ‹
+                  </Button>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let page: number;
+                    if (totalPages <= 5) {
+                      page = i + 1;
+                    } else if (currentPage <= 3) {
+                      page = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      page = totalPages - 4 + i;
+                    } else {
+                      page = currentPage - 2 + i;
+                    }
+                    return (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className={`h-7 w-7 p-0 text-[10px] ${currentPage === page ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                      >
+                        {page}
+                      </Button>
+                    );
+                  })}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="h-7 w-7 p-0 text-[10px]"
+                  >
+                    ›
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="h-7 w-7 p-0 text-[10px]"
+                  >
+                    »
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

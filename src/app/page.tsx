@@ -18,8 +18,7 @@ import {
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown,
-  X, ClipboardList, History,
-  BarChart3 as BarChartIcon2, ChevronLeft, PanelRightOpen, PanelRightClose
+  X, ClipboardList, History, Download
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -362,10 +361,11 @@ export default function Dashboard() {
   const [showUpload, setShowUpload] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const lastChecksumRef = useRef<string | null>(null);
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [sidebarTab, setSidebarTab] = useState<'ao' | 'history'>('ao');
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<'ao' | 'history' | null>(null);
   const [expandedAO, setExpandedAO] = useState<number | null>(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
+  const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
   const [mounted, setMounted] = useState(false);
 
   const fetchData = useCallback(async (showSpinner = false) => {
@@ -440,6 +440,29 @@ export default function Dashboard() {
     setExpandedRow(null);
   }, [filterStatus, filterEntity, filterNature, filterType, searchTerm]);
 
+  /* ── exportToExcel - MUST be before early return (Rules of Hooks) ── */
+  const exportToExcel = useCallback(() => {
+    if (!data) return;
+    const projectsToExport = data.projects;
+    const headers = ['#', 'Entité', 'Objet', 'Nature', 'Type', 'CP', 'CE', 'Estimation', 'Statut', 'Ouverture Plis', 'Jugement', 'Engagement', 'Engagé le', 'Montant Engagement', 'Engag. CP', 'Engag. CE', 'Montant Extrait', 'Attributaire', 'N° AO', 'N° Marché'];
+    const rows = projectsToExport.map(p => [
+      p.id, p.entite, `"${p.objet.replace(/"/g, '""')}"`, p.natureBudget, p.typeBudget,
+      p.cp || '', p.ce || '', p.estimationAdmin || '',
+      p.situationAvancement, p.dateOuverture || '', p.dateJugement || '', p.montantEngagement || '',
+      p.dateEngagement || '', p.montantEngagement || '', p.engagementCP || '', p.engagementCE || '',
+      p.montantExtrait || '', p.attributaire || '', p.numAO || '', p.numMarche || ''
+    ]);
+    const csvContent = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `PPM_2026_Export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [data]);
+
   /* ── Premium Loading skeleton ── */
   if (loading || !data) {
     return (
@@ -501,12 +524,20 @@ export default function Dashboard() {
   const types = [...new Set(projects.map(p => p.typeBudget))].sort();
   const statuses = [...new Set(projects.map(p => p.situationAvancement))].sort();
 
-  // Daily openings computation for sidebar history tab
+  // Today for filtering daily openings
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Daily openings computation for sidebar history tab — only dates <= today
   const dailyOpenings: Record<string, PPMProject[]> = {};
   filtered.forEach(p => {
     if (p.dateOuverture) {
-      if (!dailyOpenings[p.dateOuverture]) dailyOpenings[p.dateOuverture] = [];
-      dailyOpenings[p.dateOuverture].push(p);
+      const openingDate = new Date(p.dateOuverture);
+      openingDate.setHours(0, 0, 0, 0);
+      if (openingDate <= today) {
+        if (!dailyOpenings[p.dateOuverture]) dailyOpenings[p.dateOuverture] = [];
+        dailyOpenings[p.dateOuverture].push(p);
+      }
     }
   });
   const sortedDailyOpenings = Object.entries(dailyOpenings).sort(([a], [b]) => a.localeCompare(b));
@@ -633,10 +664,52 @@ export default function Dashboard() {
   const failedCount = (filteredStatusCount['Infructueux'] || 0) + (filteredStatusCount['Annulé'] || 0);
   const completedCount = engagedCount + judgedCount;
 
+  // Rate computations for rate cards
+  const ouverturePlisRate = filteredKpis.totalProjects > 0 ? Math.round(filtered.filter(p => p.dateOuverture).length / filteredKpis.totalProjects * 100) : 0;
+  const jugementRate = filteredKpis.totalProjects > 0 ? Math.round(filtered.filter(p => p.dateJugement).length / filteredKpis.totalProjects * 100) : 0;
+  const engagementRate = filteredKpis.totalProjects > 0 ? Math.round(filtered.filter(p => p.montantEngagement && p.montantEngagement > 0).length / filteredKpis.totalProjects * 100) : 0;
+  const annuleRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['Annulé'] || 0) / filteredKpis.totalProjects * 100) : 0;
+  const infructueuxRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['Infructueux'] || 0) / filteredKpis.totalProjects * 100) : 0;
+  const aProgrammerRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['A programmer'] || 0) / filteredKpis.totalProjects * 100) : 0;
+  const enCoursJugementRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['En cours de jugement'] || 0) / filteredKpis.totalProjects * 100) : 0;
+  const publiePmpRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['Publié sur PMP'] || 0) / filteredKpis.totalProjects * 100) : 0;
+
   // Entity color mapping for top accent
   const entityColorMap: Record<string, string> = {};
   const entityColors = ['#3b82f6', '#16a34a', '#d97706', '#7c3aed', '#dc2626', '#0891b2', '#be185d', '#ea580c'];
   entities.forEach((e, i) => { entityColorMap[e] = entityColors[i % entityColors.length]; });
+
+  /* ── Rate Card Data ── */
+  const rateCards = [
+    { label: 'Ouverture Plis', rate: ouverturePlisRate, count: filtered.filter(p => p.dateOuverture).length, color: '#7c3aed', icon: <CalendarDays className="w-4 h-4" /> },
+    { label: 'Jugement', rate: jugementRate, count: filtered.filter(p => p.dateJugement).length, color: '#2563eb', icon: <CheckCircle2 className="w-4 h-4" /> },
+    { label: 'Engagement', rate: engagementRate, count: filtered.filter(p => p.montantEngagement && p.montantEngagement > 0).length, color: '#16a34a', icon: <DollarSign className="w-4 h-4" /> },
+    { label: 'Annulé', rate: annuleRate, count: filteredStatusCount['Annulé'] || 0, color: '#991b1b', icon: <XCircle className="w-4 h-4" /> },
+    { label: 'Infructueux', rate: infructueuxRate, count: filteredStatusCount['Infructueux'] || 0, color: '#dc2626', icon: <XCircle className="w-4 h-4" /> },
+    { label: 'A programmer', rate: aProgrammerRate, count: filteredStatusCount['A programmer'] || 0, color: '#6b7280', icon: <AlertCircle className="w-4 h-4" /> },
+    { label: 'En cours de jugement', rate: enCoursJugementRate, count: filteredStatusCount['En cours de jugement'] || 0, color: '#d97706', icon: <Clock className="w-4 h-4" /> },
+    { label: 'Publié sur PMP', rate: publiePmpRate, count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed', icon: <Activity className="w-4 h-4" /> },
+  ];
+
+  // Donut chart data for AO prévus
+  const aoPrevusData = statuses.map(s => ({
+    name: s,
+    value: filteredStatusCount[s] || 0,
+    color: statusColor[s] || '#6b7280',
+  }));
+
+  /* ── Full-screen sidebar search filter ── */
+  const sidebarFiltered = filtered.filter(p =>
+    !sidebarSearch ||
+    p.objet.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+    p.entite.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+    p.attributaire?.toLowerCase().includes(sidebarSearch.toLowerCase())
+  );
+
+  /* ── Full-screen status filter ── */
+  const sidebarStatusFiltered = sidebarStatusFilter === 'all'
+    ? sidebarFiltered
+    : sidebarFiltered.filter(p => p.situationAvancement === sidebarStatusFilter);
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dot-pattern transition-opacity duration-500 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
@@ -719,360 +792,518 @@ export default function Dashboard() {
                 <Upload className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Charger fichier</span>
               </Button>
+              {/* Détail des AO button */}
               <Button
-                variant={showSidebar ? 'default' : 'outline'}
+                variant={showSidebar && sidebarTab === 'ao' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setShowSidebar(!showSidebar)}
-                className={`text-xs h-8 gap-1.5 rounded-full px-4 transition-all duration-300 ${showSidebar ? 'bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 shadow-md shadow-blue-500/20' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                onClick={() => {
+                  if (showSidebar && sidebarTab === 'ao') {
+                    setShowSidebar(false);
+                    setSidebarTab(null);
+                  } else {
+                    setShowSidebar(true);
+                    setSidebarTab('ao');
+                  }
+                }}
+                className={`text-xs h-8 gap-1.5 rounded-full px-4 transition-all duration-300 ${showSidebar && sidebarTab === 'ao' ? 'bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 shadow-md shadow-blue-500/20 text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
               >
-                {showSidebar ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
-                <span className="hidden sm:inline">Panneau</span>
+                <ClipboardList className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Détail des AO</span>
+              </Button>
+              {/* Historique Plis button */}
+              <Button
+                variant={showSidebar && sidebarTab === 'history' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  if (showSidebar && sidebarTab === 'history') {
+                    setShowSidebar(false);
+                    setSidebarTab(null);
+                  } else {
+                    setShowSidebar(true);
+                    setSidebarTab('history');
+                  }
+                }}
+                className={`text-xs h-8 gap-1.5 rounded-full px-4 transition-all duration-300 ${showSidebar && sidebarTab === 'history' ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-md shadow-violet-500/20 text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+              >
+                <History className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Historique Plis</span>
+              </Button>
+              {/* Export Excel button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportToExcel}
+                className="text-xs h-8 gap-1.5 rounded-full px-4 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Exporter Excel</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="flex gap-0 relative">
-        {/* ── Premium Left Sidebar ── */}
-        <aside
-          className={`${showSidebar ? 'w-[340px]' : 'w-0'} transition-all duration-300 ease-in-out overflow-hidden shrink-0 relative z-30`}
-        >
-          {showSidebar && (
-            <div className="w-[340px] h-screen flex flex-col sticky top-0 glass-card-dark text-white">
-              {/* Sidebar Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                    <BarChart3 className="w-4 h-4 text-white" />
+      <main className="relative">
+        {/* ── Full-Screen Détail des AO View ── */}
+        {showSidebar && sidebarTab === 'ao' && (
+          <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
+            {/* Top Bar */}
+            <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
+                      <ClipboardList className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-800">Détail des Appels d&apos;Offres</h2>
+                      <p className="text-[10px] text-slate-500">{sidebarStatusFiltered.length} AO sur {projects.length}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h1 className="text-xs font-bold text-white">PPM 2026</h1>
-                    <p className="text-[9px] text-slate-400">ORMVAG</p>
-                  </div>
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => setShowSidebar(false)} className="h-7 w-7 p-0 hover:bg-white/10 text-slate-400">
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {/* Tab Switcher with animated indicator */}
-              <div className="relative flex border-b border-white/5">
-                <div
-                  className="absolute bottom-0 h-0.5 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all duration-300 ease-out"
-                  style={{ left: sidebarTab === 'ao' ? '0%' : '50%', width: '50%' }}
-                />
-                <button
-                  onClick={() => setSidebarTab('ao')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-semibold transition-all duration-300
-                    ${sidebarTab === 'ao' ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}
-                  `}
-                >
-                  <ClipboardList className="w-3.5 h-3.5" />
-                  Détail des AO
-                  <Badge variant="secondary" className="text-[9px] h-4 px-1.5 bg-white/10 text-slate-300 border-0">{filtered.length}</Badge>
-                </button>
-                <button
-                  onClick={() => setSidebarTab('history')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-semibold transition-all duration-300
-                    ${sidebarTab === 'history' ? 'text-violet-400' : 'text-slate-500 hover:text-slate-300'}
-                  `}
-                >
-                  <History className="w-3.5 h-3.5" />
-                  Historique Plis
-                  <Badge variant="secondary" className="text-[9px] h-4 px-1.5 bg-white/10 text-slate-300 border-0">{sortedDailyOpenings.length}</Badge>
-                </button>
-              </div>
-
-              {/* ── Tab: Détail des AO ── */}
-              {sidebarTab === 'ao' && (
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  {/* Search */}
-                  <div className="px-3 py-2 border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    {/* Search */}
                     <div className="relative">
-                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                       <Input
                         placeholder="Rechercher un AO..."
-                        className="pl-8 h-8 text-xs bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:bg-white/10"
+                        className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-56"
                         value={sidebarSearch}
                         onChange={(e) => setSidebarSearch(e.target.value)}
                       />
                     </div>
-                  </div>
-                  {/* Quick Status Filters */}
-                  <div className="px-3 py-2 border-b border-white/5 flex flex-wrap gap-1">
-                    {Object.entries(filteredStatusCount).map(([status, count]) => (
+                    {/* Tab Switcher */}
+                    <div className="flex bg-slate-100 rounded-lg p-0.5">
                       <button
-                        key={status}
-                        onClick={() => setFilterStatus(filterStatus === status ? 'all' : status)}
-                        className={`flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-medium transition-all duration-200
-                          ${filterStatus === status
-                            ? 'bg-blue-500/20 text-blue-300 ring-1 ring-blue-500/30'
-                            : 'bg-white/5 text-slate-400 hover:bg-white/10'
-                          }`}
+                        onClick={() => setSidebarTab('ao')}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === 'ao' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                       >
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor[status] }} />
-                        {count}
+                        Détail AO
                       </button>
-                    ))}
-                  </div>
-                  {/* AO List */}
-                  <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                    {filtered
-                      .filter(p => !sidebarSearch ||
-                        p.objet.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
-                        p.entite.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
-                        p.attributaire?.toLowerCase().includes(sidebarSearch.toLowerCase())
-                      )
-                      .map(p => {
-                        const isExpanded = expandedAO === p.id;
-                        return (
-                          <div
-                            key={p.id}
-                            className={`rounded-xl transition-all duration-300 cursor-pointer overflow-hidden
-                              ${isExpanded
-                                ? 'bg-white/10 shadow-lg shadow-blue-500/5 border border-blue-500/20'
-                                : 'bg-white/5 border border-white/5 hover:bg-white/8 hover:border-white/10 hover:-translate-y-0.5 hover:shadow-md'
-                              }`}
-                            style={{ borderLeftWidth: '3px', borderLeftColor: statusColor[p.situationAvancement] || '#6b7280' }}
-                          >
-                            {/* Card Header */}
-                            <div
-                              className="px-3 py-2.5"
-                              onClick={() => setExpandedAO(isExpanded ? null : p.id)}
-                            >
-                              <div className="flex items-start justify-between gap-2 mb-1.5">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="inline-flex items-center justify-center w-6 h-5 rounded bg-gradient-to-br from-blue-500 to-violet-500 text-white font-bold text-[8px] shadow-sm">
-                                    {p.entite}
-                                  </span>
-                                  <Badge
-                                    className="text-[8px] h-4 gap-0.5 border-0 text-white shrink-0"
-                                    style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
-                                  >
-                                    {statusIcon[p.situationAvancement]}
-                                  </Badge>
-                                </div>
-                                <span className="text-[9px] text-slate-500 font-mono">#{p.id}</span>
-                              </div>
-                              <p className="text-[11px] font-medium text-slate-200 line-clamp-2 leading-relaxed mb-1.5">{p.objet}</p>
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-[9px]">
-                                  <span className="text-blue-400 font-medium">Estim: {fmtM(p.estimationAdmin || 0)}</span>
-                                  {p.montantEngagement > 0 && (
-                                    <span className="text-green-400 font-medium">Engagé: {fmtM(p.montantEngagement)}</span>
-                                  )}
-                                </div>
-                                {isExpanded ? (
-                                  <ChevronUp className="w-3.5 h-3.5 text-blue-400" />
-                                ) : (
-                                  <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Expanded Detail */}
-                            {isExpanded && (
-                              <div className="px-3 pb-3 pt-0 border-t border-white/5" style={{ animation: 'fadeInUp 0.25s ease-out both' }}>
-                                <div className="space-y-2 mt-2">
-                                  <div className="bg-white/5 rounded-lg p-2">
-                                    <p className="text-[8px] text-slate-500 uppercase tracking-wider font-semibold mb-1">Budget</p>
-                                    <div className="grid grid-cols-3 gap-1.5">
-                                      <div className="text-center">
-                                        <p className="text-[9px] text-slate-500">CP</p>
-                                        <p className="text-[10px] font-bold text-blue-400">{p.cp ? fmtM(p.cp) : '—'}</p>
-                                      </div>
-                                      <div className="text-center">
-                                        <p className="text-[9px] text-slate-500">CE</p>
-                                        <p className="text-[10px] font-bold text-cyan-400">{p.ce ? fmtM(p.ce) : '—'}</p>
-                                      </div>
-                                      <div className="text-center">
-                                        <p className="text-[9px] text-slate-500">Estim.</p>
-                                        <p className="text-[10px] font-bold text-slate-200">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="bg-white/5 rounded-lg p-2">
-                                    <p className="text-[8px] text-slate-500 uppercase tracking-wider font-semibold mb-1">Engagement</p>
-                                    <div className="grid grid-cols-2 gap-1.5">
-                                      <div>
-                                        <p className="text-[9px] text-slate-500">Montant</p>
-                                        <p className="text-[10px] font-bold text-green-400">{p.montantEngagement ? fmtFull(p.montantEngagement) : '—'}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-[9px] text-slate-500">Extrait</p>
-                                        <p className="text-[10px] font-bold text-amber-400">{p.montantExtrait ? fmtM(p.montantExtrait) : '—'}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-[9px] text-slate-500">Eng. CP</p>
-                                        <p className="text-[10px] font-medium text-slate-400">{p.engagementCP ? fmtM(p.engagementCP) : '—'}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-[9px] text-slate-500">Eng. CE</p>
-                                        <p className="text-[10px] font-medium text-slate-400">{p.engagementCE ? fmtM(p.engagementCE) : '—'}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="bg-white/5 rounded-lg p-2">
-                                    <p className="text-[8px] text-slate-500 uppercase tracking-wider font-semibold mb-1">Dates</p>
-                                    <div className="space-y-1">
-                                      <div className="flex justify-between text-[10px]">
-                                        <span className="text-slate-500">Ouverture Plis</span>
-                                        <span className="font-mono font-medium text-violet-400">{p.dateOuverture || '—'}</span>
-                                      </div>
-                                      <div className="flex justify-between text-[10px]">
-                                        <span className="text-slate-500">Jugement</span>
-                                        <span className="font-mono font-medium text-amber-400">{p.dateJugement || '—'}</span>
-                                      </div>
-                                      <div className="flex justify-between text-[10px]">
-                                        <span className="text-slate-500">Engagement</span>
-                                        <span className="font-mono font-medium text-green-400">{p.dateEngagement || '—'}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="bg-white/5 rounded-lg p-2">
-                                    <p className="text-[8px] text-slate-500 uppercase tracking-wider font-semibold mb-1">Infos</p>
-                                    <div className="space-y-1">
-                                      <div className="flex justify-between text-[10px]">
-                                        <span className="text-slate-500">N° AO</span>
-                                        <span className="font-mono text-slate-300">{p.numAO || '—'}</span>
-                                      </div>
-                                      <div className="flex justify-between text-[10px]">
-                                        <span className="text-slate-500">N° Marché</span>
-                                        <span className="font-mono text-slate-300">{p.numMarche || '—'}</span>
-                                      </div>
-                                      <div className="flex justify-between text-[10px]">
-                                        <span className="text-slate-500">Attributaire</span>
-                                        <span className="text-slate-300 truncate max-w-[150px] text-right">{p.attributaire || '—'}</span>
-                                      </div>
-                                      <div className="flex justify-between text-[10px]">
-                                        <span className="text-slate-500">Nature</span>
-                                        <span className="text-slate-300">{p.natureBudget}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  {/* Engagement rate bar */}
-                                  {p.estimationAdmin && p.estimationAdmin > 0 && p.montantEngagement ? (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-[8px] text-slate-500">Taux:</span>
-                                      <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                        <div
-                                          className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-500 animate-progress-fill"
-                                          style={{ width: `${Math.min(100, Math.round((p.montantEngagement / p.estimationAdmin) * 100))}%` }}
-                                        />
-                                      </div>
-                                      <span className="text-[9px] font-bold text-green-400">
-                                        {Math.round((p.montantEngagement / p.estimationAdmin) * 100)}%
-                                      </span>
-                                    </div>
-                                  ) : null}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    {filtered.filter(p => !sidebarSearch ||
-                      p.objet.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
-                      p.entite.toLowerCase().includes(sidebarSearch.toLowerCase())
-                    ).length === 0 && (
-                      <div className="text-center py-8">
-                        <FileText className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                        <p className="text-xs text-slate-500">Aucun AO trouvé</p>
-                      </div>
-                    )}
+                      <button
+                        onClick={() => setSidebarTab('history')}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === 'history' ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Historique Plis
+                      </button>
+                    </div>
+                    {/* Close Button */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setShowSidebar(false); setSidebarTab(null); }}
+                      className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
-              )}
-
-              {/* ── Tab: Historique Ouvertures Plis ── */}
-              {sidebarTab === 'history' && (
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  <div className="px-3 py-2 border-b border-white/5">
-                    <p className="text-[10px] text-slate-500">{sortedDailyOpenings.length} jours · {filtered.filter(p => p.dateOuverture).length} projets avec date d&apos;ouverture</p>
-                  </div>
-                  {/* Timeline with connector line */}
-                  <div className="flex-1 overflow-y-auto p-3 space-y-3">
-                    {sortedDailyOpenings.length === 0 && (
-                      <div className="text-center py-8">
-                        <CalendarDays className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                        <p className="text-xs text-slate-500">Aucune date d&apos;ouverture trouvée</p>
-                      </div>
-                    )}
-                    {sortedDailyOpenings.map(([date, projectsList], idx) => (
-                      <div key={date} className="relative">
-                        {/* Timeline connector */}
-                        {idx < sortedDailyOpenings.length - 1 && (
-                          <div className="absolute left-5 top-12 bottom-0 w-px bg-gradient-to-b from-violet-500/40 to-transparent" />
-                        )}
-                        {/* Date group header */}
-                        <div className="bg-gradient-to-r from-violet-500/10 to-transparent px-3 py-2 rounded-lg flex items-center justify-between mb-2 border-l-2 border-violet-500/50">
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center">
-                              <CalendarDays className="w-3 h-3 text-violet-400" />
-                            </div>
-                            <span className="text-xs font-semibold text-slate-200">{date}</span>
-                          </div>
-                          <Badge className="text-[9px] h-5 bg-violet-500/20 text-violet-300 border-0">{projectsList.length} AO</Badge>
-                        </div>
-                        {/* Projects under this date */}
-                        <div className="space-y-1.5 ml-4">
-                          {projectsList.map(p => (
-                            <div
-                              key={p.id}
-                              className="p-2.5 rounded-lg border border-white/5 hover:border-violet-500/20 hover:bg-violet-500/5 transition-all duration-200 cursor-pointer"
-                              onClick={() => {
-                                setSidebarTab('ao');
-                                setExpandedAO(p.id);
-                              }}
-                            >
-                              <div className="flex items-start justify-between gap-1.5 mb-1">
-                                <Badge variant="outline" className="text-[8px] h-4 bg-white/5 border-white/10 text-slate-400 shrink-0">{p.entite}</Badge>
-                                <Badge
-                                  className="text-[8px] h-4 gap-0.5 shrink-0 border-0 text-white"
-                                  style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
-                                >
-                                  {statusIcon[p.situationAvancement]}
-                                </Badge>
-                              </div>
-                              <p className="text-[11px] font-medium text-slate-300 line-clamp-2 mb-1">{p.objet}</p>
-                              <div className="flex items-center justify-between text-[9px]">
-                                <span className="text-blue-400 font-medium">Estim: {fmtM(p.estimationAdmin || 0)} DH</span>
-                                {p.attributaire && <span className="text-slate-500 truncate max-w-[100px]">{p.attributaire}</span>}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              </div>
+              {/* Quick Status Filter pills */}
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-3">
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    onClick={() => setSidebarStatusFilter('all')}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all duration-200 border
+                      ${sidebarStatusFilter === 'all'
+                        ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 border-blue-200'
+                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
+                      }`}
+                  >
+                    Tous ({sidebarFiltered.length})
+                  </button>
+                  {Object.entries(filteredStatusCount).map(([status, count]) => (
+                    <button
+                      key={status}
+                      onClick={() => setSidebarStatusFilter(sidebarStatusFilter === status ? 'all' : status)}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all duration-200 border
+                        ${sidebarStatusFilter === status
+                          ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 border-blue-200'
+                          : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
+                        }`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor[status] }} />
+                      {status} ({count})
+                    </button>
+                  ))}
                 </div>
-              )}
-
-              {/* Sidebar Footer */}
-              <div className="border-t border-white/5 px-3 py-2 flex items-center gap-2">
-                <button
-                  onClick={() => { setShowUpload(true); }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-medium text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-all duration-200"
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  Charger
-                </button>
-                <button
-                  onClick={() => { setAutoRefresh(!autoRefresh); }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-medium text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-all duration-200"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${autoRefresh ? 'text-green-400' : ''}`} />
-                  Sync {autoRefresh ? 'ON' : 'OFF'}
-                  <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-slate-600'}`} />
-                </button>
               </div>
             </div>
-          )}
-        </aside>
 
-        {/* ── Center Content ── */}
-        <div className="flex-1 min-w-0 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            {/* Vertical Table */}
+            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+              <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                {/* Table Header */}
+                <div className="grid grid-cols-[32px_52px_1fr_80px_80px_80px_80px_80px_80px_90px_80px_80px_80px_28px] bg-slate-50 border-b border-slate-200 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <div className="px-1.5 py-2.5 text-center">#</div>
+                  <div className="px-1.5 py-2.5 text-center">Entité</div>
+                  <div className="px-2 py-2.5">Objet</div>
+                  <div className="px-1.5 py-2.5 text-center">CP</div>
+                  <div className="px-1.5 py-2.5 text-center">CE</div>
+                  <div className="px-1.5 py-2.5 text-center">Estim.</div>
+                  <div className="px-1.5 py-2.5 text-center">Engag.</div>
+                  <div className="px-1.5 py-2.5 text-center">Nature</div>
+                  <div className="px-1.5 py-2.5 text-center">Type</div>
+                  <div className="px-1.5 py-2.5 text-center">Statut</div>
+                  <div className="px-1.5 py-2.5 text-center">Ouv. Plis</div>
+                  <div className="px-1.5 py-2.5 text-center">Jugement</div>
+                  <div className="px-1.5 py-2.5 text-center">Engagé le</div>
+                  <div className="px-1 py-2.5 text-center">▼</div>
+                </div>
+                {/* Table Rows */}
+                {sidebarStatusFiltered.length === 0 && (
+                  <div className="text-center py-12">
+                    <FileText className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                    <p className="text-sm text-slate-400">Aucun AO trouvé</p>
+                  </div>
+                )}
+                {sidebarStatusFiltered.map(p => {
+                  const isExpanded = expandedAO === p.id;
+                  return (
+                    <Fragment key={p.id}>
+                      <div
+                        className={`grid grid-cols-[32px_52px_1fr_80px_80px_80px_80px_80px_80px_90px_80px_80px_80px_28px] border-b border-slate-100 cursor-pointer transition-all duration-200 hover:bg-blue-50/50 ${isExpanded ? 'bg-blue-50/70' : ''}`}
+                        style={{ borderLeftWidth: '3px', borderLeftColor: statusColor[p.situationAvancement] || '#6b7280' }}
+                        onClick={() => setExpandedAO(isExpanded ? null : p.id)}
+                      >
+                        <div className="px-1.5 py-2.5 text-center text-slate-400 font-mono text-[10px]">{p.id}</div>
+                        <div className="px-1.5 py-2.5 text-center">
+                          <span className="inline-flex items-center justify-center w-8 h-6 rounded bg-gradient-to-br from-blue-500 to-violet-500 text-white font-bold text-[9px] shadow-sm">
+                            {p.entite}
+                          </span>
+                        </div>
+                        <div className="px-2 py-2.5">
+                          <p className="text-[11px] font-medium text-slate-700 line-clamp-1" title={p.objet}>{p.objet}</p>
+                        </div>
+                        <div className="px-1.5 py-2.5 text-right font-mono text-[10px] text-slate-600">{p.cp ? fmtM(p.cp) : '—'}</div>
+                        <div className="px-1.5 py-2.5 text-right font-mono text-[10px] text-slate-600">{p.ce ? fmtM(p.ce) : '—'}</div>
+                        <div className="px-1.5 py-2.5 text-right font-mono text-[10px] font-semibold text-slate-800">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</div>
+                        <div className="px-1.5 py-2.5 text-right font-mono text-[10px] font-semibold text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</div>
+                        <div className="px-1.5 py-2.5 text-center text-[9px] text-slate-500">{p.natureBudget}</div>
+                        <div className="px-1.5 py-2.5 text-center text-[9px] text-slate-500">{p.typeBudget}</div>
+                        <div className="px-1.5 py-2.5 text-center">
+                          <Badge
+                            className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap"
+                            style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
+                          >
+                            {statusIcon[p.situationAvancement]}
+                            {p.situationAvancement}
+                          </Badge>
+                        </div>
+                        <div className="px-1.5 py-2.5 text-center font-mono text-[9px] text-slate-600">{p.dateOuverture || '—'}</div>
+                        <div className="px-1.5 py-2.5 text-center font-mono text-[9px] text-slate-600">{p.dateJugement || '—'}</div>
+                        <div className="px-1.5 py-2.5 text-center font-mono text-[9px] text-slate-600">{p.dateEngagement || '—'}</div>
+                        <div className="px-1 py-2.5 text-center">
+                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-blue-500 mx-auto" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-300 mx-auto" />}
+                        </div>
+                      </div>
+
+                      {/* Expanded Detail Row */}
+                      {isExpanded && (
+                        <div className="border-b border-slate-200 bg-slate-50/50 px-6 py-4" style={{ animation: 'fadeInUp 0.25s ease-out both' }}>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                            {/* Budget Card */}
+                            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center">
+                                  <DollarSign className="w-3.5 h-3.5 text-blue-500" />
+                                </div>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Budget</p>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">CP</span>
+                                  <span className="font-mono font-medium text-blue-600">{p.cp ? fmtFull(p.cp) : '—'}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">CE</span>
+                                  <span className="font-mono font-medium text-cyan-600">{p.ce ? fmtFull(p.ce) : '—'}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">Estimation</span>
+                                  <span className="font-mono font-semibold text-slate-800">{p.estimationAdmin ? fmtFull(p.estimationAdmin) : '—'}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Engagement Card */}
+                            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-6 h-6 rounded-lg bg-green-50 flex items-center justify-center">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                                </div>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Engagement</p>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">Montant</span>
+                                  <span className="font-mono font-semibold text-green-700">{p.montantEngagement ? fmtFull(p.montantEngagement) : '—'}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">Engag. CP</span>
+                                  <span className="font-mono text-slate-600">{p.engagementCP ? fmtFull(p.engagementCP) : '—'}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">Engag. CE</span>
+                                  <span className="font-mono text-slate-600">{p.engagementCE ? fmtFull(p.engagementCE) : '—'}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">Extrait</span>
+                                  <span className="font-mono text-amber-600">{p.montantExtrait ? fmtFull(p.montantExtrait) : '—'}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Dates Card */}
+                            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-6 h-6 rounded-lg bg-violet-50 flex items-center justify-center">
+                                  <CalendarDays className="w-3.5 h-3.5 text-violet-500" />
+                                </div>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Dates</p>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">Ouverture Plis</span>
+                                  <span className="font-mono font-medium text-violet-600">{p.dateOuverture || '—'}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">Jugement</span>
+                                  <span className="font-mono font-medium text-amber-600">{p.dateJugement || '—'}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">Engagement</span>
+                                  <span className="font-mono font-medium text-green-600">{p.dateEngagement || '—'}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Infos Card */}
+                            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center">
+                                  <FileText className="w-3.5 h-3.5 text-slate-500" />
+                                </div>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Infos</p>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">N° AO</span>
+                                  <span className="font-mono text-slate-700">{p.numAO || '—'}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">N° Marché</span>
+                                  <span className="font-mono text-slate-700">{p.numMarche || '—'}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">Attributaire</span>
+                                  <span className="text-slate-700 truncate max-w-[120px] text-right" title={p.attributaire || ''}>{p.attributaire || '—'}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-500">Objet complet</span>
+                                  <span className="text-slate-700 truncate max-w-[120px] text-right" title={p.objet}>{p.objet}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Engagement progress bar */}
+                          {p.estimationAdmin && p.estimationAdmin > 0 && p.montantEngagement ? (
+                            <div className="flex items-center gap-3 px-2">
+                              <span className="text-[10px] text-slate-500 font-medium">Taux engagement:</span>
+                              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden max-w-[300px]">
+                                <div
+                                  className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-500 animate-progress-fill"
+                                  style={{ width: `${Math.min(100, Math.round((p.montantEngagement / p.estimationAdmin) * 100))}%` }}
+                                />
+                              </div>
+                              <span className="text-[11px] font-bold text-green-600">
+                                {Math.round((p.montantEngagement / p.estimationAdmin) * 100)}%
+                              </span>
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Full-Screen Historique Ouvertures Plis View ── */}
+        {showSidebar && sidebarTab === 'history' && (
+          <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
+            {/* Top Bar */}
+            <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
+                      <History className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-800">Historique Ouvertures Plis</h2>
+                      <p className="text-[10px] text-slate-500">{sortedDailyOpenings.length} jours d&apos;ouverture</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {/* Tab Switcher */}
+                    <div className="flex bg-slate-100 rounded-lg p-0.5">
+                      <button
+                        onClick={() => setSidebarTab('ao')}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === 'ao' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Détail AO
+                      </button>
+                      <button
+                        onClick={() => setSidebarTab('history')}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === 'history' ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Historique Plis
+                      </button>
+                    </div>
+                    {/* Close Button */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setShowSidebar(false); setSidebarTab(null); }}
+                      className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Summary Stats */}
+            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center">
+                    <CalendarDays className="w-5 h-5 text-violet-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-800">{sortedDailyOpenings.length}</p>
+                    <p className="text-[10px] text-slate-500">Jours d&apos;ouverture</p>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-800">{filtered.filter(p => p.dateOuverture).length}</p>
+                    <p className="text-[10px] text-slate-500">Total AO avec date</p>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-800">{fmtM(filtered.filter(p => p.dateOuverture).reduce((s, p) => s + (p.estimationAdmin || 0), 0))}</p>
+                    <p className="text-[10px] text-slate-500">Estimation totale (DH)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vertical Timeline */}
+              {sortedDailyOpenings.length === 0 && (
+                <div className="text-center py-16">
+                  <CalendarDays className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-sm text-slate-400">Aucune date d&apos;ouverture trouvée</p>
+                </div>
+              )}
+              <div className="relative pl-8">
+                {/* Gradient line */}
+                <div className="absolute left-[11px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-violet-400 via-blue-400 to-slate-200" />
+
+                {sortedDailyOpenings.map(([date, projectsList], idx) => {
+                  const totalEstim = projectsList.reduce((s, p) => s + (p.estimationAdmin || 0), 0);
+                  const totalEngag = projectsList.reduce((s, p) => s + (p.montantEngagement || 0), 0);
+                  const engRatio = totalEstim > 0 ? Math.round((totalEngag / totalEstim) * 100) : 0;
+
+                  return (
+                    <div key={date} className="relative mb-6">
+                      {/* Circular node */}
+                      <div className="absolute -left-8 top-2 w-6 h-6 rounded-full bg-white border-2 border-violet-400 flex items-center justify-center z-10 shadow-sm">
+                        <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-violet-400 to-blue-400" />
+                      </div>
+
+                      {/* Date Card */}
+                      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden ml-4">
+                        {/* Card Header */}
+                        <div className="bg-gradient-to-r from-violet-50 to-blue-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <CalendarDays className="w-4 h-4 text-violet-500" />
+                            <span className="text-sm font-bold text-slate-800">{date}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Badge className="text-[9px] h-5 bg-violet-100 text-violet-700 border-violet-200 border hover:bg-violet-200">{projectsList.length} AO</Badge>
+                            <span className="text-[10px] text-slate-500">Estim: <strong className="text-blue-600">{fmtM(totalEstim)}</strong> DH</span>
+                            <span className="text-[10px] text-slate-500">Engagé: <strong className="text-green-600">{engRatio}%</strong></span>
+                          </div>
+                        </div>
+                        {/* Mini Table */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="bg-slate-50 border-b border-slate-100 text-[9px] text-slate-500 uppercase tracking-wider">
+                                <th className="px-3 py-2 text-center w-8">#</th>
+                                <th className="px-3 py-2 text-left">Objet</th>
+                                <th className="px-3 py-2 text-right">Estimation</th>
+                                <th className="px-3 py-2 text-right">Engagement</th>
+                                <th className="px-3 py-2 text-center">Statut</th>
+                                <th className="px-3 py-2 text-left">Attributaire</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {projectsList.map(p => (
+                                <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer"
+                                  onClick={() => { setSidebarTab('ao'); setExpandedAO(p.id); }}>
+                                  <td className="px-3 py-2 text-center text-slate-400 font-mono">{p.id}</td>
+                                  <td className="px-3 py-2 text-slate-700 max-w-[300px]">
+                                    <span className="line-clamp-1">{p.objet}</span>
+                                  </td>
+                                  <td className="px-3 py-2 text-right font-mono text-slate-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
+                                  <td className="px-3 py-2 text-right font-mono text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
+                                  <td className="px-3 py-2 text-center">
+                                    <Badge
+                                      className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap"
+                                      style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
+                                    >
+                                      {statusIcon[p.situationAvancement]}
+                                      {p.situationAvancement}
+                                    </Badge>
+                                  </td>
+                                  <td className="px-3 py-2 text-slate-600 max-w-[130px]">
+                                    <span className="line-clamp-1 text-[10px]" title={p.attributaire || ''}>{p.attributaire || '—'}</span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Dashboard Content (shown when sidebar is NOT active) ── */}
+        {!showSidebar && (
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ── Upload Section ── */}
         {showUpload && (
           <Card className="border-0 shadow-lg glass-card animate-fade-in-up">
@@ -1347,6 +1578,32 @@ export default function Dashboard() {
           />
         </section>
 
+        {/* ── Rate Cards ── */}
+        <section className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 animate-fade-in-up" style={{ animationDelay: '0.18s' }}>
+          {rateCards.map(rc => (
+            <Card key={rc.label} className="border-0 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden bg-white"
+              style={{ borderTop: `3px solid ${rc.color}` }}>
+              <CardContent className="p-3 text-center space-y-2">
+                <div className="w-8 h-8 mx-auto rounded-lg flex items-center justify-center text-white shadow-sm"
+                  style={{ backgroundColor: rc.color }}>
+                  {rc.icon}
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-slate-800">{rc.rate}%</p>
+                  <p className="text-[9px] text-slate-500 uppercase tracking-wider font-medium">{rc.label}</p>
+                  <p className="text-[10px] text-slate-400">{rc.count} / {filteredKpis.totalProjects}</p>
+                </div>
+                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full animate-progress-fill transition-all duration-700"
+                    style={{ width: `${Math.min(100, rc.rate)}%`, backgroundColor: rc.color }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </section>
+
         {/* ── Animated Status Progress Bar ── */}
         <Card className="border-0 shadow-md glass-card animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <CardContent className="p-5">
@@ -1467,14 +1724,14 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Budget by Entity */}
+          {/* Budget by Entity - only CP and CE bars */}
           <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #16a34a' }}>
             <CardHeader className="pb-2 pt-5 px-5">
               <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <span className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center"><Building2 className="w-4 h-4 text-green-500" /></span>
-                Budget par Entité (Montants DH)
+                Budget par Entité (CP & CE - Montants DH)
               </CardTitle>
-              <p className="text-[10px] text-slate-400 mt-0.5">Estimations, engagements, CP et CE par entité</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Crédits de paiement et crédits d&apos;engagement par entité</p>
             </CardHeader>
             <CardContent className="px-5 pb-5">
               <div className="h-72 bg-[linear-gradient(rgba(241,245,249,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(241,245,249,0.3)_1px,transparent_1px)] bg-[size:20px_20px] rounded-lg p-2">
@@ -1485,12 +1742,10 @@ export default function Dashboard() {
                     <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#475569' }} width={40} />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="estimation" name="Estimation" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={8}
-                      label={{ position: 'right', formatter: (v: number) => fmtM(v), fontSize: 9, fill: '#3b82f6' }} />
-                    <Bar dataKey="engagement" name="Engagement" fill="#16a34a" radius={[0, 4, 4, 0]} barSize={8}
-                      label={{ position: 'right', formatter: (v: number) => fmtM(v), fontSize: 9, fill: '#16a34a' }} />
-                    <Bar dataKey="cp" name="CP" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={8} />
-                    <Bar dataKey="ce" name="CE" fill="#0891b2" radius={[0, 4, 4, 0]} barSize={8} />
+                    <Bar dataKey="cp" name="CP" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={10}
+                      label={{ position: 'right', formatter: (v: number) => fmtM(v), fontSize: 9, fill: '#2563eb' }} />
+                    <Bar dataKey="ce" name="CE" fill="#0891b2" radius={[0, 4, 4, 0]} barSize={10}
+                      label={{ position: 'right', formatter: (v: number) => fmtM(v), fontSize: 9, fill: '#0891b2' }} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1578,7 +1833,55 @@ export default function Dashboard() {
         </section>
 
         {/* ── Charts Row 3 ── */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
+          {/* Répartition du Nombre des AO Prévus - Donut Chart */}
+          <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #7c3aed' }}>
+            <CardHeader className="pb-2 pt-5 px-5">
+              <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center"><PieChartIcon className="w-4 h-4 text-violet-500" /></span>
+                Répartition du Nombre des AO Prévus
+              </CardTitle>
+              <p className="text-[10px] text-slate-400 mt-0.5">Distribution par statut d&apos;avancement</p>
+            </CardHeader>
+            <CardContent className="px-5 pb-5">
+              <div className="h-64 bg-[linear-gradient(rgba(241,245,249,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(241,245,249,0.3)_1px,transparent_1px)] bg-[size:20px_20px] rounded-lg p-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={aoPrevusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={85}
+                      paddingAngle={2}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {aoPrevusData.map((entry, index) => (
+                        <Cell key={index} fill={entry.color || CHART_COLORS[index % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number, name: string) => [`${value} AO (${Math.round(value / filteredKpis.totalProjects * 100)}%)`, name]}
+                      contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.3)', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)' }}
+                    />
+                    <Legend
+                      layout="vertical"
+                      align="right"
+                      verticalAlign="middle"
+                      iconType="circle"
+                      iconSize={8}
+                      formatter={(value) => {
+                        const item = aoPrevusData.find(d => d.name === value);
+                        return <span className="text-[10px] text-slate-600">{value} ({item?.value || 0})</span>;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Nature Budget */}
           <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #0891b2' }}>
             <CardHeader className="pb-2 pt-5 px-5">
@@ -1725,240 +2028,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* ── Ultra Premium Projects Table ── */}
-        <Card id="projects-table" className="border-0 shadow-md glass-card scroll-mt-20 animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
-          <CardHeader className="pb-3 pt-5 px-5">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div>
-                <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <span className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center"><FileText className="w-4 h-4 text-blue-500" /></span>
-                  Liste des Marchés
-                  <Badge variant="secondary" className="text-[10px] ml-1">{filtered.length} / {projects.length}</Badge>
-                </CardTitle>
-                <CardDescription className="text-xs text-slate-400 mt-0.5">
-                  Cliquez sur une ligne pour voir les détails complets du marché
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-[10px] h-6 border-slate-200 bg-slate-50 text-slate-600">
-                  {filtered.length} marché{filtered.length > 1 ? 's' : ''} sur une seule page
-                </Badge>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="px-2 pb-4 sm:px-5 sm:pb-5">
-            {/* Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-200/80 shadow-sm">
-              <table className="w-full text-xs border-collapse">
-                <thead className="sticky top-0 z-10">
-                  {/* Main header groups */}
-                  <tr className="bg-gradient-to-r from-blue-600 to-blue-700 backdrop-blur-sm border-b border-blue-500">
-                    <th rowSpan={2} className="px-2.5 py-2.5 text-left font-bold text-white w-9">#</th>
-                    <th rowSpan={2} className="px-2.5 py-2.5 text-left font-bold text-white">Entité</th>
-                    <th rowSpan={2} className="px-2.5 py-2.5 text-left font-bold text-white min-w-[240px]">Objet du Marché</th>
-                    <th rowSpan={2} className="px-2.5 py-2.5 text-center font-bold text-white">Nature</th>
-                    <th colSpan={3} className="px-2.5 py-2 text-center font-bold text-blue-100 border-b border-blue-400/60 text-[10px] uppercase tracking-wider">Budget</th>
-                    <th rowSpan={2} className="px-2.5 py-2.5 text-center font-bold text-white">Statut</th>
-                    <th colSpan={3} className="px-2.5 py-2 text-center font-bold text-green-100 bg-green-600/30 border-b border-green-400/40 text-[10px] uppercase tracking-wider">Engagement</th>
-                    <th colSpan={3} className="px-2.5 py-2 text-center font-bold text-violet-100 bg-violet-600/30 border-b border-violet-400/40 text-[10px] uppercase tracking-wider">Dates Clés</th>
-                    <th rowSpan={2} className="px-2.5 py-2.5 text-left font-bold text-white min-w-[120px]">Attributaire</th>
-                  </tr>
-                  <tr className="bg-gradient-to-r from-blue-600 to-blue-700 border-b-2 border-blue-400">
-                    <th className="px-2.5 py-1.5 text-right font-semibold text-blue-100 text-[10px]">CP</th>
-                    <th className="px-2.5 py-1.5 text-right font-semibold text-blue-100 text-[10px]">CE</th>
-                    <th className="px-2.5 py-1.5 text-right font-semibold text-blue-100 text-[10px]">Estimation</th>
-                    <th className="px-2.5 py-1.5 text-right font-semibold text-green-100 text-[10px]">Montant</th>
-                    <th className="px-2.5 py-1.5 text-center font-semibold text-green-100 text-[10px]">Engag. CP</th>
-                    <th className="px-2.5 py-1.5 text-center font-semibold text-green-100 text-[10px]">Engag. CE</th>
-                    <th className="px-2.5 py-1.5 text-center font-semibold text-violet-100 text-[10px]">Ouverture Plis</th>
-                    <th className="px-2.5 py-1.5 text-center font-semibold text-violet-100 text-[10px]">Jugement</th>
-                    <th className="px-2.5 py-1.5 text-center font-semibold text-violet-100 text-[10px]">Engagement</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((p, idx) => {
-                    const globalIdx = idx;
-                    const isExpanded = expandedRow === p.id;
-                    return (
-                      <Fragment key={p.id}>
-                        <tr
-                          className={`border-b border-slate-100/80 cursor-pointer transition-all duration-300 group
-                            ${isExpanded
-                              ? 'bg-blue-50/70 border-l-[3px] border-l-blue-500 shadow-inner'
-                              : 'hover:bg-blue-50/30 hover:border-l-[3px] hover:border-l-blue-400 border-l-[3px] border-l-transparent hover:shadow-sm'
-                            }
-                            ${globalIdx % 2 === 0 ? 'bg-white' : 'bg-gradient-to-r from-slate-25 to-white'}`}
-                          onClick={() => setExpandedRow(isExpanded ? null : p.id)}
-                        >
-                          <td className="px-2.5 py-3 text-slate-400 font-mono text-[10px]">{p.id}</td>
-                          <td className="px-2.5 py-3">
-                            <span className="inline-flex items-center justify-center w-9 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 text-white font-bold text-[10px] shadow-sm">
-                              {p.entite}
-                            </span>
-                          </td>
-                          <td className="px-2.5 py-3 text-slate-700 max-w-[300px]">
-                            <div className="flex items-start gap-1.5">
-                              <span className="line-clamp-2 leading-relaxed text-[11px]" title={p.objet}>{p.objet}</span>
-                              {isExpanded ? (
-                                <ChevronUp className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
-                              ) : (
-                                <ChevronDown className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-2.5 py-3 text-center">
-                            <Badge variant="outline" className="text-[9px] h-5 font-medium border-slate-200 bg-white transition-all duration-200">
-                              {p.natureBudget}
-                            </Badge>
-                          </td>
-                          <td className="px-2.5 py-3 text-right font-mono text-slate-600 text-[10px]">{p.cp ? fmtFull(p.cp) : <span className="text-slate-300">—</span>}</td>
-                          <td className="px-2.5 py-3 text-right font-mono text-slate-600 text-[10px]">{p.ce ? fmtFull(p.ce) : <span className="text-slate-300">—</span>}</td>
-                          <td className="px-2.5 py-3 text-right font-mono font-semibold text-slate-800 text-[10px]">
-                            {p.estimationAdmin ? fmtFull(p.estimationAdmin) : <span className="text-slate-300">—</span>}
-                          </td>
-                          <td className="px-2.5 py-3 text-center">
-                            <Badge
-                              className={`text-[8px] h-5 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap transition-all duration-300 ${p.situationAvancement === 'En cours de jugement' ? 'animate-status-pulse' : ''}`}
-                              style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
-                            >
-                              {statusIcon[p.situationAvancement]}
-                              {p.situationAvancement}
-                            </Badge>
-                          </td>
-                          <td className="px-2.5 py-3 text-right font-mono font-semibold text-green-700 text-[10px]">
-                            {p.montantEngagement ? fmtFull(p.montantEngagement) : <span className="text-slate-300">—</span>}
-                          </td>
-                          <td className="px-2.5 py-3 text-center font-mono text-slate-500 text-[10px]">
-                            {p.engagementCP ? fmtFull(p.engagementCP) : <span className="text-slate-300">—</span>}
-                          </td>
-                          <td className="px-2.5 py-3 text-center font-mono text-slate-500 text-[10px]">
-                            {p.engagementCE ? fmtFull(p.engagementCE) : <span className="text-slate-300">—</span>}
-                          </td>
-                          <td className="px-2.5 py-3 text-center font-mono text-[10px]">
-                            {p.dateOuverture ? (
-                              <span className="inline-flex items-center gap-1 text-slate-600 bg-violet-50 px-1.5 py-0.5 rounded border-l-2 border-violet-400">
-                                <CalendarDays className="w-3 h-3 text-violet-400" />
-                                {p.dateOuverture}
-                              </span>
-                            ) : <span className="text-slate-300">—</span>}
-                          </td>
-                          <td className="px-2.5 py-3 text-center font-mono text-[10px]">
-                            {p.dateJugement ? (
-                              <span className="inline-flex items-center gap-1 text-slate-600 bg-amber-50 px-1.5 py-0.5 rounded border-l-2 border-amber-400">
-                                <CalendarDays className="w-3 h-3 text-amber-400" />
-                                {p.dateJugement}
-                              </span>
-                            ) : <span className="text-slate-300">—</span>}
-                          </td>
-                          <td className="px-2.5 py-3 text-center font-mono text-[10px]">
-                            {p.dateEngagement ? (
-                              <span className="inline-flex items-center gap-1 text-slate-600 bg-green-50 px-1.5 py-0.5 rounded border-l-2 border-green-400">
-                                <CalendarDays className="w-3 h-3 text-green-400" />
-                                {p.dateEngagement}
-                              </span>
-                            ) : <span className="text-slate-300">—</span>}
-                          </td>
-                          <td className="px-2.5 py-3 text-slate-600 max-w-[130px]">
-                            <span className="line-clamp-1 text-[10px]" title={p.attributaire || ''}>{p.attributaire || <span className="text-slate-300">—</span>}</span>
-                          </td>
-                        </tr>
-                        {/* Expanded detail row with animated slide-down */}
-                        {isExpanded && (
-                          <tr className="bg-gradient-to-r from-blue-50/50 to-white border-b border-blue-100/50" style={{ animation: 'fadeInUp 0.3s ease-out both' }}>
-                            <td colSpan={15} className="px-4 py-3">
-                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                                <div className="glass-card rounded-lg p-2.5 shadow-sm">
-                                  <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Objet complet</p>
-                                  <p className="text-[10px] text-slate-700 leading-relaxed">{p.objet}</p>
-                                </div>
-                                <div className="glass-card rounded-lg p-2.5 shadow-sm">
-                                  <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-1">N° AO / N° Marché</p>
-                                  <p className="text-[10px] text-slate-700">AO: <span className="font-mono font-medium">{p.numAO || '—'}</span></p>
-                                  <p className="text-[10px] text-slate-700">Marché: <span className="font-mono font-medium">{p.numMarche || '—'}</span></p>
-                                </div>
-                                <div className="glass-card rounded-lg p-2.5 shadow-sm">
-                                  <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Budget Détaillé</p>
-                                  <div className="space-y-0.5">
-                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">CP</span><span className="font-mono font-medium text-blue-600">{p.cp ? fmtFull(p.cp) : '—'}</span></div>
-                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">CE</span><span className="font-mono font-medium text-cyan-600">{p.ce ? fmtFull(p.ce) : '—'}</span></div>
-                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Estimation</span><span className="font-mono font-semibold text-slate-800">{p.estimationAdmin ? fmtFull(p.estimationAdmin) : '—'}</span></div>
-                                  </div>
-                                </div>
-                                <div className="glass-card rounded-lg p-2.5 shadow-sm">
-                                  <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Engagement Détaillé</p>
-                                  <div className="space-y-0.5">
-                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Montant</span><span className="font-mono font-semibold text-green-700">{p.montantEngagement ? fmtFull(p.montantEngagement) : '—'}</span></div>
-                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Engag. CP</span><span className="font-mono text-slate-600">{p.engagementCP ? fmtFull(p.engagementCP) : '—'}</span></div>
-                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Engag. CE</span><span className="font-mono text-slate-600">{p.engagementCE ? fmtFull(p.engagementCE) : '—'}</span></div>
-                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Montant extrait</span><span className="font-mono text-amber-600">{p.montantExtrait ? fmtFull(p.montantExtrait) : '—'}</span></div>
-                                  </div>
-                                </div>
-                                <div className="glass-card rounded-lg p-2.5 shadow-sm">
-                                  <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Dates & Attributaire</p>
-                                  <div className="space-y-0.5">
-                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Ouverture</span><span className="font-mono text-violet-600">{p.dateOuverture || '—'}</span></div>
-                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Jugement</span><span className="font-mono text-amber-600">{p.dateJugement || '—'}</span></div>
-                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Engagement</span><span className="font-mono text-green-600">{p.dateEngagement || '—'}</span></div>
-                                    <div className="flex justify-between text-[10px]"><span className="text-slate-500">Attributaire</span><span className="font-medium text-slate-700 truncate max-w-[100px]">{p.attributaire || '—'}</span></div>
-                                  </div>
-                                </div>
-                              </div>
-                              {/* Engagement rate mini bar */}
-                              {p.estimationAdmin && p.estimationAdmin > 0 && p.montantEngagement && (
-                                <div className="mt-2 flex items-center gap-2">
-                                  <span className="text-[9px] text-slate-400">Taux engagement:</span>
-                                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[200px]">
-                                    <div
-                                      className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-500 animate-progress-fill"
-                                      style={{ width: `${Math.min(100, Math.round((p.montantEngagement / p.estimationAdmin) * 100))}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-[10px] font-bold text-green-600">
-                                    {Math.round((p.montantEngagement / p.estimationAdmin) * 100)}%
-                                  </span>
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        )}
-                      </Fragment>
-                    );
-                  })}
-                </tbody>
-                {/* Footer total row */}
-                <tfoot>
-                  <tr className="bg-gradient-to-r from-slate-100 to-slate-50 border-t-2 border-slate-200 font-bold">
-                    <td className="px-2.5 py-3 text-slate-600" colSpan={3}>Total ({filtered.length} marchés)</td>
-                    <td className="px-2.5 py-3 text-center text-slate-500">—</td>
-                    <td className="px-2.5 py-3 text-right font-mono text-blue-600 text-[10px]">{fmtFull(filteredKpis.totalCP)}</td>
-                    <td className="px-2.5 py-3 text-right font-mono text-cyan-600 text-[10px]">{fmtFull(filteredKpis.totalCE)}</td>
-                    <td className="px-2.5 py-3 text-right font-mono text-slate-800 text-[10px]">{fmtFull(filteredKpis.totalEstimation)}</td>
-                    <td className="px-2.5 py-3 text-center text-slate-500">—</td>
-                    <td className="px-2.5 py-3 text-right font-mono text-green-700 text-[10px]">{fmtFull(filteredKpis.totalEngagement)}</td>
-                    <td className="px-2.5 py-3 text-center text-slate-500" colSpan={2}>—</td>
-                    <td className="px-2.5 py-3 text-center text-slate-500" colSpan={3}>—</td>
-                    <td className="px-2.5 py-3 text-slate-500">—</td>
-                  </tr>
-                </tfoot>
-              </table>
-              {filtered.length === 0 && (
-                <div className="text-center py-12 text-sm text-slate-400">
-                  <FileText className="w-10 h-10 mx-auto text-slate-200 mb-2" />
-                  <p className="font-medium">Aucun résultat trouvé</p>
-                  <p className="text-xs mt-1">Modifiez vos critères de recherche ou filtres</p>
-                </div>
-              )}
-            </div>
-
-            {/* Total count indicator */}
-            <div className="flex items-center justify-center mt-3 px-1">
-              <span className="text-[10px] text-slate-400">
-                {filtered.length} marché{filtered.length > 1 ? 's' : ''} affiché{filtered.length > 1 ? 's' : ''} sur {projects.length}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* ── Footer ── */}
         <footer className="text-center text-xs text-slate-400 pb-6 pt-2 space-y-1">
           <p>Dashboard PPM 2026 — ORMVA du Gharb · Dernière lecture : {new Date(data.lastUpdated).toLocaleString('fr-FR')}</p>
@@ -1968,7 +2037,8 @@ export default function Dashboard() {
             </p>
           )}
         </footer>
-        </div>{/* end center content */}
+        </div>
+        )}
       </main>
     </div>
   );

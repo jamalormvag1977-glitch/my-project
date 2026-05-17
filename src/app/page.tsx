@@ -18,7 +18,7 @@ import {
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown,
-  X, ClipboardList, History, Download
+  X, ClipboardList, History, Download, Printer
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -362,7 +362,7 @@ export default function Dashboard() {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const lastChecksumRef = useRef<string | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
-  const [sidebarTab, setSidebarTab] = useState<'ao' | 'history' | null>(null);
+  const [sidebarTab, setSidebarTab] = useState<'overview' | 'entity' | 'step' | 'history' | 'reports' | null>(null);
   const [expandedAO, setExpandedAO] = useState<number | null>(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
@@ -792,42 +792,33 @@ export default function Dashboard() {
                 <Upload className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Charger fichier</span>
               </Button>
-              {/* Détail des AO button */}
-              <Button
-                variant={showSidebar && sidebarTab === 'ao' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  if (showSidebar && sidebarTab === 'ao') {
-                    setShowSidebar(false);
-                    setSidebarTab(null);
-                  } else {
-                    setShowSidebar(true);
-                    setSidebarTab('ao');
-                  }
-                }}
-                className={`text-xs h-8 gap-1.5 rounded-full px-4 transition-all duration-300 ${showSidebar && sidebarTab === 'ao' ? 'bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 shadow-md shadow-blue-500/20 text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-              >
-                <ClipboardList className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Détail des AO</span>
-              </Button>
-              {/* Historique Plis button */}
-              <Button
-                variant={showSidebar && sidebarTab === 'history' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  if (showSidebar && sidebarTab === 'history') {
-                    setShowSidebar(false);
-                    setSidebarTab(null);
-                  } else {
-                    setShowSidebar(true);
-                    setSidebarTab('history');
-                  }
-                }}
-                className={`text-xs h-8 gap-1.5 rounded-full px-4 transition-all duration-300 ${showSidebar && sidebarTab === 'history' ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-md shadow-violet-500/20 text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-              >
-                <History className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Historique Plis</span>
-              </Button>
+              {/* 5 Navigation Pill Buttons */}
+              {([
+                { key: 'overview' as const, label: 'Vue d\'ensemble', icon: <BarChart3 className="w-3.5 h-3.5" />, activeClass: 'bg-gradient-to-r from-blue-600 to-violet-600 shadow-md shadow-blue-500/20 text-white' },
+                { key: 'entity' as const, label: 'Par Entité', icon: <Building2 className="w-3.5 h-3.5" />, activeClass: 'bg-gradient-to-r from-green-600 to-emerald-600 shadow-md shadow-green-500/20 text-white' },
+                { key: 'step' as const, label: 'Par Étape', icon: <ClipboardList className="w-3.5 h-3.5" />, activeClass: 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-amber-500/20 text-white' },
+                { key: 'history' as const, label: 'Historique', icon: <History className="w-3.5 h-3.5" />, activeClass: 'bg-gradient-to-r from-violet-600 to-purple-600 shadow-md shadow-violet-500/20 text-white' },
+                { key: 'reports' as const, label: 'Rapports', icon: <FileText className="w-3.5 h-3.5" />, activeClass: 'bg-gradient-to-r from-cyan-600 to-teal-600 shadow-md shadow-cyan-500/20 text-white' },
+              ]).map(tab => (
+                <Button
+                  key={tab.key}
+                  variant={showSidebar && sidebarTab === tab.key ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    if (showSidebar && sidebarTab === tab.key) {
+                      setShowSidebar(false);
+                      setSidebarTab(null);
+                    } else {
+                      setShowSidebar(true);
+                      setSidebarTab(tab.key);
+                    }
+                  }}
+                  className={`text-xs h-8 gap-1.5 rounded-full px-3 transition-all duration-300 ${showSidebar && sidebarTab === tab.key ? tab.activeClass : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                >
+                  {tab.icon}
+                  <span className="hidden lg:inline">{tab.label}</span>
+                </Button>
+              ))}
               {/* Export Excel button */}
               <Button
                 variant="outline"
@@ -844,8 +835,8 @@ export default function Dashboard() {
       </header>
 
       <main className="relative">
-        {/* ── Full-Screen Détail des AO View ── */}
-        {showSidebar && sidebarTab === 'ao' && (
+        {/* ── Full-Screen View 1: Vue d'ensemble ── */}
+        {showSidebar && sidebarTab === 'overview' && (
           <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
             {/* Top Bar */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
@@ -853,283 +844,339 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
-                      <ClipboardList className="w-4 h-4 text-white" />
+                      <BarChart3 className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-slate-800">Détail des Appels d&apos;Offres</h2>
-                      <p className="text-[10px] text-slate-500">{sidebarStatusFiltered.length} AO sur {projects.length}</p>
+                      <h2 className="text-sm font-bold text-slate-800">Vue d&apos;ensemble</h2>
+                      <p className="text-[10px] text-slate-500">{filteredKpis.totalProjects} projets · {fmtM(filteredKpis.totalBudget)} DH budget</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     {/* Search */}
                     <div className="relative">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                      <Input
-                        placeholder="Rechercher un AO..."
-                        className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-56"
-                        value={sidebarSearch}
-                        onChange={(e) => setSidebarSearch(e.target.value)}
-                      />
+                      <Input placeholder="Rechercher..." className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-48" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} />
                     </div>
                     {/* Tab Switcher */}
                     <div className="flex bg-slate-100 rounded-lg p-0.5">
-                      <button
-                        onClick={() => setSidebarTab('ao')}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === 'ao' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                      >
-                        Détail AO
-                      </button>
-                      <button
-                        onClick={() => setSidebarTab('history')}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === 'history' ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                      >
-                        Historique Plis
-                      </button>
+                      {([['overview','Vue d\'ensemble','text-blue-600'],['entity','Par Entité','text-green-600'],['step','Par Étape','text-amber-600'],['history','Historique','text-violet-600'],['reports','Rapports','text-cyan-600']] as const).map(([k,l,c]) => (
+                        <button key={k} onClick={() => setSidebarTab(k as typeof sidebarTab)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === k ? 'bg-white shadow-sm ' + c : 'text-slate-500 hover:text-slate-700'}`}>{l}</button>
+                      ))}
                     </div>
-                    {/* Close Button */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => { setShowSidebar(false); setSidebarTab(null); }}
-                      className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setShowSidebar(false); setSidebarTab(null); }} className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></Button>
                   </div>
-                </div>
-              </div>
-              {/* Quick Status Filter pills */}
-              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-3">
-                <div className="flex flex-wrap gap-1.5">
-                  <button
-                    onClick={() => setSidebarStatusFilter('all')}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all duration-200 border
-                      ${sidebarStatusFilter === 'all'
-                        ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 border-blue-200'
-                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
-                      }`}
-                  >
-                    Tous ({sidebarFiltered.length})
-                  </button>
-                  {Object.entries(filteredStatusCount).map(([status, count]) => (
-                    <button
-                      key={status}
-                      onClick={() => setSidebarStatusFilter(sidebarStatusFilter === status ? 'all' : status)}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all duration-200 border
-                        ${sidebarStatusFilter === status
-                          ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 border-blue-200'
-                          : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
-                        }`}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor[status] }} />
-                      {status} ({count})
-                    </button>
-                  ))}
                 </div>
               </div>
             </div>
-
-            {/* Vertical Table */}
-            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-              <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-                {/* Table Header */}
-                <div className="grid grid-cols-[32px_52px_1fr_80px_80px_80px_80px_80px_80px_90px_80px_80px_80px_28px] bg-slate-50 border-b border-slate-200 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <div className="px-1.5 py-2.5 text-center">#</div>
-                  <div className="px-1.5 py-2.5 text-center">Entité</div>
-                  <div className="px-2 py-2.5">Objet</div>
-                  <div className="px-1.5 py-2.5 text-center">CP</div>
-                  <div className="px-1.5 py-2.5 text-center">CE</div>
-                  <div className="px-1.5 py-2.5 text-center">Estim.</div>
-                  <div className="px-1.5 py-2.5 text-center">Engag.</div>
-                  <div className="px-1.5 py-2.5 text-center">Nature</div>
-                  <div className="px-1.5 py-2.5 text-center">Type</div>
-                  <div className="px-1.5 py-2.5 text-center">Statut</div>
-                  <div className="px-1.5 py-2.5 text-center">Ouv. Plis</div>
-                  <div className="px-1.5 py-2.5 text-center">Jugement</div>
-                  <div className="px-1.5 py-2.5 text-center">Engagé le</div>
-                  <div className="px-1 py-2.5 text-center">▼</div>
+            {/* Content */}
+            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+              {/* 5 KPI Summary Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4" style={{ borderTop: '4px solid #3b82f6' }}>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Total Projets</p>
+                  <p className="text-2xl font-bold text-slate-800 mt-1">{filteredKpis.totalProjects}</p>
+                  <p className="text-[10px] text-slate-400">{completedCount} traités · {toProgramCount} à programmer</p>
                 </div>
-                {/* Table Rows */}
-                {sidebarStatusFiltered.length === 0 && (
-                  <div className="text-center py-12">
-                    <FileText className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                    <p className="text-sm text-slate-400">Aucun AO trouvé</p>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4" style={{ borderTop: '4px solid #16a34a' }}>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Budget Total</p>
+                  <p className="text-2xl font-bold text-slate-800 mt-1">{fmtM(filteredKpis.totalBudget)}</p>
+                  <p className="text-[10px] text-slate-400">CP: {fmtM(filteredKpis.totalCP)} · CE: {fmtM(filteredKpis.totalCE)}</p>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4" style={{ borderTop: '4px solid #d97706' }}>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Estimation</p>
+                  <p className="text-2xl font-bold text-slate-800 mt-1">{fmtM(filteredKpis.totalEstimation)}</p>
+                  <p className="text-[10px] text-slate-400">Extrait: {fmtM(filteredKpis.totalMontantExtrait)}</p>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4" style={{ borderTop: '4px solid #7c3aed' }}>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Engagements</p>
+                  <p className="text-2xl font-bold text-slate-800 mt-1">{fmtM(filteredKpis.totalEngagement)}</p>
+                  <p className="text-[10px] text-slate-400">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%/estim.</p>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4" style={{ borderTop: '4px solid #dc2626' }}>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Échoués / Annulés</p>
+                  <p className="text-2xl font-bold text-slate-800 mt-1">{failedCount}</p>
+                  <p className="text-[10px] text-slate-400">{filteredStatusCount['Infructueux'] || 0} infructueux · {filteredStatusCount['Annulé'] || 0} annulés</p>
+                </div>
+              </div>
+
+              {/* 8 Rate Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                {rateCards.map(rc => (
+                  <div key={rc.label} className="bg-white rounded-xl shadow-sm border border-slate-100 p-3 text-center" style={{ borderTop: `3px solid ${rc.color}` }}>
+                    <div className="w-7 h-7 mx-auto rounded-lg flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: rc.color }}>{rc.icon}</div>
+                    <p className="text-lg font-bold text-slate-800 mt-1">{rc.rate}%</p>
+                    <p className="text-[9px] text-slate-500 uppercase tracking-wider font-medium">{rc.label}</p>
+                    <p className="text-[10px] text-slate-400">{rc.count} / {filteredKpis.totalProjects}</p>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1">
+                      <div className="h-full rounded-full animate-progress-fill" style={{ width: `${Math.min(100, rc.rate)}%`, backgroundColor: rc.color }} />
+                    </div>
                   </div>
-                )}
-                {sidebarStatusFiltered.map(p => {
-                  const isExpanded = expandedAO === p.id;
+                ))}
+              </div>
+
+              {/* Status Progress Bar */}
+              <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-slate-700">Avancement Global des Marchés</h3>
+                  <span className="text-xs text-slate-400">{completedCount} / {filteredKpis.totalProjects} traités</span>
+                </div>
+                <div className="flex h-6 rounded-full overflow-hidden bg-slate-100 shadow-inner">
+                  {Object.entries(filteredStatusCount).map(([status, count]) => {
+                    const pct = (count / filteredKpis.totalProjects) * 100;
+                    return <div key={status} style={{ width: `${pct}%`, backgroundColor: statusColor[status] || '#6b7280' }} className={`flex items-center justify-center transition-all duration-700 shadow-sm animate-progress-fill ${pct > 3 ? 'hover:brightness-110' : ''}`} title={`${status}: ${count} (${Math.round(pct)}%)`}>
+                      {pct > 8 && <span className="text-[10px] font-bold text-white drop-shadow-sm">{Math.round(pct)}%</span>}
+                      {pct > 3 && pct <= 8 && <span className="text-[8px] font-bold text-white drop-shadow-sm">{count}</span>}
+                    </div>;
+                  })}
+                </div>
+                <div className="flex flex-wrap gap-3 mt-3">
+                  {Object.entries(filteredStatusCount).map(([status, count]) => (
+                    <div key={status} className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: statusColor[status] }} />
+                      <span className="text-[11px] text-slate-500">{status} ({count})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mini Charts Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Status Pie Chart */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3">Répartition par Statut</h3>
+                  <div className="h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={statusData} cx="50%" cy="50%" innerRadius={45} outerRadius={80} paddingAngle={3} dataKey="value" stroke="none">
+                          {statusData.map((_, i) => <Cell key={i} fill={statusColor[statusData[i].name] || CHART_COLORS[i % CHART_COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip formatter={(value: number, name: string, props: { payload: { estimation: number; engagement: number; value: number } }) => { const d = props.payload; return [<span key="v"><strong>{d.value} marchés</strong><br /><span className="text-blue-600">Estim: {fmtM(d.estimation)} DH</span><br /><span className="text-green-600">Engagé: {fmtM(d.engagement)} DH</span></span>, name]; }} contentStyle={{ borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.9)' }} />
+                        <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" iconSize={8} formatter={(value: string) => <span className="text-[10px] text-slate-600">{value}</span>} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                {/* Budget par Entité Bar Chart */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3">Budget par Entité</h3>
+                  <div className="h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={entityData} layout="vertical" margin={{ left: 20, right: 40 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis type="number" tickFormatter={fmtM} tick={{ fontSize: 10 }} stroke="#94a3b8" />
+                        <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#475569' }} width={40} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                        <Bar dataKey="cp" name="CP" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={10} />
+                        <Bar dataKey="ce" name="CE" fill="#0891b2" radius={[0, 4, 4, 0]} barSize={10} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Détail des AO Expandable Table */}
+              <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-slate-700">Détail des Appels d&apos;Offres</h3>
+                  <span className="text-[10px] text-slate-500">{sidebarStatusFiltered.length} AO</span>
+                </div>
+                {/* Quick Status Filter pills */}
+                <div className="px-5 py-2 border-b border-slate-100 flex flex-wrap gap-1.5">
+                  <button onClick={() => setSidebarStatusFilter('all')} className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all border ${sidebarStatusFilter === 'all' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 border-blue-200' : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'}`}>Tous ({sidebarFiltered.length})</button>
+                  {Object.entries(filteredStatusCount).map(([status, count]) => (
+                    <button key={status} onClick={() => setSidebarStatusFilter(sidebarStatusFilter === status ? 'all' : status)} className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all border ${sidebarStatusFilter === status ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 border-blue-200' : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'}`}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor[status] }} />{status} ({count})
+                    </button>
+                  ))}
+                </div>
+                <div className="overflow-x-auto">
+                  <div className="grid grid-cols-[32px_52px_1fr_80px_80px_80px_80px_80px_80px_90px_80px_80px_80px_28px] bg-slate-50 border-b border-slate-200 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                    <div className="px-1.5 py-2.5 text-center">#</div>
+                    <div className="px-1.5 py-2.5 text-center">Entité</div>
+                    <div className="px-2 py-2.5">Objet</div>
+                    <div className="px-1.5 py-2.5 text-center">CP</div>
+                    <div className="px-1.5 py-2.5 text-center">CE</div>
+                    <div className="px-1.5 py-2.5 text-center">Estim.</div>
+                    <div className="px-1.5 py-2.5 text-center">Engag.</div>
+                    <div className="px-1.5 py-2.5 text-center">Nature</div>
+                    <div className="px-1.5 py-2.5 text-center">Type</div>
+                    <div className="px-1.5 py-2.5 text-center">Statut</div>
+                    <div className="px-1.5 py-2.5 text-center">Ouv. Plis</div>
+                    <div className="px-1.5 py-2.5 text-center">Jugement</div>
+                    <div className="px-1.5 py-2.5 text-center">Engagé le</div>
+                    <div className="px-1 py-2.5 text-center">▼</div>
+                  </div>
+                  {sidebarStatusFiltered.length === 0 && (
+                    <div className="text-center py-12"><FileText className="w-10 h-10 text-slate-300 mx-auto mb-2" /><p className="text-sm text-slate-400">Aucun AO trouvé</p></div>
+                  )}
+                  {sidebarStatusFiltered.map(p => {
+                    const isExpanded = expandedAO === p.id;
+                    return (
+                      <Fragment key={p.id}>
+                        <div className={`grid grid-cols-[32px_52px_1fr_80px_80px_80px_80px_80px_80px_90px_80px_80px_80px_28px] border-b border-slate-100 cursor-pointer transition-all duration-200 hover:bg-blue-50/50 ${isExpanded ? 'bg-blue-50/70' : ''}`} style={{ borderLeftWidth: '3px', borderLeftColor: statusColor[p.situationAvancement] || '#6b7280' }} onClick={() => setExpandedAO(isExpanded ? null : p.id)}>
+                          <div className="px-1.5 py-2.5 text-center text-slate-400 font-mono text-[10px]">{p.id}</div>
+                          <div className="px-1.5 py-2.5 text-center"><span className="inline-flex items-center justify-center w-8 h-6 rounded bg-gradient-to-br from-blue-500 to-violet-500 text-white font-bold text-[9px] shadow-sm">{p.entite}</span></div>
+                          <div className="px-2 py-2.5"><p className="text-[11px] font-medium text-slate-700 line-clamp-1" title={p.objet}>{p.objet}</p></div>
+                          <div className="px-1.5 py-2.5 text-right font-mono text-[10px] text-slate-600">{p.cp ? fmtM(p.cp) : '—'}</div>
+                          <div className="px-1.5 py-2.5 text-right font-mono text-[10px] text-slate-600">{p.ce ? fmtM(p.ce) : '—'}</div>
+                          <div className="px-1.5 py-2.5 text-right font-mono text-[10px] font-semibold text-slate-800">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</div>
+                          <div className="px-1.5 py-2.5 text-right font-mono text-[10px] font-semibold text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</div>
+                          <div className="px-1.5 py-2.5 text-center text-[9px] text-slate-500">{p.natureBudget}</div>
+                          <div className="px-1.5 py-2.5 text-center text-[9px] text-slate-500">{p.typeBudget}</div>
+                          <div className="px-1.5 py-2.5 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{statusIcon[p.situationAvancement]}{p.situationAvancement}</Badge></div>
+                          <div className="px-1.5 py-2.5 text-center font-mono text-[9px] text-slate-600">{p.dateOuverture || '—'}</div>
+                          <div className="px-1.5 py-2.5 text-center font-mono text-[9px] text-slate-600">{p.dateJugement || '—'}</div>
+                          <div className="px-1.5 py-2.5 text-center font-mono text-[9px] text-slate-600">{p.dateEngagement || '—'}</div>
+                          <div className="px-1 py-2.5 text-center">{isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-blue-500 mx-auto" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-300 mx-auto" />}</div>
+                        </div>
+                        {isExpanded && (
+                          <div className="border-b border-slate-200 bg-slate-50/50 px-6 py-4" style={{ animation: 'fadeInUp 0.25s ease-out both' }}>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                              <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                                <div className="flex items-center gap-2 mb-3"><div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center"><DollarSign className="w-3.5 h-3.5 text-blue-500" /></div><p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Budget</p></div>
+                                <div className="space-y-2">
+                                  <div className="flex justify-between text-[11px]"><span className="text-slate-500">CP</span><span className="font-mono font-medium text-blue-600">{p.cp ? fmtFull(p.cp) : '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">CE</span><span className="font-mono font-medium text-cyan-600">{p.ce ? fmtFull(p.ce) : '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Estimation</span><span className="font-mono font-semibold text-slate-800">{p.estimationAdmin ? fmtFull(p.estimationAdmin) : '—'}</span></div>
+                                </div>
+                              </div>
+                              <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                                <div className="flex items-center gap-2 mb-3"><div className="w-6 h-6 rounded-lg bg-green-50 flex items-center justify-center"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /></div><p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Engagement</p></div>
+                                <div className="space-y-2">
+                                  <div className="flex justify-between text-[11px]"><span className="text-slate-500">Montant</span><span className="font-mono font-semibold text-green-700">{p.montantEngagement ? fmtFull(p.montantEngagement) : '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Engag. CP</span><span className="font-mono text-slate-600">{p.engagementCP ? fmtFull(p.engagementCP) : '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Engag. CE</span><span className="font-mono text-slate-600">{p.engagementCE ? fmtFull(p.engagementCE) : '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Extrait</span><span className="font-mono text-amber-600">{p.montantExtrait ? fmtFull(p.montantExtrait) : '—'}</span></div>
+                                </div>
+                              </div>
+                              <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                                <div className="flex items-center gap-2 mb-3"><div className="w-6 h-6 rounded-lg bg-violet-50 flex items-center justify-center"><CalendarDays className="w-3.5 h-3.5 text-violet-500" /></div><p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Dates</p></div>
+                                <div className="space-y-2">
+                                  <div className="flex justify-between text-[11px]"><span className="text-slate-500">Ouverture Plis</span><span className="font-mono font-medium text-violet-600">{p.dateOuverture || '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Jugement</span><span className="font-mono font-medium text-amber-600">{p.dateJugement || '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Engagement</span><span className="font-mono font-medium text-green-600">{p.dateEngagement || '—'}</span></div>
+                                </div>
+                              </div>
+                              <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                                <div className="flex items-center gap-2 mb-3"><div className="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center"><FileText className="w-3.5 h-3.5 text-slate-500" /></div><p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Infos</p></div>
+                                <div className="space-y-2">
+                                  <div className="flex justify-between text-[11px]"><span className="text-slate-500">N° AO</span><span className="font-mono text-slate-700">{p.numAO || '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">N° Marché</span><span className="font-mono text-slate-700">{p.numMarche || '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Attributaire</span><span className="text-slate-700 truncate max-w-[120px] text-right" title={p.attributaire || ''}>{p.attributaire || '—'}</span></div>
+                                </div>
+                              </div>
+                            </div>
+                            {p.estimationAdmin && p.estimationAdmin > 0 && p.montantEngagement ? (
+                              <div className="flex items-center gap-3 px-2">
+                                <span className="text-[10px] text-slate-500 font-medium">Taux engagement:</span>
+                                <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden max-w-[300px]">
+                                  <div className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-500 animate-progress-fill" style={{ width: `${Math.min(100, Math.round((p.montantEngagement / p.estimationAdmin) * 100))}%` }} />
+                                </div>
+                                <span className="text-[11px] font-bold text-green-600">{Math.round((p.montantEngagement / p.estimationAdmin) * 100)}%</span>
+                              </div>
+                            ) : null}
+                          </div>
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Full-Screen View 2: Par Entité ── */}
+        {showSidebar && sidebarTab === 'entity' && (
+          <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
+            {/* Top Bar */}
+            <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                      <Building2 className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-800">Par Entité</h2>
+                      <p className="text-[10px] text-slate-500">{Object.keys(filteredEntityBudget).length} entités</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex bg-slate-100 rounded-lg p-0.5">
+                      {([['overview','Vue d\'ensemble','text-blue-600'],['entity','Par Entité','text-green-600'],['step','Par Étape','text-amber-600'],['history','Historique','text-violet-600'],['reports','Rapports','text-cyan-600']] as const).map(([k,l,c]) => (
+                        <button key={k} onClick={() => setSidebarTab(k as typeof sidebarTab)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === k ? 'bg-white shadow-sm ' + c : 'text-slate-500 hover:text-slate-700'}`}>{l}</button>
+                      ))}
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => { setShowSidebar(false); setSidebarTab(null); }} className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Content */}
+            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+              {/* Summary Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex items-center gap-3" style={{ borderTop: '4px solid #16a34a' }}>
+                  <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center"><Building2 className="w-5 h-5 text-green-500" /></div>
+                  <div><p className="text-2xl font-bold text-slate-800">{Object.keys(filteredEntityBudget).length}</p><p className="text-[10px] text-slate-500">Entités actives</p></div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex items-center gap-3" style={{ borderTop: '4px solid #3b82f6' }}>
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><DollarSign className="w-5 h-5 text-blue-500" /></div>
+                  <div><p className="text-2xl font-bold text-slate-800">{fmtM(filteredKpis.totalBudget)}</p><p className="text-[10px] text-slate-500">Budget total (DH)</p></div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex items-center gap-3" style={{ borderTop: '4px solid #7c3aed' }}>
+                  <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center"><Activity className="w-5 h-5 text-violet-500" /></div>
+                  <div><p className="text-2xl font-bold text-slate-800">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</p><p className="text-[10px] text-slate-500">Taux engagement moyen</p></div>
+                </div>
+              </div>
+
+              {/* Entity Detail Cards */}
+              <div className="space-y-4">
+                {Object.entries(filteredEntityBudget).sort(([,a], [,b]) => b.estimation - a.estimation).map(([name, d]) => {
+                  const engRate = filteredEntityEngagementRate[name];
+                  const accentColor = entityColorMap[name] || '#3b82f6';
+                  const entityProjects = filtered.filter(p => p.entite === name);
                   return (
-                    <Fragment key={p.id}>
-                      <div
-                        className={`grid grid-cols-[32px_52px_1fr_80px_80px_80px_80px_80px_80px_90px_80px_80px_80px_28px] border-b border-slate-100 cursor-pointer transition-all duration-200 hover:bg-blue-50/50 ${isExpanded ? 'bg-blue-50/70' : ''}`}
-                        style={{ borderLeftWidth: '3px', borderLeftColor: statusColor[p.situationAvancement] || '#6b7280' }}
-                        onClick={() => setExpandedAO(isExpanded ? null : p.id)}
-                      >
-                        <div className="px-1.5 py-2.5 text-center text-slate-400 font-mono text-[10px]">{p.id}</div>
-                        <div className="px-1.5 py-2.5 text-center">
-                          <span className="inline-flex items-center justify-center w-8 h-6 rounded bg-gradient-to-br from-blue-500 to-violet-500 text-white font-bold text-[9px] shadow-sm">
-                            {p.entite}
-                          </span>
+                    <div key={name} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden" style={{ borderTop: `4px solid ${accentColor}` }}>
+                      <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md text-white" style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)` }}>
+                            <span className="text-sm font-bold">{name}</span>
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-slate-800">{name}</h3>
+                            <p className="text-[10px] text-slate-500">{d.count} marchés</p>
+                          </div>
                         </div>
-                        <div className="px-2 py-2.5">
-                          <p className="text-[11px] font-medium text-slate-700 line-clamp-1" title={p.objet}>{p.objet}</p>
-                        </div>
-                        <div className="px-1.5 py-2.5 text-right font-mono text-[10px] text-slate-600">{p.cp ? fmtM(p.cp) : '—'}</div>
-                        <div className="px-1.5 py-2.5 text-right font-mono text-[10px] text-slate-600">{p.ce ? fmtM(p.ce) : '—'}</div>
-                        <div className="px-1.5 py-2.5 text-right font-mono text-[10px] font-semibold text-slate-800">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</div>
-                        <div className="px-1.5 py-2.5 text-right font-mono text-[10px] font-semibold text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</div>
-                        <div className="px-1.5 py-2.5 text-center text-[9px] text-slate-500">{p.natureBudget}</div>
-                        <div className="px-1.5 py-2.5 text-center text-[9px] text-slate-500">{p.typeBudget}</div>
-                        <div className="px-1.5 py-2.5 text-center">
-                          <Badge
-                            className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap"
-                            style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
-                          >
-                            {statusIcon[p.situationAvancement]}
-                            {p.situationAvancement}
-                          </Badge>
-                        </div>
-                        <div className="px-1.5 py-2.5 text-center font-mono text-[9px] text-slate-600">{p.dateOuverture || '—'}</div>
-                        <div className="px-1.5 py-2.5 text-center font-mono text-[9px] text-slate-600">{p.dateJugement || '—'}</div>
-                        <div className="px-1.5 py-2.5 text-center font-mono text-[9px] text-slate-600">{p.dateEngagement || '—'}</div>
-                        <div className="px-1 py-2.5 text-center">
-                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-blue-500 mx-auto" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-300 mx-auto" />}
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-6 gap-y-1 text-[11px]">
+                          <div><span className="text-slate-400">CP: </span><span className="font-medium text-blue-600">{fmtM(d.cp)}</span></div>
+                          <div><span className="text-slate-400">CE: </span><span className="font-medium text-cyan-600">{fmtM(d.ce)}</span></div>
+                          <div><span className="text-slate-400">Estim: </span><span className="font-medium text-slate-800">{fmtM(d.estimation)}</span></div>
+                          <div><span className="text-slate-400">Engagé: </span><span className="font-medium text-green-600">{fmtM(d.engagement)}</span></div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-400">Taux:</span>
+                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[80px]">
+                              <div className={`h-full rounded-full animate-progress-fill ${engRate >= 50 ? 'bg-gradient-to-r from-green-400 to-green-500' : 'bg-gradient-to-r from-amber-400 to-amber-500'}`} style={{ width: `${Math.min(100, engRate)}%` }} />
+                            </div>
+                            <span className={`font-bold ${engRate >= 50 ? 'text-green-600' : 'text-amber-600'}`}>{engRate}%</span>
+                          </div>
                         </div>
                       </div>
-
-                      {/* Expanded Detail Row */}
-                      {isExpanded && (
-                        <div className="border-b border-slate-200 bg-slate-50/50 px-6 py-4" style={{ animation: 'fadeInUp 0.25s ease-out both' }}>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                            {/* Budget Card */}
-                            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center">
-                                  <DollarSign className="w-3.5 h-3.5 text-blue-500" />
-                                </div>
-                                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Budget</p>
-                              </div>
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">CP</span>
-                                  <span className="font-mono font-medium text-blue-600">{p.cp ? fmtFull(p.cp) : '—'}</span>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">CE</span>
-                                  <span className="font-mono font-medium text-cyan-600">{p.ce ? fmtFull(p.ce) : '—'}</span>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">Estimation</span>
-                                  <span className="font-mono font-semibold text-slate-800">{p.estimationAdmin ? fmtFull(p.estimationAdmin) : '—'}</span>
-                                </div>
-                              </div>
-                            </div>
-                            {/* Engagement Card */}
-                            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-lg bg-green-50 flex items-center justify-center">
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                                </div>
-                                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Engagement</p>
-                              </div>
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">Montant</span>
-                                  <span className="font-mono font-semibold text-green-700">{p.montantEngagement ? fmtFull(p.montantEngagement) : '—'}</span>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">Engag. CP</span>
-                                  <span className="font-mono text-slate-600">{p.engagementCP ? fmtFull(p.engagementCP) : '—'}</span>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">Engag. CE</span>
-                                  <span className="font-mono text-slate-600">{p.engagementCE ? fmtFull(p.engagementCE) : '—'}</span>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">Extrait</span>
-                                  <span className="font-mono text-amber-600">{p.montantExtrait ? fmtFull(p.montantExtrait) : '—'}</span>
-                                </div>
-                              </div>
-                            </div>
-                            {/* Dates Card */}
-                            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-lg bg-violet-50 flex items-center justify-center">
-                                  <CalendarDays className="w-3.5 h-3.5 text-violet-500" />
-                                </div>
-                                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Dates</p>
-                              </div>
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">Ouverture Plis</span>
-                                  <span className="font-mono font-medium text-violet-600">{p.dateOuverture || '—'}</span>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">Jugement</span>
-                                  <span className="font-mono font-medium text-amber-600">{p.dateJugement || '—'}</span>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">Engagement</span>
-                                  <span className="font-mono font-medium text-green-600">{p.dateEngagement || '—'}</span>
-                                </div>
-                              </div>
-                            </div>
-                            {/* Infos Card */}
-                            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center">
-                                  <FileText className="w-3.5 h-3.5 text-slate-500" />
-                                </div>
-                                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Infos</p>
-                              </div>
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">N° AO</span>
-                                  <span className="font-mono text-slate-700">{p.numAO || '—'}</span>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">N° Marché</span>
-                                  <span className="font-mono text-slate-700">{p.numMarche || '—'}</span>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">Attributaire</span>
-                                  <span className="text-slate-700 truncate max-w-[120px] text-right" title={p.attributaire || ''}>{p.attributaire || '—'}</span>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-slate-500">Objet complet</span>
-                                  <span className="text-slate-700 truncate max-w-[120px] text-right" title={p.objet}>{p.objet}</span>
-                                </div>
-                              </div>
-                            </div>
+                      {/* Mini project list */}
+                      <div className="border-t border-slate-100 max-h-[200px] overflow-y-auto custom-scrollbar">
+                        {entityProjects.map(p => (
+                          <div key={p.id} className="flex items-center gap-3 px-5 py-2 border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer" onClick={() => { setSidebarTab('overview'); setTimeout(() => setExpandedAO(p.id), 100); }}>
+                            <span className="text-[10px] text-slate-400 font-mono w-6">{p.id}</span>
+                            <p className="text-[11px] font-medium text-slate-700 flex-1 line-clamp-1">{p.objet}</p>
+                            <Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{statusIcon[p.situationAvancement]}{p.situationAvancement}</Badge>
+                            <span className="text-[10px] font-mono text-slate-700 w-20 text-right">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</span>
+                            <span className="text-[10px] font-mono text-green-700 w-20 text-right">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</span>
                           </div>
-                          {/* Engagement progress bar */}
-                          {p.estimationAdmin && p.estimationAdmin > 0 && p.montantEngagement ? (
-                            <div className="flex items-center gap-3 px-2">
-                              <span className="text-[10px] text-slate-500 font-medium">Taux engagement:</span>
-                              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden max-w-[300px]">
-                                <div
-                                  className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-500 animate-progress-fill"
-                                  style={{ width: `${Math.min(100, Math.round((p.montantEngagement / p.estimationAdmin) * 100))}%` }}
-                                />
-                              </div>
-                              <span className="text-[11px] font-bold text-green-600">
-                                {Math.round((p.montantEngagement / p.estimationAdmin) * 100)}%
-                              </span>
-                            </div>
-                          ) : null}
-                        </div>
-                      )}
-                    </Fragment>
+                        ))}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -1137,7 +1184,153 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ── Full-Screen Historique Ouvertures Plis View ── */}
+        {/* ── Full-Screen View 3: Par Étape ── */}
+        {showSidebar && sidebarTab === 'step' && (
+          <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
+            {/* Top Bar */}
+            <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                      <ClipboardList className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-800">Par Étape</h2>
+                      <p className="text-[10px] text-slate-500">Pipeline d&apos;avancement des marchés</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex bg-slate-100 rounded-lg p-0.5">
+                      {([['overview','Vue d\'ensemble','text-blue-600'],['entity','Par Entité','text-green-600'],['step','Par Étape','text-amber-600'],['history','Historique','text-violet-600'],['reports','Rapports','text-cyan-600']] as const).map(([k,l,c]) => (
+                        <button key={k} onClick={() => setSidebarTab(k as typeof sidebarTab)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === k ? 'bg-white shadow-sm ' + c : 'text-slate-500 hover:text-slate-700'}`}>{l}</button>
+                      ))}
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => { setShowSidebar(false); setSidebarTab(null); }} className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Content */}
+            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+              {/* Visual Pipeline */}
+              <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+                <h3 className="text-sm font-semibold text-slate-700 mb-4">Pipeline des Marchés</h3>
+                <div className="flex flex-col sm:flex-row items-stretch gap-3">
+                  {(['A programmer','Publié sur PMP','Ouverture Plis','En cours de jugement','Jugé','Engagé'] as const).map((stage, i) => {
+                    const count = stage === 'Ouverture Plis' ? filtered.filter(p => p.dateOuverture).length : (filteredStatusCount[stage] || 0);
+                    const estim = stage === 'Ouverture Plis' ? filtered.filter(p => p.dateOuverture).reduce((s,p) => s + (p.estimationAdmin || 0), 0) : (filteredStatusBudget[stage]?.estimation || 0);
+                    const engag = stage === 'Ouverture Plis' ? filtered.filter(p => p.dateOuverture).reduce((s,p) => s + (p.montantEngagement || 0), 0) : (filteredStatusBudget[stage]?.engagement || 0);
+                    const pct = filteredKpis.totalProjects > 0 ? Math.round(count / filteredKpis.totalProjects * 100) : 0;
+                    const color = stage === 'Ouverture Plis' ? '#7c3aed' : (statusColor[stage] || '#6b7280');
+                    return (
+                      <div key={stage} className="flex-1 min-w-0">
+                        <div className="relative bg-slate-50 rounded-xl p-4 border border-slate-200 text-center hover:shadow-md transition-all duration-200" style={{ borderTop: `4px solid ${color}` }}>
+                          <div className="w-8 h-8 mx-auto rounded-lg flex items-center justify-center text-white shadow-sm mb-2" style={{ backgroundColor: color }}>
+                            {stage === 'Ouverture Plis' ? <CalendarDays className="w-4 h-4" /> : statusIcon[stage] || <ClipboardList className="w-4 h-4" />}
+                          </div>
+                          <p className="text-[10px] font-semibold text-slate-700 leading-tight">{stage}</p>
+                          <p className="text-xl font-bold text-slate-800 mt-1">{count}</p>
+                          <p className="text-[10px] text-slate-500">{pct}% du total</p>
+                          <div className="mt-2 space-y-0.5">
+                            <p className="text-[9px] text-blue-600">Estim: {fmtM(estim)}</p>
+                            <p className="text-[9px] text-green-600">Engagé: {fmtM(engag)}</p>
+                          </div>
+                          {i < 5 && <div className="hidden sm:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-slate-300">→</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Failed branches */}
+                <div className="flex flex-col sm:flex-row gap-3 mt-3">
+                  {(['Annulé','Infructueux'] as const).map(stage => {
+                    const count = filteredStatusCount[stage] || 0;
+                    const estim = filteredStatusBudget[stage]?.estimation || 0;
+                    const engag = filteredStatusBudget[stage]?.engagement || 0;
+                    const pct = filteredKpis.totalProjects > 0 ? Math.round(count / filteredKpis.totalProjects * 100) : 0;
+                    const color = statusColor[stage] || '#6b7280';
+                    return (
+                      <div key={stage} className="flex-1 min-w-0">
+                        <div className="bg-red-50/50 rounded-xl p-4 border border-red-200 text-center" style={{ borderTop: `4px solid ${color}` }}>
+                          <div className="w-8 h-8 mx-auto rounded-lg flex items-center justify-center text-white shadow-sm mb-2" style={{ backgroundColor: color }}>{statusIcon[stage]}</div>
+                          <p className="text-[10px] font-semibold text-red-700">{stage}</p>
+                          <p className="text-xl font-bold text-red-800 mt-1">{count}</p>
+                          <p className="text-[10px] text-red-500">{pct}% du total</p>
+                          <div className="mt-2 space-y-0.5">
+                            <p className="text-[9px] text-blue-600">Estim: {fmtM(estim)}</p>
+                            <p className="text-[9px] text-green-600">Engagé: {fmtM(engag)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Detailed expandable sections per status */}
+              <div className="space-y-3">
+                {Object.entries(filteredStatusCount).sort(([,a],[,b]) => b - a).map(([status, count]) => {
+                  const statusProjects = filtered.filter(p => p.situationAvancement === status);
+                  const isExpanded = expandedAO === -(Object.keys(filteredStatusCount).indexOf(status) + 100);
+                  return (
+                    <div key={status} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden" style={{ borderLeftWidth: '4px', borderLeftColor: statusColor[status] || '#6b7280' }}>
+                      <div className="px-5 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 transition-colors" onClick={() => setExpandedAO(isExpanded ? null : -(Object.keys(filteredStatusCount).indexOf(status) + 100))}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: statusColor[status] || '#6b7280' }}>{statusIcon[status]}</div>
+                          <div>
+                            <h3 className="text-sm font-semibold text-slate-800">{status}</h3>
+                            <p className="text-[10px] text-slate-500">{count} projets · Estim: {fmtM(filteredStatusBudget[status]?.estimation || 0)} DH · Engagé: {fmtM(filteredStatusBudget[status]?.engagement || 0)} DH</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className="text-[9px] h-5 border-0 text-white" style={{ backgroundColor: statusColor[status] || '#6b7280' }}>{count}</Badge>
+                          {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div className="border-t border-slate-100">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="bg-slate-50 border-b border-slate-100 text-[9px] text-slate-500 uppercase tracking-wider">
+                                  <th className="px-3 py-2 text-center w-8">#</th>
+                                  <th className="px-3 py-2 text-left">Entité</th>
+                                  <th className="px-3 py-2 text-left">Objet</th>
+                                  <th className="px-3 py-2 text-right">Estimation</th>
+                                  <th className="px-3 py-2 text-right">Engagement</th>
+                                  <th className="px-3 py-2 text-center">Ouv. Plis</th>
+                                  <th className="px-3 py-2 text-center">Jugement</th>
+                                  <th className="px-3 py-2 text-center">Engagé le</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {statusProjects.map(p => (
+                                  <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                    <td className="px-3 py-2 text-center text-slate-400 font-mono">{p.id}</td>
+                                    <td className="px-3 py-2"><span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded bg-gradient-to-br from-blue-500 to-violet-500 text-white font-bold text-[9px]">{p.entite}</span></td>
+                                    <td className="px-3 py-2 text-slate-700 max-w-[250px]"><span className="line-clamp-1">{p.objet}</span></td>
+                                    <td className="px-3 py-2 text-right font-mono text-slate-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
+                                    <td className="px-3 py-2 text-right font-mono text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
+                                    <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateOuverture || '—'}</td>
+                                    <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateJugement || '—'}</td>
+                                    <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateEngagement || '—'}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Full-Screen View 4: Historique ── */}
         {showSidebar && sidebarTab === 'history' && (
           <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
             {/* Top Bar */}
@@ -1154,30 +1347,12 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    {/* Tab Switcher */}
                     <div className="flex bg-slate-100 rounded-lg p-0.5">
-                      <button
-                        onClick={() => setSidebarTab('ao')}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === 'ao' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                      >
-                        Détail AO
-                      </button>
-                      <button
-                        onClick={() => setSidebarTab('history')}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === 'history' ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                      >
-                        Historique Plis
-                      </button>
+                      {([['overview','Vue d\'ensemble','text-blue-600'],['entity','Par Entité','text-green-600'],['step','Par Étape','text-amber-600'],['history','Historique','text-violet-600'],['reports','Rapports','text-cyan-600']] as const).map(([k,l,c]) => (
+                        <button key={k} onClick={() => setSidebarTab(k as typeof sidebarTab)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === k ? 'bg-white shadow-sm ' + c : 'text-slate-500 hover:text-slate-700'}`}>{l}</button>
+                      ))}
                     </div>
-                    {/* Close Button */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => { setShowSidebar(false); setSidebarTab(null); }}
-                      className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setShowSidebar(false); setSidebarTab(null); }} className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></Button>
                   </div>
                 </div>
               </div>
@@ -1187,106 +1362,57 @@ export default function Dashboard() {
             <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center">
-                    <CalendarDays className="w-5 h-5 text-violet-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-slate-800">{sortedDailyOpenings.length}</p>
-                    <p className="text-[10px] text-slate-500">Jours d&apos;ouverture</p>
-                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center"><CalendarDays className="w-5 h-5 text-violet-500" /></div>
+                  <div><p className="text-2xl font-bold text-slate-800">{sortedDailyOpenings.length}</p><p className="text-[10px] text-slate-500">Jours d&apos;ouverture</p></div>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-slate-800">{filtered.filter(p => p.dateOuverture).length}</p>
-                    <p className="text-[10px] text-slate-500">Total AO avec date</p>
-                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><FileText className="w-5 h-5 text-blue-500" /></div>
+                  <div><p className="text-2xl font-bold text-slate-800">{filtered.filter(p => p.dateOuverture).length}</p><p className="text-[10px] text-slate-500">Total AO avec date</p></div>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-slate-800">{fmtM(filtered.filter(p => p.dateOuverture).reduce((s, p) => s + (p.estimationAdmin || 0), 0))}</p>
-                    <p className="text-[10px] text-slate-500">Estimation totale (DH)</p>
-                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center"><DollarSign className="w-5 h-5 text-green-500" /></div>
+                  <div><p className="text-2xl font-bold text-slate-800">{fmtM(filtered.filter(p => p.dateOuverture).reduce((s, p) => s + (p.estimationAdmin || 0), 0))}</p><p className="text-[10px] text-slate-500">Estimation totale (DH)</p></div>
                 </div>
               </div>
 
               {/* Vertical Timeline */}
               {sortedDailyOpenings.length === 0 && (
-                <div className="text-center py-16">
-                  <CalendarDays className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <p className="text-sm text-slate-400">Aucune date d&apos;ouverture trouvée</p>
-                </div>
+                <div className="text-center py-16"><CalendarDays className="w-12 h-12 text-slate-300 mx-auto mb-3" /><p className="text-sm text-slate-400">Aucune date d&apos;ouverture trouvée</p></div>
               )}
               <div className="relative pl-8">
-                {/* Gradient line */}
                 <div className="absolute left-[11px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-violet-400 via-blue-400 to-slate-200" />
-
-                {sortedDailyOpenings.map(([date, projectsList], idx) => {
+                {sortedDailyOpenings.map(([date, projectsList]) => {
                   const totalEstim = projectsList.reduce((s, p) => s + (p.estimationAdmin || 0), 0);
                   const totalEngag = projectsList.reduce((s, p) => s + (p.montantEngagement || 0), 0);
                   const engRatio = totalEstim > 0 ? Math.round((totalEngag / totalEstim) * 100) : 0;
-
                   return (
                     <div key={date} className="relative mb-6">
-                      {/* Circular node */}
                       <div className="absolute -left-8 top-2 w-6 h-6 rounded-full bg-white border-2 border-violet-400 flex items-center justify-center z-10 shadow-sm">
                         <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-violet-400 to-blue-400" />
                       </div>
-
-                      {/* Date Card */}
                       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden ml-4">
-                        {/* Card Header */}
                         <div className="bg-gradient-to-r from-violet-50 to-blue-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <CalendarDays className="w-4 h-4 text-violet-500" />
-                            <span className="text-sm font-bold text-slate-800">{date}</span>
-                          </div>
+                          <div className="flex items-center gap-2"><CalendarDays className="w-4 h-4 text-violet-500" /><span className="text-sm font-bold text-slate-800">{date}</span></div>
                           <div className="flex items-center gap-3">
                             <Badge className="text-[9px] h-5 bg-violet-100 text-violet-700 border-violet-200 border hover:bg-violet-200">{projectsList.length} AO</Badge>
                             <span className="text-[10px] text-slate-500">Estim: <strong className="text-blue-600">{fmtM(totalEstim)}</strong> DH</span>
                             <span className="text-[10px] text-slate-500">Engagé: <strong className="text-green-600">{engRatio}%</strong></span>
                           </div>
                         </div>
-                        {/* Mini Table */}
                         <div className="overflow-x-auto">
                           <table className="w-full text-xs">
-                            <thead>
-                              <tr className="bg-slate-50 border-b border-slate-100 text-[9px] text-slate-500 uppercase tracking-wider">
-                                <th className="px-3 py-2 text-center w-8">#</th>
-                                <th className="px-3 py-2 text-left">Objet</th>
-                                <th className="px-3 py-2 text-right">Estimation</th>
-                                <th className="px-3 py-2 text-right">Engagement</th>
-                                <th className="px-3 py-2 text-center">Statut</th>
-                                <th className="px-3 py-2 text-left">Attributaire</th>
-                              </tr>
-                            </thead>
+                            <thead><tr className="bg-slate-50 border-b border-slate-100 text-[9px] text-slate-500 uppercase tracking-wider">
+                              <th className="px-3 py-2 text-center w-8">#</th><th className="px-3 py-2 text-left">Objet</th><th className="px-3 py-2 text-right">Estimation</th><th className="px-3 py-2 text-right">Engagement</th><th className="px-3 py-2 text-center">Statut</th><th className="px-3 py-2 text-left">Attributaire</th>
+                            </tr></thead>
                             <tbody>
                               {projectsList.map(p => (
-                                <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer"
-                                  onClick={() => { setSidebarTab('ao'); setExpandedAO(p.id); }}>
+                                <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer" onClick={() => { setSidebarTab('overview'); setTimeout(() => setExpandedAO(p.id), 100); }}>
                                   <td className="px-3 py-2 text-center text-slate-400 font-mono">{p.id}</td>
-                                  <td className="px-3 py-2 text-slate-700 max-w-[300px]">
-                                    <span className="line-clamp-1">{p.objet}</span>
-                                  </td>
+                                  <td className="px-3 py-2 text-slate-700 max-w-[300px]"><span className="line-clamp-1">{p.objet}</span></td>
                                   <td className="px-3 py-2 text-right font-mono text-slate-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
                                   <td className="px-3 py-2 text-right font-mono text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
-                                  <td className="px-3 py-2 text-center">
-                                    <Badge
-                                      className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap"
-                                      style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}
-                                    >
-                                      {statusIcon[p.situationAvancement]}
-                                      {p.situationAvancement}
-                                    </Badge>
-                                  </td>
-                                  <td className="px-3 py-2 text-slate-600 max-w-[130px]">
-                                    <span className="line-clamp-1 text-[10px]" title={p.attributaire || ''}>{p.attributaire || '—'}</span>
-                                  </td>
+                                  <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{statusIcon[p.situationAvancement]}{p.situationAvancement}</Badge></td>
+                                  <td className="px-3 py-2 text-slate-600 max-w-[130px]"><span className="line-clamp-1 text-[10px]" title={p.attributaire || ''}>{p.attributaire || '—'}</span></td>
                                 </tr>
                               ))}
                             </tbody>
@@ -1296,6 +1422,172 @@ export default function Dashboard() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Full-Screen View 5: Rapports ── */}
+        {showSidebar && sidebarTab === 'reports' && (
+          <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
+            {/* Top Bar */}
+            <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-600 to-teal-600 flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-800">Rapports</h2>
+                      <p className="text-[10px] text-slate-500">Génération et impression des rapports</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex bg-slate-100 rounded-lg p-0.5">
+                      {([['overview','Vue d\'ensemble','text-blue-600'],['entity','Par Entité','text-green-600'],['step','Par Étape','text-amber-600'],['history','Historique','text-violet-600'],['reports','Rapports','text-cyan-600']] as const).map(([k,l,c]) => (
+                        <button key={k} onClick={() => setSidebarTab(k as typeof sidebarTab)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === k ? 'bg-white shadow-sm ' + c : 'text-slate-500 hover:text-slate-700'}`}>{l}</button>
+                      ))}
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => { setShowSidebar(false); setSidebarTab(null); }} className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Content */}
+            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+              {/* Report Generation Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Rapport Synthétique */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5" style={{ borderTop: '4px solid #3b82f6' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><BarChart3 className="w-5 h-5 text-blue-500" /></div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-800">Rapport Synthétique</h3>
+                      <p className="text-[10px] text-slate-500">Vue d&apos;ensemble des KPIs</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 mb-4 text-[11px]">
+                    <div className="flex justify-between"><span className="text-slate-500">Total Projets</span><span className="font-bold text-slate-800">{filteredKpis.totalProjects}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Budget Total</span><span className="font-bold text-blue-600">{fmtM(filteredKpis.totalBudget)} DH</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Estimation</span><span className="font-bold text-amber-600">{fmtM(filteredKpis.totalEstimation)} DH</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Engagement</span><span className="font-bold text-green-600">{fmtM(filteredKpis.totalEngagement)} DH</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Taux Engagement</span><span className="font-bold text-violet-600">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span></div>
+                  </div>
+                  <Button onClick={() => window.print()} className="w-full h-8 text-xs gap-1.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"><Printer className="w-3.5 h-3.5" />Imprimer</Button>
+                </div>
+
+                {/* Rapport par Entité */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5" style={{ borderTop: '4px solid #16a34a' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center"><Building2 className="w-5 h-5 text-green-500" /></div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-800">Rapport par Entité</h3>
+                      <p className="text-[10px] text-slate-500">Résumé par entité</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 mb-4 max-h-[150px] overflow-y-auto custom-scrollbar text-[10px]">
+                    {Object.entries(filteredEntityBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => (
+                      <div key={name} className="flex justify-between items-center py-1 border-b border-slate-50">
+                        <span className="font-medium text-slate-700">{name}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-blue-600">{fmtM(d.estimation)}</span>
+                          <span className="text-green-600">{fmtM(d.engagement)}</span>
+                          <span className={`font-bold ${filteredEntityEngagementRate[name] >= 50 ? 'text-green-600' : 'text-amber-600'}`}>{filteredEntityEngagementRate[name]}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <Button onClick={() => window.print()} className="w-full h-8 text-xs gap-1.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"><Printer className="w-3.5 h-3.5" />Imprimer</Button>
+                </div>
+
+                {/* Rapport par Statut */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5" style={{ borderTop: '4px solid #d97706' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center"><ClipboardList className="w-5 h-5 text-amber-500" /></div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-800">Rapport par Statut</h3>
+                      <p className="text-[10px] text-slate-500">Résumé par statut</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 mb-4 max-h-[150px] overflow-y-auto custom-scrollbar text-[10px]">
+                    {Object.entries(filteredStatusCount).sort(([,a],[,b]) => b - a).map(([status, count]) => (
+                      <div key={status} className="flex justify-between items-center py-1 border-b border-slate-50">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor[status] }} />
+                          <span className="font-medium text-slate-700">{status}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-blue-600">{fmtM(filteredStatusBudget[status]?.estimation || 0)}</span>
+                          <span className="text-green-600">{fmtM(filteredStatusBudget[status]?.engagement || 0)}</span>
+                          <span className="font-bold text-slate-800">{count}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <Button onClick={() => window.print()} className="w-full h-8 text-xs gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"><Printer className="w-3.5 h-3.5" />Imprimer</Button>
+                </div>
+              </div>
+
+              {/* Export Excel Button */}
+              <div className="flex justify-center">
+                <Button onClick={exportToExcel} className="h-10 text-sm gap-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-lg shadow-green-500/20 px-8">
+                  <Download className="w-4 h-4" />Exporter Excel (CSV)
+                </Button>
+              </div>
+
+              {/* Full Summary Table */}
+              <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-cyan-50 to-blue-50">
+                  <h3 className="text-sm font-semibold text-slate-800">Tableau Récapitulatif Complet</h3>
+                  <p className="text-[10px] text-slate-500">Toutes les données PPM 2026 en un coup d&apos;œil</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-[9px] text-slate-500 uppercase tracking-wider">
+                        <th className="px-3 py-2.5 text-left">Catégorie</th>
+                        <th className="px-3 py-2.5 text-left">Détail</th>
+                        <th className="px-3 py-2.5 text-right">Estimation</th>
+                        <th className="px-3 py-2.5 text-right">Engagement</th>
+                        <th className="px-3 py-2.5 text-right">Taux</th>
+                        <th className="px-3 py-2.5 text-center">Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* KPI Summary Row */}
+                      <tr className="bg-blue-50/50 border-b border-slate-100 font-semibold">
+                        <td className="px-3 py-2 text-blue-700" colSpan={2}>Total Général</td>
+                        <td className="px-3 py-2 text-right font-mono text-blue-700">{fmtM(filteredKpis.totalEstimation)}</td>
+                        <td className="px-3 py-2 text-right font-mono text-green-700">{fmtM(filteredKpis.totalEngagement)}</td>
+                        <td className="px-3 py-2 text-right font-bold text-violet-600">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</td>
+                        <td className="px-3 py-2 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                      </tr>
+                      {/* Entity rows */}
+                      {Object.entries(filteredEntityBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => (
+                        <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50">
+                          <td className="px-3 py-2 text-slate-500">Entité</td>
+                          <td className="px-3 py-2 font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: entityColorMap[name] }} />{name}</td>
+                          <td className="px-3 py-2 text-right font-mono text-slate-700">{fmtM(d.estimation)}</td>
+                          <td className="px-3 py-2 text-right font-mono text-green-700">{fmtM(d.engagement)}</td>
+                          <td className="px-3 py-2 text-right font-bold">{filteredEntityEngagementRate[name]}%</td>
+                          <td className="px-3 py-2 text-center text-slate-600">{d.count}</td>
+                        </tr>
+                      ))}
+                      {/* Status rows */}
+                      {Object.entries(filteredStatusCount).sort(([,a],[,b]) => b - a).map(([status, count]) => (
+                        <tr key={status} className="border-b border-slate-50 hover:bg-slate-50/50">
+                          <td className="px-3 py-2 text-slate-500">Statut</td>
+                          <td className="px-3 py-2 font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor[status] }} />{status}</td>
+                          <td className="px-3 py-2 text-right font-mono text-slate-700">{fmtM(filteredStatusBudget[status]?.estimation || 0)}</td>
+                          <td className="px-3 py-2 text-right font-mono text-green-700">{fmtM(filteredStatusBudget[status]?.engagement || 0)}</td>
+                          <td className="px-3 py-2 text-right font-bold">{(filteredStatusBudget[status]?.estimation || 0) > 0 ? Math.round(((filteredStatusBudget[status]?.engagement || 0) / filteredStatusBudget[status]!.estimation) * 100) : 0}%</td>
+                          <td className="px-3 py-2 text-center text-slate-600">{count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>

@@ -830,13 +830,40 @@ export default function Dashboard() {
                       <p className="text-[10px] text-slate-500">{filteredKpis.totalProjects} projets · {fmtM(filteredKpis.totalBudget)} DH budget</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     {/* Search */}
                     <div className="relative">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                       <Input placeholder="Rechercher..." className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-48" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} />
                     </div>
                   </div>
+                </div>
+              </div>
+              {/* Filter Bar */}
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select value={filterEntity} onValueChange={setFilterEntity}>
+                    <SelectTrigger className="h-7 text-[10px] w-[130px] bg-white border-slate-200"><SelectValue placeholder="Entité" /></SelectTrigger>
+                    <SelectContent>{entities.map(e => <SelectItem key={e} value={e} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: entityColorMap[e]}} />{e}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes les entités</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Statut" /></SelectTrigger>
+                    <SelectContent>{statuses.map(s => <SelectItem key={s} value={s} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: statusColor[s]}} />{s}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous les statuts</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterNature} onValueChange={setFilterNature}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Nature" /></SelectTrigger>
+                    <SelectContent>{natures.map(n => <SelectItem key={n} value={n} className="text-[10px]">{n}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes natures</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
+                    <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
+                  </Select>
+                  {hasActiveFilters && (
+                    <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">
+                      <X className="w-3 h-3" />Réinitialiser
+                    </Button>
+                  )}
+                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
                 </div>
               </div>
             </div>
@@ -1075,7 +1102,35 @@ export default function Dashboard() {
                       <p className="text-[10px] text-slate-500">{Object.keys(filteredEntityBudget).length} entités</p>
                     </div>
                   </div>
-
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <Input placeholder="Rechercher..." className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-48" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Filter Bar */}
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Statut" /></SelectTrigger>
+                    <SelectContent>{statuses.map(s => <SelectItem key={s} value={s} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: statusColor[s]}} />{s}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous les statuts</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterNature} onValueChange={setFilterNature}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Nature" /></SelectTrigger>
+                    <SelectContent>{natures.map(n => <SelectItem key={n} value={n} className="text-[10px]">{n}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes natures</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
+                    <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
+                  </Select>
+                  {hasActiveFilters && (
+                    <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">
+                      <X className="w-3 h-3" />Réinitialiser
+                    </Button>
+                  )}
+                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
                 </div>
               </div>
             </div>
@@ -1165,7 +1220,35 @@ export default function Dashboard() {
                       <p className="text-[10px] text-slate-500">Pipeline d&apos;avancement des marchés</p>
                     </div>
                   </div>
-
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <Input placeholder="Rechercher..." className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-48" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Filter Bar */}
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select value={filterEntity} onValueChange={setFilterEntity}>
+                    <SelectTrigger className="h-7 text-[10px] w-[130px] bg-white border-slate-200"><SelectValue placeholder="Entité" /></SelectTrigger>
+                    <SelectContent>{entities.map(e => <SelectItem key={e} value={e} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: entityColorMap[e]}} />{e}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes les entités</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterNature} onValueChange={setFilterNature}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Nature" /></SelectTrigger>
+                    <SelectContent>{natures.map(n => <SelectItem key={n} value={n} className="text-[10px]">{n}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes natures</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
+                    <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
+                  </Select>
+                  {hasActiveFilters && (
+                    <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">
+                      <X className="w-3 h-3" />Réinitialiser
+                    </Button>
+                  )}
+                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
                 </div>
               </div>
             </div>
@@ -1304,7 +1387,39 @@ export default function Dashboard() {
                       <p className="text-[10px] text-slate-500">{sortedDailyOpenings.length} jours d&apos;ouverture</p>
                     </div>
                   </div>
-
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <Input placeholder="Rechercher..." className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-48" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Filter Bar */}
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select value={filterEntity} onValueChange={setFilterEntity}>
+                    <SelectTrigger className="h-7 text-[10px] w-[130px] bg-white border-slate-200"><SelectValue placeholder="Entité" /></SelectTrigger>
+                    <SelectContent>{entities.map(e => <SelectItem key={e} value={e} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: entityColorMap[e]}} />{e}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes les entités</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Statut" /></SelectTrigger>
+                    <SelectContent>{statuses.map(s => <SelectItem key={s} value={s} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: statusColor[s]}} />{s}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous les statuts</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterNature} onValueChange={setFilterNature}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Nature" /></SelectTrigger>
+                    <SelectContent>{natures.map(n => <SelectItem key={n} value={n} className="text-[10px]">{n}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes natures</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
+                    <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
+                  </Select>
+                  {hasActiveFilters && (
+                    <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">
+                      <X className="w-3 h-3" />Réinitialiser
+                    </Button>
+                  )}
+                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
                 </div>
               </div>
             </div>
@@ -1394,7 +1509,39 @@ export default function Dashboard() {
                       <p className="text-[10px] text-slate-500">Génération et impression des rapports</p>
                     </div>
                   </div>
-
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <Input placeholder="Rechercher..." className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-48" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Filter Bar */}
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select value={filterEntity} onValueChange={setFilterEntity}>
+                    <SelectTrigger className="h-7 text-[10px] w-[130px] bg-white border-slate-200"><SelectValue placeholder="Entité" /></SelectTrigger>
+                    <SelectContent>{entities.map(e => <SelectItem key={e} value={e} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: entityColorMap[e]}} />{e}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes les entités</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Statut" /></SelectTrigger>
+                    <SelectContent>{statuses.map(s => <SelectItem key={s} value={s} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: statusColor[s]}} />{s}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous les statuts</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterNature} onValueChange={setFilterNature}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Nature" /></SelectTrigger>
+                    <SelectContent>{natures.map(n => <SelectItem key={n} value={n} className="text-[10px]">{n}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes natures</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
+                    <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
+                  </Select>
+                  {hasActiveFilters && (
+                    <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">
+                      <X className="w-3 h-3" />Réinitialiser
+                    </Button>
+                  )}
+                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
                 </div>
               </div>
             </div>

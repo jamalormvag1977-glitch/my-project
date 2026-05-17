@@ -361,8 +361,7 @@ export default function Dashboard() {
   const [showUpload, setShowUpload] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const lastChecksumRef = useRef<string | null>(null);
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [sidebarTab, setSidebarTab] = useState<'overview' | 'entity' | 'step' | 'history' | 'reports' | null>(null);
+  const [sidebarTab, setSidebarTab] = useState<'overview' | 'entity' | 'step' | 'history' | 'reports' | 'dashboard'>('dashboard');
   const [expandedAO, setExpandedAO] = useState<number | null>(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
@@ -712,131 +711,111 @@ export default function Dashboard() {
     : sidebarFiltered.filter(p => p.situationAvancement === sidebarStatusFilter);
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dot-pattern transition-opacity duration-500 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
-      {/* ── Animated gradient accent line at top ── */}
-      <div className="h-[2px] bg-gradient-to-r from-blue-500 via-violet-500 to-blue-500 bg-[length:200%_100%] animate-gradient-flow" />
-
-      {/* ── Premium Header ── */}
-      <header className="sticky top-0 z-50 glass-card border-b border-white/20">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div className={`min-h-screen bg-slate-50 transition-opacity duration-500 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
+      {/* ── Main Layout: Left Sidebar + Content ── */}
+      <div className="flex min-h-screen">
+        {/* ── Left Black Sidebar ── */}
+        <aside className="w-[220px] shrink-0 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 text-white flex flex-col border-r border-gray-800 fixed left-0 top-0 h-screen z-40">
+          {/* Sidebar Header */}
+          <div className="px-4 py-5 border-b border-gray-800">
             <div className="flex items-center gap-3">
-              {/* Logo with pulsing ring */}
-              <div className="relative">
-                <div className="absolute inset-0 rounded-xl bg-blue-500/20 animate-ring-pulse" />
-                <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
-                  <BarChart3 className="w-5 h-5 text-white" />
-                </div>
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <BarChart3 className="w-4.5 h-4.5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                  Dashboard PPM 2026
-                </h1>
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <CalendarDays className="w-3 h-3" />
-                  <span>ORMVAG — {data.fileName ? data.fileName.replace(/\.xlsx?$/i, '') : 'PPM 2026'}</span>
-                  {data.fileLastModified && (
-                    <>
-                      <span className="text-slate-200">·</span>
-                      <span>Modifié : {new Date(data.fileLastModified).toLocaleString('fr-FR')}</span>
-                    </>
-                  )}
-                </div>
+                <p className="text-sm font-bold text-white tracking-tight">PPM 2026</p>
+                <p className="text-[9px] text-gray-500 uppercase tracking-wider">ORMVAG</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Live clock */}
-              <div className="hidden md:flex items-center gap-1.5 text-xs bg-slate-50/80 px-3 py-1.5 rounded-full border border-slate-100">
-                <LiveClock />
-              </div>
-              {fileChanged && (
-                <div className="flex items-center gap-1.5 text-xs bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-full animate-pulse">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  Fichier mis à jour détecté...
-                </div>
-              )}
-              {data.dataSaved && (
-                <div className="flex items-center gap-1.5 text-xs bg-green-50 border border-green-200 text-green-700 px-3 py-1.5 rounded-full">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Données sauvegardées</span>
-                </div>
-              )}
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <span className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
-                <span className="hidden sm:inline">{autoRefresh ? 'Auto-sync (5s)' : 'Sync off'}</span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAutoRefresh(!autoRefresh)}
-                className="text-xs h-8 rounded-full px-4"
+          </div>
+
+          {/* Navigation Items */}
+          <nav className="flex-1 py-3 px-2 space-y-1">
+            {[
+              { key: 'dashboard' as const, label: 'Dashboard', icon: <BarChart3 className="w-4.5 h-4.5" /> },
+              { key: 'overview' as const, label: 'Vue d\'ensemble', icon: <Activity className="w-4.5 h-4.5" /> },
+              { key: 'entity' as const, label: 'Par Entité', icon: <Building2 className="w-4.5 h-4.5" /> },
+              { key: 'step' as const, label: 'Par Étape', icon: <ClipboardList className="w-4.5 h-4.5" /> },
+              { key: 'history' as const, label: 'Historique', icon: <History className="w-4.5 h-4.5" /> },
+              { key: 'reports' as const, label: 'Rapports', icon: <FileText className="w-4.5 h-4.5" /> },
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setSidebarTab(tab.key)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 group
+                  ${sidebarTab === tab.key
+                    ? 'bg-gradient-to-r from-blue-600/90 to-violet-600/90 text-white shadow-lg shadow-blue-500/20'
+                    : 'text-gray-400 hover:bg-gray-800/80 hover:text-gray-200'
+                  }`}
               >
-                {autoRefresh ? 'Pause' : 'Activer'}
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => fetchData(false)}
-                disabled={refreshing}
-                className="text-xs h-8 gap-1.5 rounded-full px-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md shadow-blue-500/20"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-                Actualiser
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowUpload(!showUpload)}
-                className="text-xs h-8 gap-1.5 rounded-full px-4 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
-              >
-                <Upload className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Charger fichier</span>
-              </Button>
-              {/* 5 Navigation Pill Buttons */}
-              {([
-                { key: 'overview' as const, label: 'Vue d\'ensemble', icon: <BarChart3 className="w-3.5 h-3.5" />, activeClass: 'bg-gradient-to-r from-blue-600 to-violet-600 shadow-md shadow-blue-500/20 text-white' },
-                { key: 'entity' as const, label: 'Par Entité', icon: <Building2 className="w-3.5 h-3.5" />, activeClass: 'bg-gradient-to-r from-green-600 to-emerald-600 shadow-md shadow-green-500/20 text-white' },
-                { key: 'step' as const, label: 'Par Étape', icon: <ClipboardList className="w-3.5 h-3.5" />, activeClass: 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-amber-500/20 text-white' },
-                { key: 'history' as const, label: 'Historique', icon: <History className="w-3.5 h-3.5" />, activeClass: 'bg-gradient-to-r from-violet-600 to-purple-600 shadow-md shadow-violet-500/20 text-white' },
-                { key: 'reports' as const, label: 'Rapports', icon: <FileText className="w-3.5 h-3.5" />, activeClass: 'bg-gradient-to-r from-cyan-600 to-teal-600 shadow-md shadow-cyan-500/20 text-white' },
-              ]).map(tab => (
-                <Button
-                  key={tab.key}
-                  variant={showSidebar && sidebarTab === tab.key ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    if (showSidebar && sidebarTab === tab.key) {
-                      setShowSidebar(false);
-                      setSidebarTab(null);
-                    } else {
-                      setShowSidebar(true);
-                      setSidebarTab(tab.key);
-                    }
-                  }}
-                  className={`text-xs h-8 gap-1.5 rounded-full px-3 transition-all duration-300 ${showSidebar && sidebarTab === tab.key ? tab.activeClass : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                >
+                <span className={`transition-all duration-200 ${sidebarTab === tab.key ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}>
                   {tab.icon}
-                  <span className="hidden lg:inline">{tab.label}</span>
+                </span>
+                <span>{tab.label}</span>
+                {sidebarTab === tab.key && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-sm" />
+                )}
+              </button>
+            ))}
+          </nav>
+
+          {/* Sidebar Footer */}
+          <div className="px-4 py-4 border-t border-gray-800 space-y-2">
+            <div className="flex items-center gap-2 text-[10px] text-gray-500">
+              <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-gray-600'}`} />
+              {autoRefresh ? 'Auto-sync ON' : 'Sync OFF'}
+            </div>
+            <LiveClock />
+          </div>
+        </aside>
+
+        {/* ── Main Content Area ── */}
+        <main className="flex-1 min-w-0 overflow-x-hidden ml-[220px]">
+        {/* ── Compact Top Action Bar ── */}
+        <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+          <div className="px-6 py-2">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <h1 className="text-sm font-bold text-slate-800">Dashboard PPM 2026</h1>
+                <span className="text-[10px] text-slate-400">
+                  {data.fileName ? data.fileName.replace(/\.xlsx?$/i, '') : 'PPM 2026'}
+                  {data.fileLastModified && <> · Modifié: {new Date(data.fileLastModified).toLocaleDateString('fr-FR')}</>}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {fileChanged && (
+                  <div className="flex items-center gap-1 text-[10px] bg-amber-50 border border-amber-200 text-amber-700 px-2 py-1 rounded-full animate-pulse">
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                    Fichier mis à jour
+                  </div>
+                )}
+                {data.dataSaved && (
+                  <div className="flex items-center gap-1 text-[10px] bg-green-50 border border-green-200 text-green-700 px-2 py-1 rounded-full">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Sauvegardé
+                  </div>
+                )}
+                <Button variant="outline" size="sm" onClick={() => setAutoRefresh(!autoRefresh)} className="text-[10px] h-7 rounded-full px-3">
+                  {autoRefresh ? 'Pause' : 'Sync'}
                 </Button>
-              ))}
-              {/* Export Excel button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={exportToExcel}
-                className="text-xs h-8 gap-1.5 rounded-full px-4 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Exporter Excel</span>
-              </Button>
+                <Button variant="default" size="sm" onClick={() => fetchData(false)} disabled={refreshing} className="text-[10px] h-7 gap-1 rounded-full px-3 bg-gradient-to-r from-blue-600 to-blue-700">
+                  <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
+                  Actualiser
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowUpload(!showUpload)} className="text-[10px] h-7 gap-1 rounded-full px-3 border-blue-200 text-blue-600 hover:bg-blue-50">
+                  <Upload className="w-3 h-3" />
+                  Charger
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportToExcel} className="text-[10px] h-7 gap-1 rounded-full px-3 border-green-200 text-green-600 hover:bg-green-50">
+                  <Download className="w-3 h-3" />
+                  Export
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </header>
-
-      <main className="relative">
         {/* ── Full-Screen View 1: Vue d'ensemble ── */}
-        {showSidebar && sidebarTab === 'overview' && (
+        {sidebarTab === 'overview' && (
           <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
             {/* Top Bar */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
@@ -857,13 +836,6 @@ export default function Dashboard() {
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                       <Input placeholder="Rechercher..." className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-48" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} />
                     </div>
-                    {/* Tab Switcher */}
-                    <div className="flex bg-slate-100 rounded-lg p-0.5">
-                      {([['overview','Vue d\'ensemble','text-blue-600'],['entity','Par Entité','text-green-600'],['step','Par Étape','text-amber-600'],['history','Historique','text-violet-600'],['reports','Rapports','text-cyan-600']] as const).map(([k,l,c]) => (
-                        <button key={k} onClick={() => setSidebarTab(k as typeof sidebarTab)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === k ? 'bg-white shadow-sm ' + c : 'text-slate-500 hover:text-slate-700'}`}>{l}</button>
-                      ))}
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => { setShowSidebar(false); setSidebarTab(null); }} className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></Button>
                   </div>
                 </div>
               </div>
@@ -1088,7 +1060,7 @@ export default function Dashboard() {
         )}
 
         {/* ── Full-Screen View 2: Par Entité ── */}
-        {showSidebar && sidebarTab === 'entity' && (
+        {sidebarTab === 'entity' && (
           <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
             {/* Top Bar */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
@@ -1103,14 +1075,7 @@ export default function Dashboard() {
                       <p className="text-[10px] text-slate-500">{Object.keys(filteredEntityBudget).length} entités</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex bg-slate-100 rounded-lg p-0.5">
-                      {([['overview','Vue d\'ensemble','text-blue-600'],['entity','Par Entité','text-green-600'],['step','Par Étape','text-amber-600'],['history','Historique','text-violet-600'],['reports','Rapports','text-cyan-600']] as const).map(([k,l,c]) => (
-                        <button key={k} onClick={() => setSidebarTab(k as typeof sidebarTab)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === k ? 'bg-white shadow-sm ' + c : 'text-slate-500 hover:text-slate-700'}`}>{l}</button>
-                      ))}
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => { setShowSidebar(false); setSidebarTab(null); }} className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></Button>
-                  </div>
+
                 </div>
               </div>
             </div>
@@ -1185,7 +1150,7 @@ export default function Dashboard() {
         )}
 
         {/* ── Full-Screen View 3: Par Étape ── */}
-        {showSidebar && sidebarTab === 'step' && (
+        {sidebarTab === 'step' && (
           <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
             {/* Top Bar */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
@@ -1200,14 +1165,7 @@ export default function Dashboard() {
                       <p className="text-[10px] text-slate-500">Pipeline d&apos;avancement des marchés</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex bg-slate-100 rounded-lg p-0.5">
-                      {([['overview','Vue d\'ensemble','text-blue-600'],['entity','Par Entité','text-green-600'],['step','Par Étape','text-amber-600'],['history','Historique','text-violet-600'],['reports','Rapports','text-cyan-600']] as const).map(([k,l,c]) => (
-                        <button key={k} onClick={() => setSidebarTab(k as typeof sidebarTab)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === k ? 'bg-white shadow-sm ' + c : 'text-slate-500 hover:text-slate-700'}`}>{l}</button>
-                      ))}
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => { setShowSidebar(false); setSidebarTab(null); }} className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></Button>
-                  </div>
+
                 </div>
               </div>
             </div>
@@ -1331,7 +1289,7 @@ export default function Dashboard() {
         )}
 
         {/* ── Full-Screen View 4: Historique ── */}
-        {showSidebar && sidebarTab === 'history' && (
+        {sidebarTab === 'history' && (
           <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
             {/* Top Bar */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
@@ -1346,14 +1304,7 @@ export default function Dashboard() {
                       <p className="text-[10px] text-slate-500">{sortedDailyOpenings.length} jours d&apos;ouverture</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex bg-slate-100 rounded-lg p-0.5">
-                      {([['overview','Vue d\'ensemble','text-blue-600'],['entity','Par Entité','text-green-600'],['step','Par Étape','text-amber-600'],['history','Historique','text-violet-600'],['reports','Rapports','text-cyan-600']] as const).map(([k,l,c]) => (
-                        <button key={k} onClick={() => setSidebarTab(k as typeof sidebarTab)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === k ? 'bg-white shadow-sm ' + c : 'text-slate-500 hover:text-slate-700'}`}>{l}</button>
-                      ))}
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => { setShowSidebar(false); setSidebarTab(null); }} className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></Button>
-                  </div>
+
                 </div>
               </div>
             </div>
@@ -1428,7 +1379,7 @@ export default function Dashboard() {
         )}
 
         {/* ── Full-Screen View 5: Rapports ── */}
-        {showSidebar && sidebarTab === 'reports' && (
+        {sidebarTab === 'reports' && (
           <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
             {/* Top Bar */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
@@ -1443,14 +1394,7 @@ export default function Dashboard() {
                       <p className="text-[10px] text-slate-500">Génération et impression des rapports</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex bg-slate-100 rounded-lg p-0.5">
-                      {([['overview','Vue d\'ensemble','text-blue-600'],['entity','Par Entité','text-green-600'],['step','Par Étape','text-amber-600'],['history','Historique','text-violet-600'],['reports','Rapports','text-cyan-600']] as const).map(([k,l,c]) => (
-                        <button key={k} onClick={() => setSidebarTab(k as typeof sidebarTab)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${sidebarTab === k ? 'bg-white shadow-sm ' + c : 'text-slate-500 hover:text-slate-700'}`}>{l}</button>
-                      ))}
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => { setShowSidebar(false); setSidebarTab(null); }} className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></Button>
-                  </div>
+
                 </div>
               </div>
             </div>
@@ -1593,8 +1537,9 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ── Dashboard Content (shown when sidebar is NOT active) ── */}
-        {!showSidebar && (
+        {/* ── Dashboard Content ── */}
+        {sidebarTab === 'dashboard' && (
+        <div className="bg-gradient-to-br from-slate-50 via-white to-blue-50/30 min-h-screen">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ── Upload Section ── */}
         {showUpload && (
@@ -2330,8 +2275,10 @@ export default function Dashboard() {
           )}
         </footer>
         </div>
+        </div>
         )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

@@ -17,7 +17,7 @@ import {
   CheckCircle2, Clock, AlertCircle, XCircle, Search,
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
-  CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown,
+  CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
   X, ClipboardList, History, Download, Printer
 } from 'lucide-react';
 
@@ -75,10 +75,10 @@ interface PPMData {
 
 /* ── Helpers ──────────────────────────────────────────── */
 const fmtM = (n: number) => {
-  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + ' Md';
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + ' M';
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + ' K';
-  return n.toFixed(0);
+  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + ' MDH';
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + ' MDH';
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + ' KDH';
+  return n.toFixed(0) + ' DH';
 };
 
 const fmtFull = (n: number) =>
@@ -366,6 +366,7 @@ export default function Dashboard() {
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
   const [mounted, setMounted] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const fetchData = useCallback(async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
@@ -715,18 +716,34 @@ export default function Dashboard() {
       {/* ── Main Layout: Left Sidebar + Content ── */}
       <div className="flex min-h-screen">
         {/* ── Left Black Sidebar ── */}
-        <aside className="w-[220px] shrink-0 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 text-white flex flex-col border-r border-gray-800 fixed left-0 top-0 h-screen z-40">
+        <aside className={`print:hidden shrink-0 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 text-white flex flex-col border-r border-gray-800 fixed left-0 top-0 h-screen z-40 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-[60px]' : 'w-[220px]'}`}>
           {/* Sidebar Header */}
-          <div className="px-4 py-5 border-b border-gray-800">
-            <div className="flex items-center gap-3">
+          <div className={`border-b border-gray-800 transition-all duration-300 ${sidebarCollapsed ? 'px-2 py-4' : 'px-4 py-5'}`}>
+            <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
                 <BarChart3 className="w-4.5 h-4.5 text-white" />
               </div>
+              {!sidebarCollapsed && (
               <div>
                 <p className="text-sm font-bold text-white tracking-tight">PPM 2026</p>
                 <p className="text-[9px] text-gray-500 uppercase tracking-wider">ORMVAG</p>
               </div>
+              )}
             </div>
+          </div>
+          {/* Toggle Button */}
+          <div className={`border-b border-gray-800 flex ${sidebarCollapsed ? 'justify-center px-1' : 'justify-end px-3'} py-2`}>
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="w-7 h-7 rounded-lg bg-gray-800 hover:bg-gray-700 flex items-center justify-center transition-all duration-200 group"
+              title={sidebarCollapsed ? 'Ouvrir la barre latérale' : 'Fermer la barre latérale'}
+            >
+              {sidebarCollapsed ? (
+                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+              ) : (
+                <ChevronLeft className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+              )}
+            </button>
           </div>
 
           {/* Navigation Items */}
@@ -742,17 +759,18 @@ export default function Dashboard() {
               <button
                 key={tab.key}
                 onClick={() => setSidebarTab(tab.key)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 group
+                className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 group
                   ${sidebarTab === tab.key
                     ? 'bg-gradient-to-r from-blue-600/90 to-violet-600/90 text-white shadow-lg shadow-blue-500/20'
                     : 'text-gray-400 hover:bg-gray-800/80 hover:text-gray-200'
                   }`}
+                title={sidebarCollapsed ? tab.label : undefined}
               >
                 <span className={`transition-all duration-200 ${sidebarTab === tab.key ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}>
                   {tab.icon}
                 </span>
-                <span>{tab.label}</span>
-                {sidebarTab === tab.key && (
+                {!sidebarCollapsed && <span>{tab.label}</span>}
+                {!sidebarCollapsed && sidebarTab === tab.key && (
                   <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-sm" />
                 )}
               </button>
@@ -761,18 +779,27 @@ export default function Dashboard() {
 
           {/* Sidebar Footer */}
           <div className="px-4 py-4 border-t border-gray-800 space-y-2">
-            <div className="flex items-center gap-2 text-[10px] text-gray-500">
-              <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-gray-600'}`} />
-              {autoRefresh ? 'Auto-sync ON' : 'Sync OFF'}
-            </div>
-            <LiveClock />
+            {!sidebarCollapsed && (
+            <>
+              <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-gray-600'}`} />
+                {autoRefresh ? 'Auto-sync ON' : 'Sync OFF'}
+              </div>
+              <LiveClock />
+            </>
+            )}
+            {sidebarCollapsed && (
+              <div className="flex justify-center">
+                <span className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-gray-600'}`} />
+              </div>
+            )}
           </div>
         </aside>
 
         {/* ── Main Content Area ── */}
-        <main className="flex-1 min-w-0 overflow-x-hidden ml-[220px]">
+        <main className={`print:ml-0 flex-1 min-w-0 overflow-x-hidden transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'ml-[60px]' : 'ml-[220px]'}`}>
         {/* ── Compact Top Action Bar ── */}
-        <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+        <div className="print:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
           <div className="px-6 py-2">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
@@ -878,17 +905,17 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4" style={{ borderTop: '4px solid #16a34a' }}>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Budget Total</p>
-                  <p className="text-2xl font-bold text-slate-800 mt-1">{fmtM(filteredKpis.totalBudget)}</p>
+                  <p className="text-2xl font-bold text-slate-800 mdh-lg mt-1">{fmtM(filteredKpis.totalBudget)}</p>
                   <p className="text-[10px] text-slate-400">CP: {fmtM(filteredKpis.totalCP)} · CE: {fmtM(filteredKpis.totalCE)}</p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4" style={{ borderTop: '4px solid #d97706' }}>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Estimation</p>
-                  <p className="text-2xl font-bold text-slate-800 mt-1">{fmtM(filteredKpis.totalEstimation)}</p>
+                  <p className="text-2xl font-bold text-slate-800 mdh-lg mt-1">{fmtM(filteredKpis.totalEstimation)}</p>
                   <p className="text-[10px] text-slate-400">Extrait: {fmtM(filteredKpis.totalMontantExtrait)}</p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4" style={{ borderTop: '4px solid #7c3aed' }}>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Engagements</p>
-                  <p className="text-2xl font-bold text-slate-800 mt-1">{fmtM(filteredKpis.totalEngagement)}</p>
+                  <p className="text-2xl font-bold text-slate-800 mdh-lg mt-1">{fmtM(filteredKpis.totalEngagement)}</p>
                   <p className="text-[10px] text-slate-400">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%/estim.</p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4" style={{ borderTop: '4px solid #dc2626' }}>
@@ -1017,10 +1044,10 @@ export default function Dashboard() {
                           <div className="px-1.5 py-2.5 text-center text-slate-400 font-mono text-[10px]">{p.id}</div>
                           <div className="px-1.5 py-2.5 text-center"><span className="inline-flex items-center justify-center w-8 h-6 rounded bg-gradient-to-br from-blue-500 to-violet-500 text-white font-bold text-[9px] shadow-sm">{p.entite}</span></div>
                           <div className="px-2 py-2.5"><p className="text-[11px] font-medium text-slate-700 line-clamp-1" title={p.objet}>{p.objet}</p></div>
-                          <div className="px-1.5 py-2.5 text-right font-mono text-[10px] text-slate-600">{p.cp ? fmtM(p.cp) : '—'}</div>
-                          <div className="px-1.5 py-2.5 text-right font-mono text-[10px] text-slate-600">{p.ce ? fmtM(p.ce) : '—'}</div>
-                          <div className="px-1.5 py-2.5 text-right font-mono text-[10px] font-semibold text-slate-800">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</div>
-                          <div className="px-1.5 py-2.5 text-right font-mono text-[10px] font-semibold text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</div>
+                          <div className="px-1.5 py-2.5 text-right mdh text-[10px] text-slate-600">{p.cp ? fmtM(p.cp) : '—'}</div>
+                          <div className="px-1.5 py-2.5 text-right mdh text-[10px] text-slate-600">{p.ce ? fmtM(p.ce) : '—'}</div>
+                          <div className="px-1.5 py-2.5 text-right mdh text-[10px] text-slate-800">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</div>
+                          <div className="px-1.5 py-2.5 text-right mdh text-[10px] text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</div>
                           <div className="px-1.5 py-2.5 text-center text-[9px] text-slate-500">{p.natureBudget}</div>
                           <div className="px-1.5 py-2.5 text-center text-[9px] text-slate-500">{p.typeBudget}</div>
                           <div className="px-1.5 py-2.5 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{statusIcon[p.situationAvancement]}{p.situationAvancement}</Badge></div>
@@ -1035,18 +1062,18 @@ export default function Dashboard() {
                               <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
                                 <div className="flex items-center gap-2 mb-3"><div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center"><DollarSign className="w-3.5 h-3.5 text-blue-500" /></div><p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Budget</p></div>
                                 <div className="space-y-2">
-                                  <div className="flex justify-between text-[11px]"><span className="text-slate-500">CP</span><span className="font-mono font-medium text-blue-600">{p.cp ? fmtFull(p.cp) : '—'}</span></div>
-                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">CE</span><span className="font-mono font-medium text-cyan-600">{p.ce ? fmtFull(p.ce) : '—'}</span></div>
-                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Estimation</span><span className="font-mono font-semibold text-slate-800">{p.estimationAdmin ? fmtFull(p.estimationAdmin) : '—'}</span></div>
+                                  <div className="flex justify-between text-[11px]"><span className="text-slate-500">CP</span><span className="mdh text-blue-600">{p.cp ? fmtFull(p.cp) : '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">CE</span><span className="mdh text-cyan-600">{p.ce ? fmtFull(p.ce) : '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Estimation</span><span className="mdh text-slate-800">{p.estimationAdmin ? fmtFull(p.estimationAdmin) : '—'}</span></div>
                                 </div>
                               </div>
                               <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
                                 <div className="flex items-center gap-2 mb-3"><div className="w-6 h-6 rounded-lg bg-green-50 flex items-center justify-center"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /></div><p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Engagement</p></div>
                                 <div className="space-y-2">
-                                  <div className="flex justify-between text-[11px]"><span className="text-slate-500">Montant</span><span className="font-mono font-semibold text-green-700">{p.montantEngagement ? fmtFull(p.montantEngagement) : '—'}</span></div>
-                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Engag. CP</span><span className="font-mono text-slate-600">{p.engagementCP ? fmtFull(p.engagementCP) : '—'}</span></div>
-                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Engag. CE</span><span className="font-mono text-slate-600">{p.engagementCE ? fmtFull(p.engagementCE) : '—'}</span></div>
-                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Extrait</span><span className="font-mono text-amber-600">{p.montantExtrait ? fmtFull(p.montantExtrait) : '—'}</span></div>
+                                  <div className="flex justify-between text-[11px]"><span className="text-slate-500">Montant</span><span className="mdh text-green-700">{p.montantEngagement ? fmtFull(p.montantEngagement) : '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Engag. CP</span><span className="mdh text-slate-600">{p.engagementCP ? fmtFull(p.engagementCP) : '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Engag. CE</span><span className="mdh text-slate-600">{p.engagementCE ? fmtFull(p.engagementCE) : '—'}</span></div>
+                                  <Separator /><div className="flex justify-between text-[11px]"><span className="text-slate-500">Extrait</span><span className="mdh text-amber-600">{p.montantExtrait ? fmtFull(p.montantExtrait) : '—'}</span></div>
                                 </div>
                               </div>
                               <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
@@ -1144,7 +1171,7 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex items-center gap-3" style={{ borderTop: '4px solid #3b82f6' }}>
                   <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><DollarSign className="w-5 h-5 text-blue-500" /></div>
-                  <div><p className="text-2xl font-bold text-slate-800">{fmtM(filteredKpis.totalBudget)}</p><p className="text-[10px] text-slate-500">Budget total (DH)</p></div>
+                  <div><p className="text-2xl font-bold text-slate-800 mdh-lg">{fmtM(filteredKpis.totalBudget)}</p><p className="text-[10px] text-slate-500">Budget total (DH)</p></div>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex items-center gap-3" style={{ borderTop: '4px solid #7c3aed' }}>
                   <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center"><Activity className="w-5 h-5 text-violet-500" /></div>
@@ -1171,10 +1198,10 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-6 gap-y-1 text-[11px]">
-                          <div><span className="text-slate-400">CP: </span><span className="font-medium text-blue-600">{fmtM(d.cp)}</span></div>
-                          <div><span className="text-slate-400">CE: </span><span className="font-medium text-cyan-600">{fmtM(d.ce)}</span></div>
-                          <div><span className="text-slate-400">Estim: </span><span className="font-medium text-slate-800">{fmtM(d.estimation)}</span></div>
-                          <div><span className="text-slate-400">Engagé: </span><span className="font-medium text-green-600">{fmtM(d.engagement)}</span></div>
+                          <div><span className="text-slate-400">CP: </span><span className="mdh text-blue-600">{fmtM(d.cp)}</span></div>
+                          <div><span className="text-slate-400">CE: </span><span className="mdh text-cyan-600">{fmtM(d.ce)}</span></div>
+                          <div><span className="text-slate-400">Estim: </span><span className="mdh text-slate-800">{fmtM(d.estimation)}</span></div>
+                          <div><span className="text-slate-400">Engagé: </span><span className="mdh text-green-600">{fmtM(d.engagement)}</span></div>
                           <div className="flex items-center gap-2">
                             <span className="text-slate-400">Taux:</span>
                             <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[80px]">
@@ -1191,8 +1218,8 @@ export default function Dashboard() {
                             <span className="text-[10px] text-slate-400 font-mono w-6">{p.id}</span>
                             <p className="text-[11px] font-medium text-slate-700 flex-1 line-clamp-1">{p.objet}</p>
                             <Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{statusIcon[p.situationAvancement]}{p.situationAvancement}</Badge>
-                            <span className="text-[10px] font-mono text-slate-700 w-20 text-right">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</span>
-                            <span className="text-[10px] font-mono text-green-700 w-20 text-right">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</span>
+                            <span className="text-[10px] mdh text-slate-700 w-20 text-right">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</span>
+                            <span className="text-[10px] mdh text-green-700 w-20 text-right">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</span>
                           </div>
                         ))}
                       </div>
@@ -1351,8 +1378,8 @@ export default function Dashboard() {
                                     <td className="px-3 py-2 text-center text-slate-400 font-mono">{p.id}</td>
                                     <td className="px-3 py-2"><span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded bg-gradient-to-br from-blue-500 to-violet-500 text-white font-bold text-[9px]">{p.entite}</span></td>
                                     <td className="px-3 py-2 text-slate-700 max-w-[250px]"><span className="line-clamp-1">{p.objet}</span></td>
-                                    <td className="px-3 py-2 text-right font-mono text-slate-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
-                                    <td className="px-3 py-2 text-right font-mono text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
+                                    <td className="px-3 py-2 text-right mdh text-slate-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
+                                    <td className="px-3 py-2 text-right mdh text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
                                     <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateOuverture || '—'}</td>
                                     <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateJugement || '—'}</td>
                                     <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateEngagement || '—'}</td>
@@ -1437,7 +1464,7 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center"><DollarSign className="w-5 h-5 text-green-500" /></div>
-                  <div><p className="text-2xl font-bold text-slate-800">{fmtM(filtered.filter(p => p.dateOuverture).reduce((s, p) => s + (p.estimationAdmin || 0), 0))}</p><p className="text-[10px] text-slate-500">Estimation totale (DH)</p></div>
+                  <div><p className="text-2xl font-bold text-slate-800 mdh-lg">{fmtM(filtered.filter(p => p.dateOuverture).reduce((s, p) => s + (p.estimationAdmin || 0), 0))}</p><p className="text-[10px] text-slate-500">Estimation totale (DH)</p></div>
                 </div>
               </div>
 
@@ -1475,8 +1502,8 @@ export default function Dashboard() {
                                 <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer" onClick={() => { setSidebarTab('overview'); setTimeout(() => setExpandedAO(p.id), 100); }}>
                                   <td className="px-3 py-2 text-center text-slate-400 font-mono">{p.id}</td>
                                   <td className="px-3 py-2 text-slate-700 max-w-[300px]"><span className="line-clamp-1">{p.objet}</span></td>
-                                  <td className="px-3 py-2 text-right font-mono text-slate-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
-                                  <td className="px-3 py-2 text-right font-mono text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
+                                  <td className="px-3 py-2 text-right mdh text-slate-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
+                                  <td className="px-3 py-2 text-right mdh text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
                                   <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{statusIcon[p.situationAvancement]}{p.situationAvancement}</Badge></td>
                                   <td className="px-3 py-2 text-slate-600 max-w-[130px]"><span className="line-clamp-1 text-[10px]" title={p.attributaire || ''}>{p.attributaire || '—'}</span></td>
                                 </tr>
@@ -1497,7 +1524,7 @@ export default function Dashboard() {
         {sidebarTab === 'reports' && (
           <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
             {/* Top Bar */}
-            <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+            <div className="print:hidden sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
               <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -1625,60 +1652,6 @@ export default function Dashboard() {
                 <Button onClick={exportToExcel} className="h-10 text-sm gap-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-lg shadow-green-500/20 px-8">
                   <Download className="w-4 h-4" />Exporter Excel (CSV)
                 </Button>
-              </div>
-
-              {/* Full Summary Table */}
-              <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-cyan-50 to-blue-50">
-                  <h3 className="text-sm font-semibold text-slate-800">Tableau Récapitulatif Complet</h3>
-                  <p className="text-[10px] text-slate-500">Toutes les données PPM 2026 en un coup d&apos;œil</p>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200 text-[9px] text-slate-500 uppercase tracking-wider">
-                        <th className="px-3 py-2.5 text-left">Catégorie</th>
-                        <th className="px-3 py-2.5 text-left">Détail</th>
-                        <th className="px-3 py-2.5 text-right">Estimation</th>
-                        <th className="px-3 py-2.5 text-right">Engagement</th>
-                        <th className="px-3 py-2.5 text-right">Taux</th>
-                        <th className="px-3 py-2.5 text-center">Count</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* KPI Summary Row */}
-                      <tr className="bg-blue-50/50 border-b border-slate-100 font-semibold">
-                        <td className="px-3 py-2 text-blue-700" colSpan={2}>Total Général</td>
-                        <td className="px-3 py-2 text-right font-mono text-blue-700">{fmtM(filteredKpis.totalEstimation)}</td>
-                        <td className="px-3 py-2 text-right font-mono text-green-700">{fmtM(filteredKpis.totalEngagement)}</td>
-                        <td className="px-3 py-2 text-right font-bold text-violet-600">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</td>
-                        <td className="px-3 py-2 text-center text-slate-800">{filteredKpis.totalProjects}</td>
-                      </tr>
-                      {/* Entity rows */}
-                      {Object.entries(filteredEntityBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => (
-                        <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50">
-                          <td className="px-3 py-2 text-slate-500">Entité</td>
-                          <td className="px-3 py-2 font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: entityColorMap[name] }} />{name}</td>
-                          <td className="px-3 py-2 text-right font-mono text-slate-700">{fmtM(d.estimation)}</td>
-                          <td className="px-3 py-2 text-right font-mono text-green-700">{fmtM(d.engagement)}</td>
-                          <td className="px-3 py-2 text-right font-bold">{filteredEntityEngagementRate[name]}%</td>
-                          <td className="px-3 py-2 text-center text-slate-600">{d.count}</td>
-                        </tr>
-                      ))}
-                      {/* Status rows */}
-                      {Object.entries(filteredStatusCount).sort(([,a],[,b]) => b - a).map(([status, count]) => (
-                        <tr key={status} className="border-b border-slate-50 hover:bg-slate-50/50">
-                          <td className="px-3 py-2 text-slate-500">Statut</td>
-                          <td className="px-3 py-2 font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor[status] }} />{status}</td>
-                          <td className="px-3 py-2 text-right font-mono text-slate-700">{fmtM(filteredStatusBudget[status]?.estimation || 0)}</td>
-                          <td className="px-3 py-2 text-right font-mono text-green-700">{fmtM(filteredStatusBudget[status]?.engagement || 0)}</td>
-                          <td className="px-3 py-2 text-right font-bold">{(filteredStatusBudget[status]?.estimation || 0) > 0 ? Math.round(((filteredStatusBudget[status]?.engagement || 0) / filteredStatusBudget[status]!.estimation) * 100) : 0}%</td>
-                          <td className="px-3 py-2 text-center text-slate-600">{count}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
               </div>
             </div>
           </div>
@@ -2377,19 +2350,19 @@ export default function Dashboard() {
                     <div className="space-y-1 text-left">
                       <div className="flex justify-between text-[10px]">
                         <span className="text-slate-400">CP</span>
-                        <span className="font-medium text-blue-600">{fmtM(d.cp)}</span>
+                        <span className="mdh text-blue-600">{fmtM(d.cp)}</span>
                       </div>
                       <div className="flex justify-between text-[10px]">
                         <span className="text-slate-400">CE</span>
-                        <span className="font-medium text-cyan-600">{fmtM(d.ce)}</span>
+                        <span className="mdh text-cyan-600">{fmtM(d.ce)}</span>
                       </div>
                       <div className="flex justify-between text-[10px]">
                         <span className="text-slate-400">Estim.</span>
-                        <span className="font-medium text-slate-700">{fmtM(d.estimation)}</span>
+                        <span className="mdh text-slate-700">{fmtM(d.estimation)}</span>
                       </div>
                       <div className="flex justify-between text-[10px]">
                         <span className="text-slate-400">Engagé</span>
-                        <span className="font-medium text-green-600">{fmtM(d.engagement)}</span>
+                        <span className="mdh text-green-600">{fmtM(d.engagement)}</span>
                       </div>
                       <div className="flex justify-between text-[10px]">
                         <span className="text-slate-400">Taux</span>

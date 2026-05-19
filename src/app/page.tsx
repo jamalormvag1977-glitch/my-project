@@ -18,7 +18,7 @@ import {
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
-  X, ClipboardList, History, Download, Printer
+  X, ClipboardList, History, Download, Printer, Send
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -91,20 +91,26 @@ const fmtFileSize = (bytes: number) => {
 };
 
 const statusColor: Record<string, string> = {
+  'Ouvert': '#3b82f6',
   'Engagé': '#16a34a',
   'Jugé': '#2563eb',
   'En cours de jugement': '#d97706',
   'Publié sur PMP': '#7c3aed',
+  'Publié PPM': '#7c3aed',
+  'DAO Envoyé au CE': '#0891b2',
   'A programmer': '#6b7280',
   'Infructueux': '#dc2626',
   'Annulé': '#991b1b',
 };
 
 const statusIcon: Record<string, React.ReactNode> = {
+  'Ouvert': <CalendarDays className="w-3.5 h-3.5" />,
   'Engagé': <CheckCircle2 className="w-3.5 h-3.5" />,
   'Jugé': <CheckCircle2 className="w-3.5 h-3.5" />,
   'En cours de jugement': <Clock className="w-3.5 h-3.5" />,
   'Publié sur PMP': <Activity className="w-3.5 h-3.5" />,
+  'Publié PPM': <Activity className="w-3.5 h-3.5" />,
+  'DAO Envoyé au CE': <Send className="w-3.5 h-3.5" />,
   'A programmer': <AlertCircle className="w-3.5 h-3.5" />,
   'Infructueux': <XCircle className="w-3.5 h-3.5" />,
   'Annulé': <XCircle className="w-3.5 h-3.5" />,
@@ -368,6 +374,20 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  /* ── Pipeline Order & Status Mapping ── */
+  const PIPELINE_ORDER = ['Ouvert','En cours de jugement','Jugé','Engagé','Infructueux','Annulé','Publié PPM','DAO Envoyé au CE','A programmer'] as const;
+  const PIPELINE_STATUS_MAP: Record<string, string> = {
+    'Ouvert': '__computed__',
+    'En cours de jugement': 'En cours de jugement',
+    'Jugé': 'Jugé',
+    'Engagé': 'Engagé',
+    'Infructueux': 'Infructueux',
+    'Annulé': 'Annulé',
+    'Publié PPM': 'Publié sur PMP',
+    'DAO Envoyé au CE': 'DAO Envoyé au CE',
+    'A programmer': 'A programmer',
+  };
+
   const fetchData = useCallback(async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
     setRefreshing(true);
@@ -522,11 +542,20 @@ export default function Dashboard() {
   const entities = [...new Set(projects.map(p => p.entite))].sort();
   const natures = [...new Set(projects.map(p => p.natureBudget))].sort();
   const types = [...new Set(projects.map(p => p.typeBudget))].sort();
-  const statuses = [...new Set(projects.map(p => p.situationAvancement))].sort();
+  const statuses = [...new Set(projects.map(p => p.situationAvancement))].sort((a, b) => {
+    const aIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === a);
+    const bIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === b);
+    const aOrder = aIdx >= 0 ? aIdx : PIPELINE_ORDER.length;
+    const bOrder = bIdx >= 0 ? bIdx : PIPELINE_ORDER.length;
+    return aOrder - bOrder;
+  });
 
-  // Today for filtering daily openings
+  // Today for filtering daily openings and Ouvert status
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  // Ouvert projects: dateOuverture exists AND <= today
+  const ouvertProjects = filtered.filter(p => p.dateOuverture && new Date(p.dateOuverture) <= today);
 
   // Daily openings computation for sidebar history tab — only dates <= today
   const dailyOpenings: Record<string, PPMProject[]> = {};
@@ -665,30 +694,32 @@ export default function Dashboard() {
   const completedCount = engagedCount + judgedCount;
 
   // Rate computations for rate cards
-  const ouverturePlisRate = filteredKpis.totalProjects > 0 ? Math.round(filtered.filter(p => p.dateOuverture).length / filteredKpis.totalProjects * 100) : 0;
+  const ouvertRate = filteredKpis.totalProjects > 0 ? Math.round(ouvertProjects.length / filteredKpis.totalProjects * 100) : 0;
   const jugementRate = filteredKpis.totalProjects > 0 ? Math.round(filtered.filter(p => p.dateJugement).length / filteredKpis.totalProjects * 100) : 0;
   const engagementRate = filteredKpis.totalProjects > 0 ? Math.round(filtered.filter(p => p.montantEngagement && p.montantEngagement > 0).length / filteredKpis.totalProjects * 100) : 0;
   const annuleRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['Annulé'] || 0) / filteredKpis.totalProjects * 100) : 0;
   const infructueuxRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['Infructueux'] || 0) / filteredKpis.totalProjects * 100) : 0;
   const aProgrammerRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['A programmer'] || 0) / filteredKpis.totalProjects * 100) : 0;
   const enCoursJugementRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['En cours de jugement'] || 0) / filteredKpis.totalProjects * 100) : 0;
-  const publiePmpRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['Publié sur PMP'] || 0) / filteredKpis.totalProjects * 100) : 0;
+  const publiePpmRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['Publié sur PMP'] || 0) / filteredKpis.totalProjects * 100) : 0;
+  const daoCeRate = filteredKpis.totalProjects > 0 ? Math.round((filteredStatusCount['DAO Envoyé au CE'] || 0) / filteredKpis.totalProjects * 100) : 0;
 
   // Entity color mapping for top accent
   const entityColorMap: Record<string, string> = {};
   const entityColors = ['#3b82f6', '#16a34a', '#d97706', '#7c3aed', '#dc2626', '#0891b2', '#be185d', '#ea580c'];
   entities.forEach((e, i) => { entityColorMap[e] = entityColors[i % entityColors.length]; });
 
-  /* ── Rate Card Data ── */
+  /* ── Rate Card Data (9 cards in PIPELINE_ORDER) ── */
   const rateCards = [
-    { label: 'Ouverture Plis', rate: ouverturePlisRate, count: filtered.filter(p => p.dateOuverture).length, color: '#7c3aed', icon: <CalendarDays className="w-4 h-4" /> },
-    { label: 'Jugement', rate: jugementRate, count: filtered.filter(p => p.dateJugement).length, color: '#2563eb', icon: <CheckCircle2 className="w-4 h-4" /> },
-    { label: 'Engagement', rate: engagementRate, count: filtered.filter(p => p.montantEngagement && p.montantEngagement > 0).length, color: '#16a34a', icon: <DollarSign className="w-4 h-4" /> },
-    { label: 'Annulé', rate: annuleRate, count: filteredStatusCount['Annulé'] || 0, color: '#991b1b', icon: <XCircle className="w-4 h-4" /> },
-    { label: 'Infructueux', rate: infructueuxRate, count: filteredStatusCount['Infructueux'] || 0, color: '#dc2626', icon: <XCircle className="w-4 h-4" /> },
-    { label: 'A programmer', rate: aProgrammerRate, count: filteredStatusCount['A programmer'] || 0, color: '#6b7280', icon: <AlertCircle className="w-4 h-4" /> },
+    { label: 'Ouvert', rate: ouvertRate, count: ouvertProjects.length, color: '#3b82f6', icon: <CalendarDays className="w-4 h-4" /> },
     { label: 'En cours de jugement', rate: enCoursJugementRate, count: filteredStatusCount['En cours de jugement'] || 0, color: '#d97706', icon: <Clock className="w-4 h-4" /> },
-    { label: 'Publié sur PMP', rate: publiePmpRate, count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed', icon: <Activity className="w-4 h-4" /> },
+    { label: 'Jugé', rate: jugementRate, count: filtered.filter(p => p.dateJugement).length, color: '#2563eb', icon: <CheckCircle2 className="w-4 h-4" /> },
+    { label: 'Engagé', rate: engagementRate, count: filtered.filter(p => p.montantEngagement && p.montantEngagement > 0).length, color: '#16a34a', icon: <DollarSign className="w-4 h-4" /> },
+    { label: 'Infructueux', rate: infructueuxRate, count: filteredStatusCount['Infructueux'] || 0, color: '#dc2626', icon: <XCircle className="w-4 h-4" /> },
+    { label: 'Annulé', rate: annuleRate, count: filteredStatusCount['Annulé'] || 0, color: '#991b1b', icon: <XCircle className="w-4 h-4" /> },
+    { label: 'Publié PPM', rate: publiePpmRate, count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed', icon: <Activity className="w-4 h-4" /> },
+    { label: 'DAO Envoyé au CE', rate: daoCeRate, count: filteredStatusCount['DAO Envoyé au CE'] || 0, color: '#0891b2', icon: <Send className="w-4 h-4" /> },
+    { label: 'A programmer', rate: aProgrammerRate, count: filteredStatusCount['A programmer'] || 0, color: '#6b7280', icon: <AlertCircle className="w-4 h-4" /> },
   ];
 
   // Donut chart data for AO prévus
@@ -894,50 +925,28 @@ export default function Dashboard() {
               <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
                 <h3 className="text-sm font-semibold text-slate-700 mb-4">Pipeline des Marchés</h3>
                 <div className="flex flex-col sm:flex-row items-stretch gap-3">
-                  {(['A programmer','Publié sur PMP','Ouverture Plis','En cours de jugement','Jugé','Engagé'] as const).map((stage, i) => {
-                    const count = stage === 'Ouverture Plis' ? filtered.filter(p => p.dateOuverture).length : (filteredStatusCount[stage] || 0);
-                    const estim = stage === 'Ouverture Plis' ? filtered.filter(p => p.dateOuverture).reduce((s,p) => s + (p.estimationAdmin || 0), 0) : (filteredStatusBudget[stage]?.estimation || 0);
-                    const engag = stage === 'Ouverture Plis' ? filtered.filter(p => p.dateOuverture).reduce((s,p) => s + (p.montantEngagement || 0), 0) : (filteredStatusBudget[stage]?.engagement || 0);
+                  {PIPELINE_ORDER.map((stage, i) => {
+                    const dataStatus = PIPELINE_STATUS_MAP[stage] || stage;
+                    const count = stage === 'Ouvert' ? ouvertProjects.length : (filteredStatusCount[dataStatus] || 0);
+                    const estim = stage === 'Ouvert' ? ouvertProjects.reduce((s,p) => s + (p.estimationAdmin || 0), 0) : (filteredStatusBudget[dataStatus]?.estimation || 0);
+                    const engag = stage === 'Ouvert' ? ouvertProjects.reduce((s,p) => s + (p.montantEngagement || 0), 0) : (filteredStatusBudget[dataStatus]?.engagement || 0);
                     const pct = filteredKpis.totalProjects > 0 ? Math.round(count / filteredKpis.totalProjects * 100) : 0;
-                    const color = stage === 'Ouverture Plis' ? '#7c3aed' : (statusColor[stage] || '#6b7280');
+                    const color = statusColor[stage] || statusColor[dataStatus] || '#6b7280';
+                    const isFailed = stage === 'Infructueux' || stage === 'Annulé';
                     return (
                       <div key={stage} className="flex-1 min-w-0">
-                        <div className="relative bg-slate-50 rounded-xl p-4 border border-slate-200 text-center hover:shadow-md transition-all duration-200" style={{ borderTop: `4px solid ${color}` }}>
+                        <div className={`relative rounded-xl p-4 text-center hover:shadow-md transition-all duration-200 ${isFailed ? 'bg-red-50/50 border border-red-200' : 'bg-slate-50 border border-slate-200'}`} style={{ borderTop: `4px solid ${color}` }}>
                           <div className="w-8 h-8 mx-auto rounded-lg flex items-center justify-center text-white shadow-sm mb-2" style={{ backgroundColor: color }}>
-                            {stage === 'Ouverture Plis' ? <CalendarDays className="w-4 h-4" /> : statusIcon[stage] || <ClipboardList className="w-4 h-4" />}
+                            {statusIcon[stage] || statusIcon[dataStatus] || <ClipboardList className="w-4 h-4" />}
                           </div>
-                          <p className="text-[10px] font-semibold text-slate-700 leading-tight">{stage}</p>
-                          <p className="text-xl font-bold text-slate-800 mt-1">{count}</p>
-                          <p className="text-[10px] text-slate-500">{pct}% du total</p>
+                          <p className={`text-[10px] font-semibold leading-tight ${isFailed ? 'text-red-700' : 'text-slate-700'}`}>{stage}</p>
+                          <p className={`text-xl font-bold mt-1 ${isFailed ? 'text-red-800' : 'text-slate-800'}`}>{count}</p>
+                          <p className={`text-[10px] ${isFailed ? 'text-red-500' : 'text-slate-500'}`}>{pct}% du total</p>
                           <div className="mt-2 space-y-0.5">
                             <p className="text-[9px] text-blue-600">Estim: {fmtM(estim)}</p>
                             <p className="text-[9px] text-green-600">Engagé: {fmtM(engag)}</p>
                           </div>
-                          {i < 5 && <div className="hidden sm:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-slate-300">→</div>}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                {/* Failed branches */}
-                <div className="flex flex-col sm:flex-row gap-3 mt-3">
-                  {(['Annulé','Infructueux'] as const).map(stage => {
-                    const count = filteredStatusCount[stage] || 0;
-                    const estim = filteredStatusBudget[stage]?.estimation || 0;
-                    const engag = filteredStatusBudget[stage]?.engagement || 0;
-                    const pct = filteredKpis.totalProjects > 0 ? Math.round(count / filteredKpis.totalProjects * 100) : 0;
-                    const color = statusColor[stage] || '#6b7280';
-                    return (
-                      <div key={stage} className="flex-1 min-w-0">
-                        <div className="bg-red-50/50 rounded-xl p-4 border border-red-200 text-center" style={{ borderTop: `4px solid ${color}` }}>
-                          <div className="w-8 h-8 mx-auto rounded-lg flex items-center justify-center text-white shadow-sm mb-2" style={{ backgroundColor: color }}>{statusIcon[stage]}</div>
-                          <p className="text-[10px] font-semibold text-red-700">{stage}</p>
-                          <p className="text-xl font-bold text-red-800 mt-1">{count}</p>
-                          <p className="text-[10px] text-red-500">{pct}% du total</p>
-                          <div className="mt-2 space-y-0.5">
-                            <p className="text-[9px] text-blue-600">Estim: {fmtM(estim)}</p>
-                            <p className="text-[9px] text-green-600">Engagé: {fmtM(engag)}</p>
-                          </div>
+                          {i < PIPELINE_ORDER.length - 1 && <div className="hidden sm:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-slate-300">→</div>}
                         </div>
                       </div>
                     );
@@ -947,7 +956,13 @@ export default function Dashboard() {
 
               {/* Detailed expandable sections per status */}
               <div className="space-y-3">
-                {Object.entries(filteredStatusCount).sort(([,a],[,b]) => b - a).map(([status, count]) => {
+                {Object.entries(filteredStatusCount).sort(([a],[b]) => {
+                  const aIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === a);
+                  const bIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === b);
+                  const aOrder = aIdx >= 0 ? aIdx : PIPELINE_ORDER.length;
+                  const bOrder = bIdx >= 0 ? bIdx : PIPELINE_ORDER.length;
+                  return aOrder - bOrder;
+                }).map(([status, count]) => {
                   const statusProjects = filtered.filter(p => p.situationAvancement === status);
                   const isExpanded = expandedAO === -(Object.keys(filteredStatusCount).indexOf(status) + 100);
                   return (
@@ -979,6 +994,7 @@ export default function Dashboard() {
                                   <th className="px-3 py-2 text-center">Ouv. Plis</th>
                                   <th className="px-3 py-2 text-center">Jugement</th>
                                   <th className="px-3 py-2 text-center">Engagé le</th>
+                                  <th className="px-3 py-2 text-center">N° Marché</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -992,6 +1008,7 @@ export default function Dashboard() {
                                     <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateOuverture || '—'}</td>
                                     <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateJugement || '—'}</td>
                                     <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateEngagement || '—'}</td>
+                                    <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.numMarche || '—'}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -1003,6 +1020,123 @@ export default function Dashboard() {
                   );
                 })}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Full-Screen View 2: Par Entité ── */}
+        {sidebarTab === 'entity' && (
+          <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
+            {/* Top Bar */}
+            <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                      <Building2 className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-800">Par Entité</h2>
+                      <p className="text-[10px] text-slate-500">Détail des marchés par entité</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <Input placeholder="Rechercher..." className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-48" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Filter Bar */}
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Statut" /></SelectTrigger>
+                    <SelectContent>{statuses.map(s => <SelectItem key={s} value={s} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: statusColor[s]}} />{s}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous les statuts</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterNature} onValueChange={setFilterNature}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Nature" /></SelectTrigger>
+                    <SelectContent>{natures.map(n => <SelectItem key={n} value={n} className="text-[10px]">{n}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes natures</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
+                    <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
+                  </Select>
+                  {hasActiveFilters && (
+                    <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">
+                      <X className="w-3 h-3" />Réinitialiser
+                    </Button>
+                  )}
+                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
+                </div>
+              </div>
+            </div>
+            {/* Content */}
+            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-3">
+              {Object.entries(filteredEntityBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([entity, d]) => {
+                const entityProjects = filtered.filter(p => p.entite === entity);
+                const accentColor = entityColorMap[entity] || '#3b82f6';
+                const engRate = filteredEntityEngagementRate[entity];
+                const isExpanded = expandedAO === -(entities.indexOf(entity) + 200);
+                return (
+                  <div key={entity} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden" style={{ borderLeftWidth: '4px', borderLeftColor: accentColor }}>
+                    <div className="px-5 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 transition-colors" onClick={() => setExpandedAO(isExpanded ? null : -(entities.indexOf(entity) + 200))}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: accentColor }}>
+                          <Building2 className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-slate-800">{entity}</h3>
+                          <p className="text-[10px] text-slate-500">{d.count} projets · Estim: {fmtM(d.estimation)} DH · Engagé: {fmtM(d.engagement)} DH · Taux: {engRate}%</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className="text-[9px] h-5 border-0 text-white" style={{ backgroundColor: accentColor }}>{d.count}</Badge>
+                        {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <div className="border-t border-slate-100">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="bg-slate-50 border-b border-slate-100 text-[9px] text-slate-500 uppercase tracking-wider">
+                                <th className="px-3 py-2 text-center w-8">#</th>
+                                <th className="px-3 py-2 text-left">Objet</th>
+                                <th className="px-3 py-2 text-left">Statut</th>
+                                <th className="px-3 py-2 text-right">Estimation</th>
+                                <th className="px-3 py-2 text-right">Engagement</th>
+                                <th className="px-3 py-2 text-center">Ouv. Plis</th>
+                                <th className="px-3 py-2 text-center">Jugement</th>
+                                <th className="px-3 py-2 text-center">Engagé le</th>
+                                <th className="px-3 py-2 text-center">Eng. CP</th>
+                                <th className="px-3 py-2 text-center">N° Marché</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {entityProjects.map(p => (
+                                <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                  <td className="px-3 py-2 text-center text-slate-400 font-mono">{p.id}</td>
+                                  <td className="px-3 py-2 text-slate-700 max-w-[250px]"><span className="line-clamp-1">{p.objet}</span></td>
+                                  <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{statusIcon[p.situationAvancement]}{p.situationAvancement}</Badge></td>
+                                  <td className="px-3 py-2 text-right mdh text-slate-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
+                                  <td className="px-3 py-2 text-right mdh text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
+                                  <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateOuverture || '—'}</td>
+                                  <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateJugement || '—'}</td>
+                                  <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateEngagement || '—'}</td>
+                                  <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.engagementCP ? fmtM(p.engagementCP) : '—'}</td>
+                                  <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.numMarche || '—'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -1104,7 +1238,7 @@ export default function Dashboard() {
                         <div className="overflow-x-auto">
                           <table className="w-full text-xs">
                             <thead><tr className="bg-slate-50 border-b border-slate-100 text-[9px] text-slate-500 uppercase tracking-wider">
-                              <th className="px-3 py-2 text-center w-8">#</th><th className="px-3 py-2 text-left">Objet</th><th className="px-3 py-2 text-right">Estimation</th><th className="px-3 py-2 text-right">Engagement</th><th className="px-3 py-2 text-center">Statut</th><th className="px-3 py-2 text-left">Attributaire</th>
+                              <th className="px-3 py-2 text-center w-8">#</th><th className="px-3 py-2 text-left">Objet</th><th className="px-3 py-2 text-right">Estimation</th><th className="px-3 py-2 text-right">Engagement</th><th className="px-3 py-2 text-center">Statut</th><th className="px-3 py-2 text-left">Attributaire</th><th className="px-3 py-2 text-center">N° Marché</th>
                             </tr></thead>
                             <tbody>
                               {projectsList.map(p => (
@@ -1115,6 +1249,7 @@ export default function Dashboard() {
                                   <td className="px-3 py-2 text-right mdh text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
                                   <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{statusIcon[p.situationAvancement]}{p.situationAvancement}</Badge></td>
                                   <td className="px-3 py-2 text-slate-600 max-w-[130px]"><span className="line-clamp-1 text-[10px]" title={p.attributaire || ''}>{p.attributaire || '—'}</span></td>
+                                  <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.numMarche || '—'}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -1545,7 +1680,7 @@ export default function Dashboard() {
         </section>
 
         {/* ── Rate Cards ── */}
-        <section className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 animate-fade-in-up" style={{ animationDelay: '0.18s' }}>
+        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 animate-fade-in-up" style={{ animationDelay: '0.18s' }}>
           {rateCards.map(rc => (
             <Card key={rc.label} className="border-0 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden bg-white"
               style={{ borderTop: `3px solid ${rc.color}` }}>
@@ -1578,7 +1713,11 @@ export default function Dashboard() {
               <span className="text-xs text-slate-400">{completedCount} / {filteredKpis.totalProjects} traités — Engagé: {fmtM(filteredKpis.totalEngagement)} DH</span>
             </div>
             <div className="flex h-6 rounded-full overflow-hidden bg-slate-100 shadow-inner">
-              {Object.entries(filteredStatusCount).map(([status, count]) => {
+              {Object.entries(filteredStatusCount).sort(([a],[b]) => {
+                const aIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === a);
+                const bIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === b);
+                return (aIdx >= 0 ? aIdx : PIPELINE_ORDER.length) - (bIdx >= 0 ? bIdx : PIPELINE_ORDER.length);
+              }).map(([status, count]) => {
                 const pct = (count / filteredKpis.totalProjects) * 100;
                 return (
                   <div
@@ -1598,7 +1737,11 @@ export default function Dashboard() {
               })}
             </div>
             <div className="flex flex-wrap gap-3 mt-3">
-              {Object.entries(filteredStatusCount).map(([status, count]) => (
+              {Object.entries(filteredStatusCount).sort(([a],[b]) => {
+                const aIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === a);
+                const bIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === b);
+                return (aIdx >= 0 ? aIdx : PIPELINE_ORDER.length) - (bIdx >= 0 ? bIdx : PIPELINE_ORDER.length);
+              }).map(([status, count]) => (
                 <div key={status} className="flex items-center gap-1.5 group cursor-default">
                   <span className="w-2.5 h-2.5 rounded-full shadow-sm group-hover:scale-125 transition-transform" style={{ backgroundColor: statusColor[status] }} />
                   <span className="text-[11px] text-slate-500 group-hover:text-slate-700 transition-colors">{status} ({count})</span>

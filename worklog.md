@@ -1,84 +1,70 @@
+# PPM Dashboard — Work Log
 
----
-Task ID: 1
-Agent: Main Agent
-Task: Add two sidebars + improve table presentation
+## Session: Reapply Pipeline & Status Changes
 
-Work Log:
-- Read full page.tsx (1564 lines) to understand current dashboard structure
-- Added two collapsible sidebars via full-stack-developer subagent:
-  - Left sidebar: "Détail des AO" with searchable project list and expandable detail view
-  - Right sidebar: "Historique Ouvertures Plis" with chronological daily grouping of bid openings
-- Added new state variables: showLeftSidebar, showRightSidebar, selectedProjectId, sidebarSearch
-- Added new imports: PanelLeft, PanelRight, X, ClipboardList, History, Eye
-- Added sidebar toggle buttons in header
-- Restructured main content to flex layout with sidebars
-- Computed dailyOpenings data from filtered projects
-- Improved table presentation:
-  - Added sticky table headers (thead sticky top-0)
-  - Added max-h-[70vh] with overflow-y-auto for scrollable table
-  - Fixed invalid bg-slate-25/30 class → bg-slate-50/40
-  - Better row hover effects with blue-tinted highlight
-  - Left border highlight on hover (3px border-l transition)
-  - Enhanced expanded row with shadow-inner effect
-  - Consistent px-2.5 py-3 padding across all cells
-  - Date columns with colored pill badges (bg-violet-50, bg-amber-50, bg-green-50)
-  - Improved header contrast (slate-700 text, slate-200/90 bg with backdrop-blur)
-  - ChevronDown color change on hover via group-hover
-  - Nature badge with bg-white background
+### Date: 2026-05-19
 
-Stage Summary:
-- Build successful ✓
-- Two sidebars fully functional with smooth slide animations
-- Table presentation significantly improved with sticky headers, better hover, consistent padding
----
-Task ID: 1
-Agent: Main Agent
-Task: Replace dark navigation sidebar + right sidebar with single left sidebar containing two tabs (Détail des AO + Historique Ouvertures Plis)
+### Summary
+Applied 6 major changes to `/home/z/my-project/src/app/page.tsx` to restore pipeline ordering, status consistency, and missing features from previous session.
 
-Work Log:
-- Read full page.tsx (1702 lines) to understand current sidebar implementations
-- Removed dark navigation sidebar (left, with nav links, status filters, upload/sync buttons)
-- Removed right sidebar (Historique Ouvertures Plis overlay)
-- Created new unified left sidebar with two tab sections:
-  - "Détail des AO" tab: Searchable list of all filtered AO cards with expandable detail (budget, engagement, dates, info), quick status filter pills
-  - "Historique Plis" tab: Timeline of openings grouped by date, with clickable items that navigate to AO detail
-- Added sidebar toggle button ("Panneau") in header
-- Updated state variables: removed showLeftSidebar, showRightSidebar, activeNav; added showSidebar, sidebarTab, expandedAO, sidebarSearch
-- Cleaned up unused imports (PanelLeft, LayoutDashboard, Settings, HelpCircle, LogOut, Menu)
-- Build verified successfully
+### Changes Made
 
-Stage Summary:
-- Single left sidebar with tab-based navigation replacing two separate sidebars
-- Sidebar width: 340px, with smooth toggle animation
-- Both sections fully functional with search, filtering, and interactivity
-- Build passes with no errors
+#### Change 1: PIPELINE_ORDER constant and sorted statuses
+- Added `PIPELINE_ORDER` constant: `['Ouvert','En cours de jugement','Jugé','Engagé','Infructueux','Annulé','Publié PPM','DAO Envoyé au CE','A programmer']`
+- Added `PIPELINE_STATUS_MAP` mapping for display names to data status names (e.g., 'Publié PPM' → 'Publié sur PMP')
+- Updated `statuses` array sorting to use PIPELINE_ORDER instead of alphabetical
+- Updated progress bar entries to sort by PIPELINE_ORDER
+- Updated status legend to sort by PIPELINE_ORDER
+- Updated Par Étape detail sections to sort by PIPELINE_ORDER
 
----
-Task ID: 2
-Agent: Main Agent + Full-stack Developer Subagent
-Task: Ultra-powerful dashboard visual redesign
+#### Change 2: "Ouvert" definition based on dateOuverture <= today
+- Added `ouvertProjects` computed variable: `filtered.filter(p => p.dateOuverture && new Date(p.dateOuverture) <= today)`
+- Replaced "Ouverture Plis" rate card with "Ouvert" rate card using `ouvertProjects`
+- Updated rate computation: `ouvertRate = ouvertProjects.length / filteredKpis.totalProjects * 100`
+- Pipeline visual uses `ouvertProjects` for the "Ouvert" stage
 
-Work Log:
-- Added 10+ custom keyframe animations to globals.css (shimmer, fadeInUp, pulse-glow, slideInLeft, countUp, gradient-flow, ring-pulse, status-pulse, expand-down, progress-fill)
-- Added custom CSS utility classes: glass-card, glass-card-dark, gradient-border, glow-{color}, dot-pattern, animate-* classes
-- Added custom scrollbar styles (thin 6px, rounded, blue on hover)
-- Created AnimatedNumber component (count-up effect with cubic ease-out via requestAnimationFrame)
-- Created LiveClock component (real-time date/time in header)
-- Created Sparkline component (mini SVG trend charts for KPI cards)
-- Created SkeletonCard component (shimmer loading state)
-- Redesigned header: animated gradient accent line, glassmorphism, pulsing ring logo, live clock, pill buttons
-- Redesigned sidebar: dark glassmorphism, animated sliding tab indicator, left color accent stripes on AO cards, hover lift, timeline connector in history tab
-- Redesigned KPI cards: gradient backgrounds, 4px colored top border, animated count-up, sparkline charts, hover glow effects
-- Redesigned status progress bar: taller with shadow-inner, animated fill, percentage labels, hover brightness
-- Redesigned chart cards: gradient top borders, colored icon pills, glass-card tooltips
-- Redesigned table: gradient header, alternating row gradients, hover blue glow, status-pulse animation for "En cours", footer total row
-- Redesigned entity cards: colored top accent, hover scale, animated progress bars
-- Redesigned loading state: shimmer skeleton cards with dot-pattern background
-- General polish: fadeInUp animations on sections, consistent shadows/borders/radius, dot-pattern page background
+#### Change 3: 9 rate cards in PIPELINE_ORDER
+- Replaced 8 rate cards with 9 cards:
+  1. Ouvert (#3b82f6, CalendarDays)
+  2. En cours de jugement (#d97706, Clock)
+  3. Jugé (#2563eb, CheckCircle2)
+  4. Engagé (#16a34a, DollarSign)
+  5. Infructueux (#dc2626, XCircle)
+  6. Annulé (#991b1b, XCircle)
+  7. Publié PPM (#7c3aed, Activity)
+  8. DAO Envoyé au CE (#0891b2, Send)
+  9. A programmer (#6b7280, AlertCircle)
+- Updated grid from `lg:grid-cols-8` to `lg:grid-cols-9`
+- Added `Send` import from lucide-react
+- Added `daoCeRate` computation
 
-Stage Summary:
-- Build verified successfully
-- Dashboard now has premium glassmorphism design with animations throughout
-- All existing functionality preserved
-- Visual quality dramatically improved with 20+ animation effects and premium styling
+#### Change 4: N° Marché column in detail tables
+- **Par Étape view**: Added "N° Marché" column after "Engagé le" (both header and data rows)
+- **Historique view**: Added "N° Marché" column after "Attributaire" (both header and data rows)
+- **Par Entité view** (new): Added "N° Marché" column after "Eng. CP" (both header and data rows)
+- All display `p.numMarche || '—'`
+
+#### Change 5: Pipeline visual in Par Étape view
+- Replaced old 6-stage + 2 failed-branch layout with unified PIPELINE_ORDER (9 stages)
+- Each stage uses `PIPELINE_STATUS_MAP` to look up data correctly
+- "Ouvert" stage uses `ouvertProjects` count
+- Failed stages (Infructueux, Annulé) rendered with red styling inline
+- Arrow indicators between all stages
+
+#### Change 6: Status name consistency
+- Added `statusColor` entries for 'Ouvert', 'Publié PPM', 'DAO Envoyé au CE'
+- Added `statusIcon` entries for 'Ouvert', 'Publié PPM', 'DAO Envoyé au CE'
+- PIPELINE_STATUS_MAP handles: 'Publié PPM' → 'Publié sur PMP', 'Ouvert' → '__computed__'
+- All lookups use `PIPELINE_STATUS_MAP[stage] || stage` to resolve data status names
+
+#### Bonus: Created Par Entité full-screen view
+- Added `sidebarTab === 'entity'` rendering block
+- Expandable sections per entity with project details
+- Includes N° Marché, Eng. CP columns
+- Filter bar with status, nature, type filters
+- Search functionality
+
+### Build Verification
+- `npx next build` ✓ Compiled successfully
+- `bun run lint` ✓ No errors
+- PM2 process restarted successfully

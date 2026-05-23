@@ -6,17 +6,16 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'Connexion PPM 2026',
       credentials: {
-        username: { label: 'Identifiant', type: 'text', placeholder: 'admin ou utilisateur' },
         password: { label: 'Mot de passe', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) return null;
+        if (!credentials?.password) return null;
 
         const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@2026';
         const userPassword = process.env.USER_PASSWORD || 'User@2026';
 
-        // Admin credentials
-        if (credentials.username === 'admin' && credentials.password === adminPassword) {
+        // Admin password
+        if (credentials.password === adminPassword) {
           return {
             id: '1',
             name: 'Administrateur',
@@ -25,8 +24,8 @@ export const authOptions: NextAuthOptions = {
           };
         }
 
-        // User (observateur) credentials
-        if (credentials.username === 'utilisateur' && credentials.password === userPassword) {
+        // Observateur password
+        if (credentials.password === userPassword) {
           return {
             id: '2',
             name: 'Observateur',

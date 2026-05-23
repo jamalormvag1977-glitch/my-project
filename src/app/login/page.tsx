@@ -3,10 +3,9 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { BarChart3, Eye, EyeOff, Shield, Lock, User } from 'lucide-react';
+import { BarChart3, Eye, EyeOff, Shield, Lock } from 'lucide-react';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -20,13 +19,12 @@ export default function LoginPage() {
 
     try {
       const result = await signIn('credentials', {
-        username,
         password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError('Identifiant ou mot de passe incorrect');
+        setError('Mot de passe incorrect');
       } else {
         router.push('/');
         router.refresh();
@@ -59,30 +57,12 @@ export default function LoginPage() {
         {/* Login Card */}
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8 shadow-2xl">
           <div className="flex items-center gap-2 mb-6">
-            <Shield className="w-5 h-5 text-blue-400" />
-            <h2 className="text-lg font-semibold text-white">Connexion sécurisée</h2>
+            <Lock className="w-5 h-5 text-blue-400" />
+            <h2 className="text-lg font-semibold text-white">Accès sécurisé</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Username */}
-            <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
-                Identifiant
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin ou utilisateur"
-                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 text-sm"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Password */}
+            {/* Password only */}
             <div>
               <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
                 Mot de passe
@@ -93,9 +73,10 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Entrez votre mot de passe"
                   className="w-full pl-10 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 text-sm"
                   required
+                  autoFocus
                 />
                 <button
                   type="button"
@@ -136,11 +117,11 @@ export default function LoginPage() {
           <div className="mt-6 space-y-2">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <span className="w-2 h-2 rounded-full bg-violet-500" />
-              <span className="font-medium text-gray-400">Admin</span> — Gestion complète + upload des fichiers
+              <span className="font-medium text-gray-400">Mot de passe Admin</span> — Gestion + upload des fichiers
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <span className="w-2 h-2 rounded-full bg-blue-500" />
-              <span className="font-medium text-gray-400">Utilisateur</span> — Consultation uniquement
+              <span className="font-medium text-gray-400">Mot de passe Observateur</span> — Consultation uniquement
             </div>
           </div>
         </div>

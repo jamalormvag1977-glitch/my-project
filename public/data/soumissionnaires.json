@@ -1,0 +1,3518 @@
+{
+  "lastUpdated": "2026-05-23T23:02:45.541Z",
+  "fileName": "soumissionnaires.xlsx",
+  "totalProjets": 32,
+  "totalSoumissionnaires": 179,
+  "projets": {
+    "1/DPF": {
+      "numAO": "1",
+      "entite": "DPF",
+      "numAOComplet": "1/2026/DPF",
+      "objetAO": "Prestations de maintenance de l’application distribution-facturation-recouvrement pour le compte de l’ORMVAG à Kenitra",
+      "nbSoumissionnaires": 3,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 12 au 16/01/2026 -",
+          "seance": "Séance du 13 Janvier 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Hammoumi",
+          "nom": null,
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 15/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 12 au 16/01/2026 -",
+          "seance": "Séance du 13 Janvier 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Hammoumi",
+          "nom": null,
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 15/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 12 au 16/01/2026 -",
+          "seance": "Séance du 15 Janvier 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Hammoumi",
+          "nom": "SIS CONSULTANTS",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "685 200,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 12 au 16/01/2026 -",
+          "seance": "Séance du 15 Janvier 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Hammoumi",
+          "nom": "SMART CONSEIL SARL",
+          "decisionCommission": "Ecarté (Absence des attestations de référence)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 12 au 16/01/2026 -",
+          "seance": "Séance du 15 Janvier 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Hammoumi",
+          "nom": "STRIVOR",
+          "decisionCommission": "Ecarté (Absence des attestations de référence)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 3
+    },
+    "2/SMG": {
+      "numAO": "2",
+      "entite": "SMG",
+      "numAOComplet": "2/2026/SMG",
+      "objetAO": "Prestations d’entretien et de maintenance des photocopieurs de l’ORMVA du Gharb au niveau des provinces de Kenitra, Sidi Slimane et Sidi Kacem y compris la fourniture des pièces de rechange",
+      "nbSoumissionnaires": 1,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Gueddari",
+          "nom": "RITAJ BUREAU",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "RITAJ BUREAU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "100 080,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "RITAJ BUREAU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "100 080,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Offre financière",
+          "president": "Gueddari",
+          "nom": "RITAJ BUREAU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "100 080,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 1
+    },
+    "4/DDA": {
+      "numAO": "4",
+      "entite": "DDA",
+      "numAOComplet": "4/2026/DDA",
+      "objetAO": "Prestations d’entretien, de maintenance et de réparation des stations climatiques de l’ORMVA du Gharb au niveau des provinces de Kenitra, Sidi Slimane et Sidi Kacem y compris pièces de rechange",
+      "nbSoumissionnaires": 2,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Mghari",
+          "nom": "GREEN SOLUTIONS",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Mghari",
+          "nom": "STE PROTECTION SALI",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "GREEN SOLUTIONS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "165 480,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "STE PROTECTION SALI",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Offre financière",
+          "president": "Mghari",
+          "nom": "STE PROTECTION SALI",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 2
+    },
+    "3/DGR": {
+      "numAO": "3",
+      "entite": "DGR",
+      "numAOComplet": "3/2026/DGR",
+      "objetAO": "Location d’engins de génie civil pour les travaux d’entretien des réseaux d’irrigation et d’assainissement du périmètre du Gharb aux provinces de Kenitra, Sidi Kacem et Sidi Slimane",
+      "nbSoumissionnaires": 3,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Bahouss",
+          "nom": "SOTHYMEC",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Bahouss",
+          "nom": "STE DE TRAVAUX AGRICOLES",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Bahouss",
+          "nom": "AC WORK",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bahouss",
+          "nom": "SOTHYMEC",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "2 803 200,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "STE DE TRAVAUX AGRICOLES",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "3 372 600,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Offre technique",
+          "president": "Bahouss",
+          "nom": "AC WORK",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "2 842 200,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 3
+    },
+    "5/SAI": {
+      "numAO": "5",
+      "entite": "SAI",
+      "numAOComplet": "5/2026/SAI",
+      "objetAO": "Réalisation d’un audit comptable et financier de l’Office Régional de Mise en Valeur Agricole du Gharb à Kenitra, Sidi Slimane et Sidi Kacem, au titre des exercices 2025-2026 et 2027",
+      "nbSoumissionnaires": 9,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Lamti",
+          "nom": "REVISOR HOUSE",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Lamti",
+          "nom": "MUNERIS CONSILIA",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Lamti",
+          "nom": "TS PARTNERS",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Lamti",
+          "nom": "HEDGE CONSULTING",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Lamti",
+          "nom": "CTH AUDIT ET CONSEIL",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Lamti",
+          "nom": "BOUGATAYA EXPERTISE COMPTABLE,",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Lamti",
+          "nom": "CDI CONSULTING",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Lamti",
+          "nom": "CONSEIL D'EXPERTS",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 19 au 23/01/2026",
+          "seance": "Séance du 22 Janvier 2026",
+          "objetSeance": "Liste des soumissionnaires arrêtéee",
+          "president": "Lamti",
+          "nom": "PKF MAROC",
+          "decisionCommission": "Séance des ouvertures des plis est reportée 48h au 26/01/2025",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Lamti",
+          "nom": "REVISOR HOUSE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h."
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Lamti",
+          "nom": "MUNERIS CONSILIA",
+          "decisionCommission": "Admis avec réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h."
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Lamti",
+          "nom": "TS PARTNERS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h."
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Lamti",
+          "nom": "HEDGE CONSULTING",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h."
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Lamti",
+          "nom": "CTH AUDIT ET CONSEIL",
+          "decisionCommission": "Admis avec réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h."
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Lamti",
+          "nom": "BOUGATAYA EXPERTISE COMPTABLE,",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h."
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Lamti",
+          "nom": "CDI CONSULTING",
+          "decisionCommission": "Admis avec réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h."
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Lamti",
+          "nom": "CONSEIL D'EXPERTS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h."
+        },
+        {
+          "semaine": "Semaine du 26 au 30/01/2026",
+          "seance": "Séance du 26 Janvier 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Lamti",
+          "nom": "PKF MAROC",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 12/02/2025 à 10h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/02/2026",
+          "seance": "Séance du 12 Février 2026",
+          "objetSeance": "Offre technique",
+          "president": "Lamti",
+          "nom": "REVISOR HOUSE",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "67 500,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 09 au 13/02/2026",
+          "seance": "Séance du 12 Février 2026",
+          "objetSeance": "Offre technique",
+          "president": "Lamti",
+          "nom": "MUNERIS CONSILIA",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "84 000,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 09 au 13/02/2026",
+          "seance": "Séance du 12 Février 2026",
+          "objetSeance": "Offre technique",
+          "president": "Lamti",
+          "nom": "TS PARTNERS",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "90 000,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 09 au 13/02/2026",
+          "seance": "Séance du 12 Février 2026",
+          "objetSeance": "Offre technique",
+          "president": "Lamti",
+          "nom": "HEDGE CONSULTING",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "67 500,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 09 au 13/02/2026",
+          "seance": "Séance du 12 Février 2026",
+          "objetSeance": "Offre technique",
+          "president": "Lamti",
+          "nom": "CTH AUDIT ET CONSEIL",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 09 au 13/02/2026",
+          "seance": "Séance du 12 Février 2026",
+          "objetSeance": "Offre financière",
+          "president": "Lamti",
+          "nom": "CDI CONSULTING",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 09 au 13/02/2026",
+          "seance": "Séance du 12 Février 2026",
+          "objetSeance": "Offre financière",
+          "president": "Lamti",
+          "nom": "CONSEIL D'EXPERTS",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "67 800,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 09 au 13/02/2026",
+          "seance": "Séance du 12 Février 2026",
+          "objetSeance": "Offre financière",
+          "president": "Lamti",
+          "nom": "PKF MAROC",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "87 828,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 9
+    },
+    "18/DAM": {
+      "numAO": "18",
+      "entite": "DAM",
+      "numAOComplet": "18/2026/DAM",
+      "objetAO": "Réalisation des travaux de création de pistes agricoles à l'intérieur de la zone d’action de l’ORMVA du Gharb province de Kenitra",
+      "nbSoumissionnaires": 10,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "SANTOBAT",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "ENARU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "STE CHINO UNIBAS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "MESTRA",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "TRA DU TRAD",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "SOGEVA",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "STE LAMLIHTRAV",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "STE SELECAIT",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "PERFORMANCE MATERIEL",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "TOTAL VEGETAL",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "SANTOBAT",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "12 087 966,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "ENARU",
+          "decisionCommission": "Ecarté (Non-conformité des OT)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "STE CHINO UNIBAS",
+          "decisionCommission": "Ecarté (Non-conformité des OT)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "MESTRA",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "11 964 300,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "TRA DU TRAD",
+          "decisionCommission": "Ecarté (Non-conformité des OT)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "SOGEVA",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "12 216 300,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "STE LAMLIHTRAV",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "12 195 300,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "STE SELECAIT",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "12 118 800,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "PERFORMANCE MATERIEL",
+          "decisionCommission": "Ecarté (Non-conformité des OT)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "TOTAL VEGETAL",
+          "decisionCommission": "Ecarté (Non-conformité des OT)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 10
+    },
+    "19/DAM": {
+      "numAO": "19",
+      "entite": "DAM",
+      "numAOComplet": "19/2026/DAM",
+      "objetAO": "Réalisation des travaux de création de pistes agricoles à l'intérieur de la zone d’action de l’ORMVA du Gharb provinces de Sidi Slimane et Sidi Kacem",
+      "nbSoumissionnaires": 9,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "SANTOBAT",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "ENARU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "STE CHINO UNIBAS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "MESTRA",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "SOGEVA",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "TRA DU TRAD",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "STE LAMLIHTRAV",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "STE SELECAIT",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 23 au 28/02/2026",
+          "seance": "Séance du 26 Février 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "PERFORMANCE MATERIEL",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen de l’offre technique Ouverture OF le 03/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "SANTOBAT",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "19 014 720,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "ENARU",
+          "decisionCommission": "Ecarté (Non-conformité des OT)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "STE CHINO UNIBAS",
+          "decisionCommission": "Ecarté (Non-conformité des OT)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "MESTRA",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "19 012 440,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "SOGEVA",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "19 524 840,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "TRA DU TRAD",
+          "decisionCommission": "Ecarté (Non-conformité des OT)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "STE LAMLIHTRAV",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "19 175 580,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "STE SELECAIT",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "19 013 040,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "PERFORMANCE MATERIEL",
+          "decisionCommission": "Ecarté (Non-conformité des OT)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 9
+    },
+    "9/SMG": {
+      "numAO": "9",
+      "entite": "SMG",
+      "numAOComplet": "9/2026/SMG",
+      "objetAO": "Fourniture et l’installation de matériel et mobilier de bureau au niveau des provinces de Kenitra, Sidi Slimane et Sidi Kacem",
+      "nbSoumissionnaires": 10,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "FORUM DIFFUSION",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "STE NORA BUREAUX",
+          "decisionCommission": "Ecarté (Absence du DH)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "STOKAD",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "AMRIRE EQUIPEMENT",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "EXPERT PTN",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "FADEL DISTRIBUTION",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "REGRAGUI EQUIPEMENTS BUREAUX",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "TETSOUL SERVICES",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "ETABLISSEMENT EL KARAOUYINE TE",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "STE TETLAY TRADING",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "ZIZ BUISNESS",
+          "decisionCommission": "Ecarté (Les pièces du DAT ne sont pas signés individuellement)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "STE SBMS MULTISERVICES",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "EL GHAIT POUR FOURNITURES ET T",
+          "decisionCommission": "Admis avec réserve (DH)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "TET BUREAU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "APEX LAND",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026",
+          "seance": "Séance du 03 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "IMAYOS NEGOCE",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Prospectus",
+          "president": "Gueddari",
+          "nom": "FORUM DIFFUSION",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "209 952,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Prospectus",
+          "president": "Gueddari",
+          "nom": "STOKAD",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "209 100,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Prospectus",
+          "president": "Gueddari",
+          "nom": "AMRIRE EQUIPEMENT",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "200 160,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Prospectus",
+          "president": "Gueddari",
+          "nom": "EXPERT PTN",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "205 800,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Prospectus",
+          "president": "Gueddari",
+          "nom": "FADEL DISTRIBUTION",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "213 480,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Prospectus",
+          "president": "Gueddari",
+          "nom": "REGRAGUI EQUIPEMENTS BUREAUX",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "212 820,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Prospectus",
+          "president": "Gueddari",
+          "nom": "TETSOUL SERVICES",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "251 760,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Offre financière",
+          "president": "Gueddari",
+          "nom": "TETSOUL SERVICES",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "251 760,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Offre financière",
+          "president": "Gueddari",
+          "nom": "EL GHAIT POUR FOURNITURES ET T",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "203 340,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Offre financière",
+          "president": "Gueddari",
+          "nom": "TET BUREAU",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "218 898,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Offre financière",
+          "president": "Gueddari",
+          "nom": "APEX LAND",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "209 880,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 16
+    },
+    "11/SMG": {
+      "numAO": "11",
+      "entite": "SMG",
+      "numAOComplet": "11/2026/SMG",
+      "objetAO": "Fourniture et l’installation de matériel technique de bureau au niveau des provinces de Kenitra, Sidi Slimane et Sidi Kacem",
+      "nbSoumissionnaires": 5,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "SC2G",
+          "decisionCommission": "Ecarté (Absence des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "STE NORA BUREAUX",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "MACROTEAMS",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "EXPERT PTN",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "FADEL DISTRIBUTION",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "LE CHIFFRE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "TETSOUL SERVICES",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "ETABLISSEMENT EL KARAOUYINE TE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "STE TETLAY TRADING",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "REGRAGUI EQUIPEMENTS BUREAUX",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "ADANIR IT Solutions",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "TET BUREAU",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "GADMAY-CONSO",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "IMAYOS NEGOCE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "MAHI SOLUTIONS SARLAU",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "SORITCOM TECHNOLOGIE",
+          "decisionCommission": "Ecarté (Non-conformité des attestations)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "AC WORK",
+          "decisionCommission": "Ecarté (Absence de prospectus)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 10/03/2025 à 12h30."
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Prospectus",
+          "president": "Gueddari",
+          "nom": "LE CHIFFRE",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "286 824,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Prospectus",
+          "president": "Gueddari",
+          "nom": "TETSOUL SERVICES",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "340 800,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Prospectus",
+          "president": "Gueddari",
+          "nom": "ETABLISSEMENT EL KARAOUYINE TE",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "341 040,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Prospectus",
+          "president": "Gueddari",
+          "nom": "STE TETLAY TRADING",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "340 560,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Gueddari",
+          "nom": "STE TETLAY TRADING",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "340 560,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Gueddari",
+          "nom": "IMAYOS NEGOCE",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "291 498,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 17
+    },
+    "12/SMG": {
+      "numAO": "12",
+      "entite": "SMG",
+      "numAOComplet": "12/2026/SMG",
+      "objetAO": "Fourniture de produits consommables pour équipements informatique au niveau du siège de l’ORMVA du Gharb à Kenitra",
+      "nbSoumissionnaires": 13,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "AO Annulé ( Ce type de prestation ne doit pas être objet d’un Marché Cadre)",
+          "decisionCommission": "AO Annulé ( Ce type de prestation ne doit pas être objet d’un Marché Cadre)",
+          "offreFinanciere": "AO Annulé ( Ce type de prestation ne doit pas être objet d’un Marché Cadre)",
+          "decisionCommissionOF": "AO Annulé ( Ce type de prestation ne doit pas être objet d’un Marché Cadre)"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 03 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "AO Annulé ( Ce type de prestation ne doit pas être objet d’un Marché Cadre)",
+          "decisionCommission": "AO Annulé ( Ce type de prestation ne doit pas être objet d’un Marché Cadre)",
+          "offreFinanciere": "AO Annulé ( Ce type de prestation ne doit pas être objet d’un Marché Cadre)",
+          "decisionCommissionOF": "AO Annulé ( Ce type de prestation ne doit pas être objet d’un Marché Cadre)"
+        }
+      ],
+      "nbSoumissionnairesUniques": 1
+    },
+    "7/DDA": {
+      "numAO": "7",
+      "entite": "DDA",
+      "numAOComplet": "7/2026/DDA",
+      "objetAO": "Assistance technique pour la préparation et la planification de trois projets de l’agriculture solidaire au niveau de la zone d’action de l’Office Régional de Mise en Valeur Agricole du Gharb au niveau des Communes Territoriales Lamrabih et Moulay Abdelkader, Province Sidi Kacem et la Commune Territoriale Dar Bel Amri, Province Sidi Slimane, Région Rabat-Salé-Kénitra",
+      "nbSoumissionnaires": 4,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "SMG2E-CONSULTING",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "Valuetrack Consulting",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "SIT 2AA MAROC",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "DIRASSAT INGENIERIE",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "SMART CONSEIL SARL",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "VIVO CONSULT",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "Institut Africain Internationa",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "FATH INGENIEURS CONSEILS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "STE PHYTOCONSULTING",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "SIT 2AA MAROC",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "143 136,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "Institut Africain Internationa",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "Institut Africain Internationa",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "FATH INGENIEURS CONSEILS",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "143 280,12",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "STE PHYTOCONSULTING",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 9
+    },
+    "13/SAI": {
+      "numAO": "13",
+      "entite": "SAI",
+      "numAOComplet": "13/2026/SAI",
+      "objetAO": "Contrôle et audit des marchés de l’ORMVA du Gharb, dont les montants excèdent 3 MDh TTC, en lot unique, au niveau des provinces de Kénitra, Sidi Slimane et Sidi Kacem",
+      "nbSoumissionnaires": 4,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Lamti",
+          "nom": "MUNERIS CONSILIA",
+          "decisionCommission": "Admis avec réserve (DH)",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Lamti",
+          "nom": "E2B CONSULTING",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Lamti",
+          "nom": "TS PARTNERS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Lamti",
+          "nom": "3P CONSEIL",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h30."
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Lamti",
+          "nom": "LEAD ENGINEERING",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 10/03/2025 à 13h30."
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Lamti",
+          "nom": "MUNERIS CONSILIA",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Lamti",
+          "nom": "E2B CONSULTING",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Lamti",
+          "nom": "TS PARTNERS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "200 400,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Lamti",
+          "nom": "3P CONSEIL",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "191 095,20",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 5
+    },
+    "22/DDA": {
+      "numAO": "22",
+      "entite": "DDA",
+      "numAOComplet": "22/2026/DDA",
+      "objetAO": "Prestations d'hébergement et de restauration relatives à la participation des cadres de l’Office Régional de Mise en Valeur Agricole du Gharb au Salon International d’Agriculture de Meknès.",
+      "nbSoumissionnaires": 6,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "YANIS EVENT",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "108 383,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "ADV MAROC",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "109 946,10",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "NAJAMSERVICES",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "NOURIM MAROC",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "108 350,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "ARZAK ALMAGRIB",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Mghari",
+          "nom": "STE WAEL NAJI",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "105 820,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 6
+    },
+    "25/SMG": {
+      "numAO": "25",
+      "entite": "SMG",
+      "numAOComplet": "25/2026/SMG",
+      "objetAO": "Prestations d’entretien et de maintenance des photocopieurs de l’ORMVA du Gharb au niveau des provinces de Kénitra, Sidi Slimane et Sidi Kacem y compris la fourniture des pièces de rechange.",
+      "nbSoumissionnaires": 8,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "RITAJ BUREAU",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "SUD PROGRAMA",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "EQUIPEMENT OSA",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "119 796,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Gueddari",
+          "nom": "MRH BUSNESS SARL",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Gueddari",
+          "nom": "LE CHIFFRE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "108 528,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Gueddari",
+          "nom": "ARCHKAP",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "100 068,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Gueddari",
+          "nom": "AC WORK",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "100 800,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 02 au 06/03/2026 – (Suite)",
+          "seance": "Séance du 05 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Gueddari",
+          "nom": "MAHI SOLUTIONS SARLAU",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 8
+    },
+    "8/DDA": {
+      "numAO": "8",
+      "entite": "DDA",
+      "numAOComplet": "8/2026/DDA",
+      "objetAO": "Réalisation de l’opération de lotissement et l'établissement des dossiers techniques pour l’immatriculation foncière des terres collectives situées en totalité ou en partie à l’intérieur du périmètre d’irrigation du Gharb, communes territoriales Msaada et Ouled Hcine, province de Sidi Slimane, Région Rabat-Salé-Kenitra",
+      "nbSoumissionnaires": 2,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 09 au 13/03/2026",
+          "seance": "Séance du 10 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "GEOGIS CONSEIL",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 11h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026",
+          "seance": "Séance du 10 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "GEOGIS CONSEIL",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 11h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026",
+          "seance": "Séance du 10 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "GEOART",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 11h."
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Mghari",
+          "nom": "GEOGIS CONSEIL",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "227 280,45",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Mghari",
+          "nom": "GEOART",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 30/03/2026 au 03/04/2026",
+          "seance": "Séance du 02 Avril 2026",
+          "objetSeance": "Complément de dossier",
+          "president": "Mghari",
+          "nom": "227 280,45",
+          "decisionCommission": "Les pièces fournies sont acceptables. L’offre de la société est retenue.",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        }
+      ],
+      "nbSoumissionnairesUniques": 3
+    },
+    "21/DAM": {
+      "numAO": "21",
+      "entite": "DAM",
+      "numAOComplet": "21/2026/DAM",
+      "objetAO": "Prestations d’études géotechniques et topographiques préalables à la réalisation des travaux d’entretien et de création des pistes agricoles au niveau de la zone d’action de l’ORMVA du Gharb , aux provinces de Kénitra, sidi Kacem et Sidi Slimane",
+      "nbSoumissionnaires": 5,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 09 au 13/03/2026",
+          "seance": "Séance du 10 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "FERKLA GENIE CIVIL INGENIERIE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026",
+          "seance": "Séance du 10 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "DEHBI INGENIERIE CONSEILS ET D",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026",
+          "seance": "Séance du 10 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "FAHLI CONSEIL ET INGENIERIE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026",
+          "seance": "Séance du 10 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "STE GENERALE D'INGENIERIE ET D",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026",
+          "seance": "Séance du 10 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "VISA INFRASTRUCTURES",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 11h30."
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "FERKLA GENIE CIVIL INGENIERIE",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "DEHBI INGENIERIE CONSEILS",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "561 600,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "FAHLI CONSEIL ET INGENIERIE",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "663 600,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "STE GENERALE D'INGENIERIE",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "686 000,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "VISA INFRASTRUCTURES",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "508 950,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 30/03/2026 au 03/04/2026",
+          "seance": "Séance du 02 Avril 2026",
+          "objetSeance": "Complément de dossier",
+          "president": "Bouchikhi",
+          "nom": "663 600,00",
+          "decisionCommission": "Les pièces fournies sont acceptables. L’offre de la société est retenue.",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        }
+      ],
+      "nbSoumissionnairesUniques": 8
+    },
+    "20/DAM": {
+      "numAO": "20",
+      "entite": "DAM",
+      "numAOComplet": "20/2026/DAM",
+      "objetAO": "Assistance technique pour le suivi des travaux de création de pistes agricoles à l'intérieur de la zone d'action de l'ORMVA du Gharb Province de Kenitra, Sidi Slimane et Sidi Kacem",
+      "nbSoumissionnaires": 12,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "CAPITAL INGENIERIE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "FATH INGENIEURS CONSEILS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "FERKLA GENIE CIVIL INGENIERIE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "GCIM",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "STE CONSEIL EXPERTISE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "DEHBI INGENIERIE CONSEILS ET D",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "FAHLI CONSEIL ET INGENIERIE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "BTP CONSULTING",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "OBTEL",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "STE GENERALE D'INGENIERIE ET D",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "LEAD ENGINEERING",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 09 au 13/03/2026 – (Suite)",
+          "seance": "Séance du 10 Mars 2026 (Suite)",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "BUREAU D'INGENIERIE DES ETUDES",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 24/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "CAPITAL INGENIERIE",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "FATH INGENIEURS CONSEILS",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "745 895,40",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "FERKLA GENIE CIVIL INGENIERIE",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "GCIM",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "STE CONSEIL EXPERTISE",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "745 236,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "DEHBI INGENIERIE CONSEILS ET D",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "FAHLI CONSEIL ET INGENIERIE",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "740 880,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "BTP CONSULTING",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "740 808,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "OBTEL",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "STE GENERALE D'INGENIERIE ET D",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "756 063,36",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "LEAD ENGINEERING",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "BUREAU D'INGENIERIE DES ETUDES",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 30/03/2026 au 03/04/2026",
+          "seance": "Séance du 02 Avril 2026",
+          "objetSeance": "Complément de dossier",
+          "president": "Bouchikhi",
+          "nom": "745 895,40",
+          "decisionCommission": "Les pièces fournies sont acceptables. L’offre de la société est retenue.",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        }
+      ],
+      "nbSoumissionnairesUniques": 13
+    },
+    "31/DDA": {
+      "numAO": "31",
+      "entite": "DDA",
+      "numAOComplet": "31/2026/DDA",
+      "objetAO": "Acquisition du matériel de laboratoire de l’agro-pédologie au niveau de la province de Kenitra",
+      "nbSoumissionnaires": 2,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "ARKELIO",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 31/03/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 31/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "COGELAB.MA",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 31/03/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 31/03/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Prospectus",
+          "president": "Mghari",
+          "nom": "ARKELIO",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "173 967,60",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026 – (Suite)",
+          "seance": "Séance du 24 Mars 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Mghari",
+          "nom": "COGELAB.MA",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "149 946,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 30/03/2026 au 03/04/2026",
+          "seance": "Séance du 02 Avril 2026",
+          "objetSeance": "Complément de dossier",
+          "president": "Mghari",
+          "nom": "149 946,00",
+          "decisionCommission": "Les pièces fournies sont acceptables. L’offre de la société est retenue.",
+          "offreFinanciere": null,
+          "decisionCommissionOF": ""
+        }
+      ],
+      "nbSoumissionnairesUniques": 3
+    },
+    "10/DGR": {
+      "numAO": "10",
+      "entite": "DGR",
+      "numAOComplet": "10/2026/DGR",
+      "objetAO": "Prestations de maintenance et de réparation mécanique des pompes et des groupes motopompes submersibles des stations de pompage de l’ORMVA du Gharb au niveau des zones d’action des provinces de Kenitra, Sidi Kacem et Sidi Slimane",
+      "nbSoumissionnaires": 1,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bahouss",
+          "nom": "TOUR ET FERE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "23 998 539,12",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "TOUR ET FERE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "23 998 539,12",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 24 au 27/03/2026",
+          "seance": "Séance du 24 Mars 2026",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "TOUR ET FERE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "23 998 539,12",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 1
+    },
+    "6/DRH": {
+      "numAO": "6",
+      "entite": "DRH",
+      "numAOComplet": "6/2026/DRH",
+      "objetAO": "Formations, voyages d’étude au Maroc et à l’étranger au profit du personnel et partenaires de l’ORMVAG dans le cadre des projets inscrits au programme de l’irrigation et aménagement de l’espace agricole",
+      "nbSoumissionnaires": 1,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 30/03/2026 au 03/04/2026",
+          "seance": "Séance du 02 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Oukacha",
+          "nom": "ACWATEM",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 16/04/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 16/04/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 30/03/2026 au 03/04/2026",
+          "seance": "Séance du 02 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Oukacha",
+          "nom": "ACWATEM",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 16/04/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 16/04/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 06 au 10/04/2026",
+          "seance": "Séance du 09 Avril 2026",
+          "objetSeance": "Offre technique",
+          "president": "Oukacha",
+          "nom": "ACWATEM",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "2 988 720,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 06 au 10/04/2026",
+          "seance": "Séance du 09 Avril 2026",
+          "objetSeance": "Offre financière",
+          "president": "Oukacha",
+          "nom": "ACWATEM",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "2 988 720,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 1
+    },
+    "34/SMG": {
+      "numAO": "34",
+      "entite": "SMG",
+      "numAOComplet": "34/2026/SMG",
+      "objetAO": "Fournitures de bureau en lot unique pour le compte de l’ORMVAG à Kénitra",
+      "nbSoumissionnaires": 3,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "",
+          "nom": "H YOU BUILDING",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "FADEL DISTRIBUTION",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Offre financière",
+          "president": "",
+          "nom": "EQUIPEMENT GHAZIA",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "283 577,40",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 3
+    },
+    "39 ex 12/SMG": {
+      "numAO": "39 ex 12",
+      "entite": "SMG",
+      "numAOComplet": "39 ex 12/2026/SMG",
+      "objetAO": "Fourniture de produits consommables pour équipements informatique au profit de l’ORMVA du Gharb à Kénitra",
+      "nbSoumissionnaires": 12,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "",
+          "nom": "STE MAGHREB HASSOUB",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "OUZZONE BUREAU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "STE BOLI DISTRIBUTION",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "SHOPRINT",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "PRINTFIELD SARL AU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "RABAT INNOV",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "GLOBAL GAINS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "GENERAL INK",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "CLASSE BUREAU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "KALTYOU SERVICE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "HIGH TECH STORE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 13 au 17/04/2026",
+          "seance": "Séance du 16 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "",
+          "nom": "HTS OFFICE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2025 à 12h."
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Hamoumi",
+          "nom": "STE MAGHREB HASSOUB",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "466 023,60 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Hamoumi",
+          "nom": "STE MAGHREB HASSOUB",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "466 023,60 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Hamoumi",
+          "nom": "OUZZONE BUREAU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "400 704,00 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Hamoumi",
+          "nom": "STE BOLI DISTRIBUTION",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "404 028,00 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Hamoumi",
+          "nom": "SHOPRINT",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "405 835,80 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Hamoumi",
+          "nom": "PRINTFIELD SARL AU",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": "- Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Hamoumi",
+          "nom": "RABAT INNOV",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "408 012,00 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Hamoumi",
+          "nom": "GLOBAL GAINS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "398 916,00 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Hamoumi",
+          "nom": "GENERAL INK",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "438 192,00 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Hamoumi",
+          "nom": "CLASSE BUREAU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "410 997,60 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Hamoumi",
+          "nom": "KALTYOU SERVICE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "406 725,60 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Hamoumi",
+          "nom": "HIGH TECH STORE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "405 960,00 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Hamoumi",
+          "nom": "HTS OFFICE",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": "- Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 12
+    },
+    "16/DAM": {
+      "numAO": "16",
+      "entite": "DAM",
+      "numAOComplet": "16/2026/DAM",
+      "objetAO": "Prestations de laboratoire pour le contrôle de la qualité des travaux de génie civil et d’équipement des ouvrages de mobilisation et d’adduction tête morte des eaux : Prise sur la retenue du barrage Koudiat El Borna, bassin de décantation et adducteur en dalots dans le cadre du Projet d’Aménagement Hydro-agricole de la zone Sud – Est du Périmètre d’irrigation du Gharb",
+      "nbSoumissionnaires": 2,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 20 au 24/04/2026",
+          "seance": "Séance du 23 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "LABOTEST",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h."
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026",
+          "seance": "Séance du 23 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "LABORATOIRE PUBLIC D'ESSAIS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h."
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "LABOTEST",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "LABORATOIRE PUBLIC D'ESSAIS",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "20 323 320,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 2
+    },
+    "17/DAM": {
+      "numAO": "17",
+      "entite": "DAM",
+      "numAOComplet": "17/2026/DAM",
+      "objetAO": "Réalisation des travaux de Génie Civil et d’équipement de la prise d’eau et du bassin de décantation de l’adduction tête morte, sur la retenue du barrage Koudiat El Borna à la province de Sidi Kacem dans le cadre du Projet d’Aménagement Hydro-agricole de la zone Sud – Est du Périmètre d’irrigation du Gharb",
+      "nbSoumissionnaires": "Pas de soumissionnaires",
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 20 au 24/04/2026",
+          "seance": "Séance du 23 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "Pas de soumissionnaires",
+          "decisionCommission": "Pas de soumissionnaires",
+          "offreFinanciere": "AO déclaré Infructueux",
+          "decisionCommissionOF": "AO déclaré Infructueux"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026",
+          "seance": "Séance du 23 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "Pas de soumissionnaires",
+          "decisionCommission": "Pas de soumissionnaires",
+          "offreFinanciere": "AO déclaré Infructueux",
+          "decisionCommissionOF": "AO déclaré Infructueux"
+        }
+      ],
+      "nbSoumissionnairesUniques": 1
+    },
+    "33/SMG": {
+      "numAO": "33",
+      "entite": "SMG",
+      "numAOComplet": "33/2026/SMG",
+      "objetAO": "Confection et la mise en place de panneaux signalétiques, en lot unique au niveau des provinces de Kénitra, Sidi Slimane et Sidi Kacem",
+      "nbSoumissionnaires": 6,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 20 au 24/04/2026",
+          "seance": "Séance du 23 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Belaarbi",
+          "nom": null,
+          "decisionCommission": "",
+          "offreFinanciere": "AO Annulé",
+          "decisionCommissionOF": "AO Annulé"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026",
+          "seance": "Séance du 23 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Belaarbi",
+          "nom": null,
+          "decisionCommission": "",
+          "offreFinanciere": "AO Annulé",
+          "decisionCommissionOF": "AO Annulé"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 27 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Belaarbi",
+          "nom": "AIP.COM",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "108 000,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 27 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Belaarbi",
+          "nom": "NEXACOM",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 27 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Belaarbi",
+          "nom": "SMF LASER",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "138 000,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 27 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Belaarbi",
+          "nom": "STE PERLA DEL MAGHREB",
+          "decisionCommission": "Admis avec réserve",
+          "offreFinanciere": "118 800,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 27 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Belaarbi",
+          "nom": "MAAMORA NEGOCE",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 27 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Belaarbi",
+          "nom": "EMITEL",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 27 Avril 2026",
+          "objetSeance": "Offre financière",
+          "president": "Belaarbi",
+          "nom": "EMITEL",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 6
+    },
+    "23/DGR": {
+      "numAO": "23",
+      "entite": "DGR",
+      "numAOComplet": "23/2026/DGR",
+      "objetAO": "Prestations de maintenance, réparation et rénovation des cellules moyenne tension des stations de pompage de l'O.R.M.V.A du Gharb au niveau des zones d’action des provinces de Kenitra, Sidi Kacem et Sidi Slimane",
+      "nbSoumissionnaires": 7,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bahouss",
+          "nom": "BROTHER'S INITIATIVE SERVICES",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "5 129 520,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bahouss",
+          "nom": "TRAPOLYVE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "5 207 380,80",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bahouss",
+          "nom": "COGETERE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "5 913 600,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bahouss",
+          "nom": "DEEP CENTRAL",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "5 402 400,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bahouss",
+          "nom": "GENERATION MAROC TECHNOLOGIE",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "IRELECA",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "6 309 000,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "FORENERGY",
+          "decisionCommission": "Admis avec réserve (DH)",
+          "offreFinanciere": "6 113 760,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 7
+    },
+    "24/DGR": {
+      "numAO": "24",
+      "entite": "DGR",
+      "numAOComplet": "24/2026/DGR",
+      "objetAO": "Prestation de maintenance et de réparation des équipements basse tension des stations de pompage de l’ORMVAG au niveau des zones d’action des provinces de Kenitra, Sidi Kacem et Sidi Slimane",
+      "nbSoumissionnaires": 10,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bahouss",
+          "nom": "PEMAVAC",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "TRAPOLYVE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "PERFECT INDUSTRY",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "EHTE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "STE NOUVELLE DU GENIE ELECTRIQ",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "DEEP CENTRAL",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "STE ALOUSS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "BROTHER'S INITIATIVE SERVICES",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "ASELTEC",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "GENERATION MAROC TECHNOLOGIE",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 11h30"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bahouss",
+          "nom": "PEMAVAC",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "6 906 000,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "TRAPOLYVE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "6 795 513,60",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "PERFECT INDUSTRY",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "6 655 473,60",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "EHTE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "6 998 239,20",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "STE NOUVELLE DU GENIE ELECTRIQ",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "5 957 318,40",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "DEEP CENTRAL",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "6 944 659,20",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "STE ALOUSS",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "6 989 359,20",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "BROTHER'S INITIATIVE SERVICES",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "ASELTEC",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "5 604 636,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 10
+    },
+    "41/DAM": {
+      "numAO": "41",
+      "entite": "DAM",
+      "numAOComplet": "41/2026/DAM",
+      "objetAO": "Etude Architecturale Et Suivi Des Travaux De Réaménagement De La Salle D’archive De L’ORMVA Du Gharb, Ville De Kenitra",
+      "nbSoumissionnaires": 1,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "CHRAIJI AHMED",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 12h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 12h30"
+        },
+        {
+          "semaine": "Semaine du 20 au 24/04/2026 – (Suite)",
+          "seance": "Séance du 24 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "CHRAIJI AHMED",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 12h30",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des OT ; Ouverture OF le 30/04/2026 à 12h30"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre technique",
+          "president": "Bouchikhi",
+          "nom": "CHRAIJI AHMED",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "796 000,000",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026 (Suite)",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "CHRAIJI AHMED",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "796 000,000",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 1
+    },
+    "40/DAM": {
+      "numAO": "40",
+      "entite": "DAM",
+      "numAOComplet": "40/2026/DAM",
+      "objetAO": "Acquisition et l’installation des équipements pour les nouveaux bâtiments de l’association des œuvres sociales de l’ORMVA du Gharb, ville de Kénitra",
+      "nbSoumissionnaires": 5,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bouchikhi",
+          "nom": "MABAZ SERVICES",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2026 à 11h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2026 à 11h."
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "STE ALAMA VERT-TD",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2026 à 11h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2026 à 11h."
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "MAROC BUREAU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2026 à 11h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2026 à 11h."
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "TET BUREAU",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2026 à 11h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2026 à 11h."
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bouchikhi",
+          "nom": "IMAYOS NEGOCE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2026 à 11h.",
+          "decisionCommissionOF": "Désignation commission technique pour l’examen des prospectus ; Ouverture OF le 07/05/2026 à 11h."
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Prospectus",
+          "president": "Bouchikhi",
+          "nom": "MABAZ SERVICES",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "5 975 000,00 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "STE ALAMA VERT-TD",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": "- Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "MAROC BUREAU",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "5 392 320,00 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "TET BUREAU",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "5 140 000,00 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Bouchikhi",
+          "nom": "IMAYOS NEGOCE",
+          "decisionCommission": "Admis",
+          "offreFinanciere": "5 184 960,00 Désignation d’une sous-commission financière pour examen des OF",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 5
+    },
+    "32/DDA": {
+      "numAO": "32",
+      "entite": "DDA",
+      "numAOComplet": "32/2026/DDA",
+      "objetAO": "Prestations d’entretien, de maintenance et de réparation du matériel du laboratoire d’analyses de l’ORMVA du Gharb, au niveau de la province de Kenitra y compris pièces de rechange",
+      "nbSoumissionnaires": 1,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Mghari",
+          "nom": "ROBOLAB TECHNOLOGY",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": "AO déclaré Infructueux",
+          "decisionCommissionOF": "AO déclaré Infructueux"
+        },
+        {
+          "semaine": "Semaine du 27 au 30/04/2026 – (Suite)",
+          "seance": "Séance du 30 Avril 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Mghari",
+          "nom": "ROBOLAB TECHNOLOGY",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": "AO déclaré Infructueux",
+          "decisionCommissionOF": "AO déclaré Infructueux"
+        }
+      ],
+      "nbSoumissionnairesUniques": 1
+    },
+    "36/DGR": {
+      "numAO": "36",
+      "entite": "DGR",
+      "numAOComplet": "36/2026/DGR",
+      "objetAO": "Entretien des réseaux d’irrigation y compris les stations de pompage et les réseaux d’assainissement et de drainage de l’ORMVA du Gharb au niveau des zones d’action des provinces de Kenitra, Sidi Kacem et Sidi Slimane",
+      "nbSoumissionnaires": 1,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bahouss",
+          "nom": "STE SININE",
+          "decisionCommission": "Ecarté (Manque des attestations de référence conforme)",
+          "offreFinanciere": "AO déclaré Infructueux",
+          "decisionCommissionOF": "AO déclaré Infructueux"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "STE SININE",
+          "decisionCommission": "Ecarté (Manque des attestations de référence conforme)",
+          "offreFinanciere": "AO déclaré Infructueux",
+          "decisionCommissionOF": "AO déclaré Infructueux"
+        },
+        {
+          "semaine": "Semaine du 04 au 08/05/2026",
+          "seance": "Séance du 07 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "STE SININE",
+          "decisionCommission": "Ecarté (Manque des attestations de référence conforme)",
+          "offreFinanciere": "AO déclaré Infructueux",
+          "decisionCommissionOF": "AO déclaré Infructueux"
+        }
+      ],
+      "nbSoumissionnairesUniques": 1
+    },
+    "29/DGR": {
+      "numAO": "29",
+      "entite": "DGR",
+      "numAOComplet": "29/2026/DGR",
+      "objetAO": "Prestations de distribution de l’eau d’irrigation auprès des usagers du périmètre du Gharb au niveau des provinces de Kenitra, sidi Kacem et sidi Slimane",
+      "nbSoumissionnaires": 2,
+      "soumissionnaires": [
+        {
+          "semaine": "Semaine du 18 au 22/05/2026",
+          "seance": "Séance du 19 Mai 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bahouss",
+          "nom": "STE SININE",
+          "decisionCommission": "Admis sans réserve",
+          "offreFinanciere": "12 026 664,00",
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 18 au 22/05/2026",
+          "seance": "Séance du 19 Mai 2026",
+          "objetSeance": "Dossier Administratif",
+          "president": "Bahouss",
+          "nom": "HERTS HOURCHMI HMAD PAR HOURCH",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 18 au 22/05/2026",
+          "seance": "Séance du 19 Mai 2026",
+          "objetSeance": "Dossier technique",
+          "president": "Bahouss",
+          "nom": "HERTS HOURCHMI HMAD PAR HOURCH",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        },
+        {
+          "semaine": "Semaine du 18 au 22/05/2026",
+          "seance": "Séance du 19 Mai 2026",
+          "objetSeance": "Offre financière",
+          "president": "Bahouss",
+          "nom": "HERTS HOURCHMI HMAD PAR HOURCH",
+          "decisionCommission": "Ecarté",
+          "offreFinanciere": null,
+          "decisionCommissionOF": "Désignation d’une sous-commission financière pour examen des OF"
+        }
+      ],
+      "nbSoumissionnairesUniques": 2
+    }
+  }
+}

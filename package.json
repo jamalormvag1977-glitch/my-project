@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "node scripts/generate-static-data.js && next build",
+    "build": "node scripts/generate-static-data.js && node scripts/generate-soumissionnaire-data.js && next build",
     "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
     "deploy": "git add -A && git commit -m 'deploy' && git push origin main",

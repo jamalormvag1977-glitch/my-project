@@ -60,6 +60,10 @@ export const authOptions: NextAuthOptions = {
     maxAge: 24 * 60 * 60, // 24 hours
   },
   secret: process.env.NEXTAUTH_SECRET,
+  // Auto-detect NEXTAUTH_URL on Vercel
+  ...(process.env.VERCEL_URL && !process.env.NEXTAUTH_URL
+    ? { url: `https://${process.env.VERCEL_URL}` }
+    : {}),
 };
 
 const handler = NextAuth(authOptions);

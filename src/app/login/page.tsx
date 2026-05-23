@@ -3,18 +3,20 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { BarChart3, Eye, EyeOff, Shield, Lock } from 'lucide-react';
+import { BarChart3, Eye, EyeOff, Shield, Lock, AlertTriangle } from 'lucide-react';
 
 export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [debugInfo, setDebugInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setDebugInfo('');
     setLoading(true);
 
     try {
@@ -25,12 +27,19 @@ export default function LoginPage() {
 
       if (result?.error) {
         setError('Mot de passe incorrect');
-      } else {
+        setDebugInfo(`Erreur: ${result.error} | Status: ${result.status || 'N/A'}`);
+      } else if (result?.ok) {
+        // Small delay to let session propagate
+        await new Promise(resolve => setTimeout(resolve, 500));
         router.push('/');
         router.refresh();
+      } else {
+        setError('Erreur inconnue');
+        setDebugInfo(`Result: ${JSON.stringify(result)}`);
       }
-    } catch {
+    } catch (err: any) {
       setError('Erreur de connexion');
+      setDebugInfo(err?.message || 'Erreur réseau');
     } finally {
       setLoading(false);
     }
@@ -93,6 +102,14 @@ export default function LoginPage() {
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-xs font-medium flex items-center gap-2">
                 <Shield className="w-4 h-4 shrink-0" />
                 {error}
+              </div>
+            )}
+
+            {/* Debug info - temporary */}
+            {debugInfo && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-4 py-3 text-yellow-400 text-[10px] font-mono flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{debugInfo}</span>
               </div>
             )}
 

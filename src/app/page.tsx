@@ -423,6 +423,9 @@ export default function Dashboard() {
   const [soumissionnaireData, setSoumissionnaireData] = useState<SoumissionnaireData | null>(null);
   const [selectedSoumProjet, setSelectedSoumProjet] = useState<SoumissionnaireProjet | null>(null);
   const [showSoumModal, setShowSoumModal] = useState(false);
+  const [showSoumUpload, setShowSoumUpload] = useState(false);
+  const [soumUploading, setSoumUploading] = useState(false);
+  const [soumUploadResult, setSoumUploadResult] = useState<{ success: boolean; message: string } | null>(null);
 
   /* ── Pipeline Order & Status Mapping ── */
   const PIPELINE_ORDER = ['Ouvert','En cours de jugement','Jugé','Engagé','Infructueux','Annulé','Publié PPM','DAO Envoyé au CE','A programmer'] as const;
@@ -572,6 +575,35 @@ export default function Dashboard() {
       setShowSoumModal(true);
     }
   }, [soumissionnaireData]);
+
+  /* ── Upload soumissionnaire Excel ── */
+  const handleSoumUpload = useCallback(async (file: File) => {
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    if (!['.xlsx', '.xls'].includes(ext)) {
+      setSoumUploadResult({ success: false, message: 'Format non supporté. Utilisez .xlsx ou .xls' });
+      return;
+    }
+    setSoumUploading(true);
+    setSoumUploadResult(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/soumissionnaires', { method: 'POST', body: formData });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setSoumUploadResult({ success: true, message: json.message || 'Fichier soumissionnaires mis à jour avec succès' });
+        // Refresh soumissionnaire data
+        await fetchSoumissionnaires();
+        setTimeout(() => { setShowSoumUpload(false); setSoumUploadResult(null); }, 2000);
+      } else {
+        setSoumUploadResult({ success: false, message: json.error || 'Erreur lors du chargement' });
+      }
+    } catch {
+      setSoumUploadResult({ success: false, message: 'Erreur réseau lors du chargement' });
+    } finally {
+      setSoumUploading(false);
+    }
+  }, [fetchSoumissionnaires]);
 
   // Reset expanded when filters change
   useEffect(() => {
@@ -3778,15 +3810,85 @@ export default function Dashboard() {
         </section>
 
         {/* ── 7. Soumissionnaires ── */}
-        {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 && (
         <section className="animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
-          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <Users className="w-4 h-4 text-indigo-500" />
-            7. Soumissionnaires — Résultats des Séances d&apos;Ouverture
-            <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200 ml-2">
-              {soumissionnaireData.totalProjets} AO — {soumissionnaireData.totalSoumissionnaires} soumissionnaires
-            </Badge>
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <Users className="w-4 h-4 text-indigo-500" />
+              7. Soumissionnaires — Résultats des Séances d&apos;Ouverture
+              {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 && (
+                <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200 ml-2">
+                  {soumissionnaireData.totalProjets} AO — {soumissionnaireData.totalSoumissionnaires} soumissionnaires
+                </Badge>
+              )}
+            </h2>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-[10px] text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 border-indigo-200 gap-1"
+              onClick={() => setShowSoumUpload(!showSoumUpload)}
+            >
+              <Upload className="w-3 h-3" />
+              {showSoumUpload ? 'Fermer' : 'Mettre à jour le fichier'}
+            </Button>
+          </div>
+
+          {/* Upload zone for soumissionnaires */}
+          {showSoumUpload && (
+            <Card className="border-0 shadow-md glass-card animate-fade-in-up mb-4" style={{ borderTop: '4px solid #6366f1' }}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+                    <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-700">Mettre à jour les soumissionnaires</h4>
+                    <p className="text-[10px] text-slate-400">Uploadez le fichier Excel des résultats des séances d&apos;ouverture</p>
+                  </div>
+                </div>
+                <div
+                  className="relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 border-slate-300 bg-slate-50/50"
+                  onClick={() => document.getElementById('soum-file-input')?.click()}
+                >
+                  <input
+                    id="soum-file-input"
+                    type="file"
+                    accept=".xlsx,.xls"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleSoumUpload(file);
+                    }}
+                  />
+                  {soumUploading ? (
+                    <div className="space-y-2">
+                      <div className="relative w-10 h-10 mx-auto">
+                        <div className="absolute inset-0 rounded-full border-4 border-slate-200" />
+                        <div className="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
+                      </div>
+                      <p className="text-xs font-medium text-indigo-600">Chargement en cours...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <CloudUpload className="w-8 h-8 mx-auto text-indigo-400" />
+                      <p className="text-xs font-medium text-slate-600">
+                        Glissez ou <span className="text-indigo-500 underline">cliquez pour parcourir</span>
+                      </p>
+                      <p className="text-[10px] text-slate-400">Fichier Excel des séances d&apos;ouverture (.xlsx, .xls)</p>
+                    </div>
+                  )}
+                </div>
+                {soumUploadResult && (
+                  <div className={`mt-3 p-3 rounded-xl flex items-center gap-2 text-xs ${soumUploadResult.success ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                    {soumUploadResult.success ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
+                    <span className="font-medium">{soumUploadResult.message}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 && (
+        <>
           <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #6366f1' }}>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
@@ -3858,8 +3960,9 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-        </section>
+        </>
         )}
+        </section>
 
         {/* ── Soumissionnaire Detail Modal ── */}
         {showSoumModal && selectedSoumProjet && (

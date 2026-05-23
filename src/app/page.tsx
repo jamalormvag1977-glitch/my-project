@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, Fragment } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area,
@@ -18,7 +18,7 @@ import {
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
-  X, ClipboardList, History, Download, Printer, Send, Bell, BellRing, Timer
+  X, ClipboardList, History, Download, Printer, Send, Wallet, Shield, Eye
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -29,6 +29,7 @@ interface PPMProject {
   sourceFinancement?: string | null;
   programme?: string | null;
   projet?: string | null;
+  delaisExecution?: string | null;
   numAO: string | number | null;
   entite: string;
   objet: string;
@@ -45,7 +46,7 @@ interface PPMProject {
   engagementCP: number | null;
   engagementCE: number | null;
   dateEngagement: string | null;
-  delaisExecution?: string | null;
+  delaisExecution: string | null;
 }
 
 interface KPIs {
@@ -82,8 +83,10 @@ const fmtM = (n: number) => {
   if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + ' MDH';
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + ' MDH';
   if (n >= 1_000) return (n / 1_000).toFixed(1) + ' KDH';
-  return n.toFixed(0) + ' DH';
+  return n.toLocaleString('fr-FR') + ' DH';
 };
+
+const fmtMDH = (n: number) => (n / 1_000_000).toFixed(2) + ' MDH';
 
 const fmtFull = (n: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
@@ -99,6 +102,7 @@ const statusColor: Record<string, string> = {
   'Engagé': '#16a34a',
   'Jugé': '#2563eb',
   'En cours de jugement': '#d97706',
+  'En cours de jugement des offres': '#e97c16',
   'Publié sur PMP': '#7c3aed',
   'Publié PPM': '#7c3aed',
   'DAO Envoyé au CE': '#0891b2',
@@ -112,6 +116,7 @@ const statusIcon: Record<string, React.ReactNode> = {
   'Engagé': <CheckCircle2 className="w-3.5 h-3.5" />,
   'Jugé': <CheckCircle2 className="w-3.5 h-3.5" />,
   'En cours de jugement': <Clock className="w-3.5 h-3.5" />,
+  'En cours de jugement des offres': <Clock className="w-3.5 h-3.5" />,
   'Publié sur PMP': <Activity className="w-3.5 h-3.5" />,
   'Publié PPM': <Activity className="w-3.5 h-3.5" />,
   'DAO Envoyé au CE': <Send className="w-3.5 h-3.5" />,
@@ -124,19 +129,24 @@ const CHART_COLORS = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#dc2626', '#0
 
 const monthLabel = (m: string) => {
   const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-  const [y, mm] = m.split('-');
-  return months[parseInt(mm) - 1] + ' ' + y.slice(2);
+  const parts = m.split('-');
+  if (parts.length < 2) return m;
+  const [y, mm] = parts;
+  const monthIdx = parseInt(mm) - 1;
+  if (isNaN(monthIdx) || monthIdx < 0 || monthIdx > 11) return m;
+  return months[monthIdx] + ' ' + y.slice(2);
 };
 
 /* ── AnimatedNumber Component ──────────────────────────── */
-function AnimatedNumber({ value, duration = 1200 }: { value: number; duration?: number }) {
-  const [display, setDisplay] = useState(value);
-  const prevValue = useRef(value);
+function AnimatedNumber({ value, duration = 1200, format }: { value: number; duration?: number; format?: 'number' | 'mdh' | 'amount' }) {
+  const safeValue = typeof value === 'number' && !isNaN(value) ? value : 0;
+  const [display, setDisplay] = useState(safeValue);
+  const prevValue = useRef(safeValue);
   const rafRef = useRef<number>();
 
   useEffect(() => {
     const start = prevValue.current;
-    const end = value;
+    const end = safeValue;
     const diff = end - start;
     if (diff === 0) return;
 
@@ -145,7 +155,7 @@ function AnimatedNumber({ value, duration = 1200 }: { value: number; duration?: 
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      const next = Math.round(start + diff * eased);
+      const next = format === 'mdh' ? +(start + diff * eased).toFixed(2) : Math.round(start + diff * eased);
       setDisplay(next);
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(step);
@@ -155,8 +165,10 @@ function AnimatedNumber({ value, duration = 1200 }: { value: number; duration?: 
     };
     rafRef.current = requestAnimationFrame(step);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [value, duration]);
+  }, [safeValue, duration, format]);
 
+  if (format === 'mdh') return <>{display.toFixed(2)}</>;
+  if (format === 'number') return <>{display.toLocaleString('fr-FR')}</>;
   return <>{fmtM(display)}</>;
 }
 
@@ -169,7 +181,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
       {payload.map((p, i) => (
         <p key={i} className="text-xs flex items-center gap-2 text-gray-600">
           <span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ background: p.color }} />
-          {p.name} : <strong className="text-gray-900">{fmtM(p.value)} DH</strong>
+          {p.name} : <strong className="text-gray-900">{fmtM(p.value)}</strong>
         </p>
       ))}
     </div>
@@ -377,6 +389,8 @@ export default function Dashboard() {
   const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
   const [mounted, setMounted] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [reportType, setReportType] = useState<string>('synthese');
+  const [expandedReportEntity, setExpandedReportEntity] = useState<string | null>(null);
 
   /* ── Pipeline Order & Status Mapping ── */
   const PIPELINE_ORDER = ['Ouvert','En cours de jugement','Jugé','Engagé','Infructueux','Annulé','Publié PPM','DAO Envoyé au CE','A programmer'] as const;
@@ -404,11 +418,9 @@ export default function Dashboard() {
           lastChecksumRef.current = json.fileChecksum || null;
           setFileChanged(false);
         } else {
-          // API returned no data, try static JSON fallback
           await fetchStaticJsonFallback();
         }
       } else {
-        // API error, try static JSON fallback
         await fetchStaticJsonFallback();
       }
     } catch (e) {
@@ -575,7 +587,7 @@ export default function Dashboard() {
     );
   }
 
-  const { projects = [], kpis, statusCount = {}, entityBudget = {}, natureBudget = {}, typeBudget = {}, monthlyTimeline = {}, entityEngagementRate = {} } = data || {} as any;
+  const { projects, kpis, statusCount, entityBudget, natureBudget, typeBudget, monthlyTimeline, entityEngagementRate } = data;
 
   /* ── Filtered projects ── */
   const filtered = projects.filter(p => {
@@ -605,13 +617,16 @@ export default function Dashboard() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Helper: check if a date string is valid YYYY-MM-DD
+  const isValidDate = (d: string | null): d is string => !!d && /^\d{4}-\d{2}-\d{2}$/.test(d);
+
   // Ouvert projects: dateOuverture exists AND <= today
-  const ouvertProjects = filtered.filter(p => p.dateOuverture && new Date(p.dateOuverture) <= today);
+  const ouvertProjects = filtered.filter(p => isValidDate(p.dateOuverture) && new Date(p.dateOuverture) <= today);
 
   // Daily openings computation for sidebar history tab — only dates <= today
   const dailyOpenings: Record<string, PPMProject[]> = {};
   filtered.forEach(p => {
-    if (p.dateOuverture) {
+    if (isValidDate(p.dateOuverture)) {
       const openingDate = new Date(p.dateOuverture);
       openingDate.setHours(0, 0, 0, 0);
       if (openingDate <= today) {
@@ -630,8 +645,35 @@ export default function Dashboard() {
     totalBudget: filtered.reduce((s, p) => s + (p.cp || 0) + (p.ce || 0), 0),
     totalEstimation: filtered.reduce((s, p) => s + (p.estimationAdmin || 0), 0),
     totalEngagement: filtered.reduce((s, p) => s + (p.montantEngagement || 0), 0),
+    totalEngagementCP: filtered.reduce((s, p) => s + (p.engagementCP || 0), 0),
+    totalEngagementCE: filtered.reduce((s, p) => s + (p.engagementCE || 0), 0),
     totalMontantExtrait: filtered.reduce((s, p) => s + (p.montantExtrait || 0), 0),
   };
+  // AO Ouvert group: En cours de jugement, Jugé, Engagé, Infructueux, Annulé
+  const aoOuvertCount = filtered.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).length;
+  const aoOuvertEstimation = filtered.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).reduce((s, p) => s + (p.estimationAdmin || 0), 0);
+  const aoOuvertEngagement = filtered.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).reduce((s, p) => s + (p.montantEngagement || 0), 0);
+  // AO Restants group: Publié PPM, DAO Envoyé au CE, À programmer
+  const aoRestantsCount = filtered.filter(p => ['Publié sur PMP','DAO Envoyé au CE','A programmer'].includes(p.situationAvancement)).length;
+  const aoRestantsEstimation = filtered.filter(p => ['Publié sur PMP','DAO Envoyé au CE','A programmer'].includes(p.situationAvancement)).reduce((s, p) => s + (p.estimationAdmin || 0), 0);
+  // Programme budget aggregation
+  const filteredProgrammeBudget: Record<string, { cp: number; ce: number; estimation: number; engagement: number; count: number }> = {};
+  filtered.forEach(p => {
+    if (!filteredProgrammeBudget[p.programme]) filteredProgrammeBudget[p.programme] = { cp: 0, ce: 0, estimation: 0, engagement: 0, count: 0 };
+    filteredProgrammeBudget[p.programme].cp += p.cp || 0;
+    filteredProgrammeBudget[p.programme].ce += p.ce || 0;
+    filteredProgrammeBudget[p.programme].estimation += p.estimationAdmin || 0;
+    filteredProgrammeBudget[p.programme].engagement += p.montantEngagement || 0;
+    filteredProgrammeBudget[p.programme].count += 1;
+  });
+  const programmeData = Object.entries(filteredProgrammeBudget).map(([name, d]) => ({
+    name,
+    cp: Math.round(d.cp),
+    ce: Math.round(d.ce),
+    estimation: Math.round(d.estimation),
+    engagement: Math.round(d.engagement),
+    count: d.count,
+  }));
   const filteredStatusCount: Record<string, number> = {};
   const filteredStatusBudget: Record<string, { estimation: number; engagement: number }> = {};
   filtered.forEach(p => {
@@ -669,12 +711,14 @@ export default function Dashboard() {
   });
   const filteredMonthlyTimeline: Record<string, { count: number; estimation: number; engagement: number }> = {};
   filtered.forEach(p => {
-    if (p.dateOuverture) {
+    if (isValidDate(p.dateOuverture)) {
       const month = p.dateOuverture.substring(0, 7);
-      if (!filteredMonthlyTimeline[month]) filteredMonthlyTimeline[month] = { count: 0, estimation: 0, engagement: 0 };
-      filteredMonthlyTimeline[month].count += 1;
-      filteredMonthlyTimeline[month].estimation += p.estimationAdmin || 0;
-      filteredMonthlyTimeline[month].engagement += p.montantEngagement || 0;
+      if (/^\d{4}-\d{2}$/.test(month)) {
+        if (!filteredMonthlyTimeline[month]) filteredMonthlyTimeline[month] = { count: 0, estimation: 0, engagement: 0 };
+        filteredMonthlyTimeline[month].count += 1;
+        filteredMonthlyTimeline[month].estimation += p.estimationAdmin || 0;
+        filteredMonthlyTimeline[month].engagement += p.montantEngagement || 0;
+      }
     }
   });
   const filteredEntityEngagementRate: Record<string, number> = {};
@@ -836,7 +880,7 @@ export default function Dashboard() {
               { key: 'step' as const, label: 'Par Étape', icon: <ClipboardList className="w-4.5 h-4.5" /> },
               { key: 'history' as const, label: 'Historique', icon: <History className="w-4.5 h-4.5" /> },
               { key: 'reports' as const, label: 'Rapports', icon: <FileText className="w-4.5 h-4.5" /> },
-              { key: 'alerts' as const, label: 'Alertes', icon: <Bell className="w-4.5 h-4.5" /> },
+              { key: 'alerts' as const, label: 'Alertes', icon: <AlertTriangle className="w-4.5 h-4.5" /> },
             ].map(tab => (
               <button
                 key={tab.key}
@@ -1024,7 +1068,7 @@ export default function Dashboard() {
                           <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: statusColor[status] || '#6b7280' }}>{statusIcon[status]}</div>
                           <div>
                             <h3 className="text-sm font-semibold text-slate-800">{status}</h3>
-                            <p className="text-[10px] text-slate-500">{count} projets · Estim: {fmtM(filteredStatusBudget[status]?.estimation || 0)} DH · Engagé: {fmtM(filteredStatusBudget[status]?.engagement || 0)} DH</p>
+                            <p className="text-[10px] text-slate-500">{count} projets · Estim: {fmtM(filteredStatusBudget[status]?.estimation || 0)} · Engagé: {fmtM(filteredStatusBudget[status]?.engagement || 0)}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -1038,29 +1082,37 @@ export default function Dashboard() {
                             <table className="w-full text-xs">
                               <thead>
                                 <tr className="bg-slate-50 border-b border-slate-100 text-[9px] text-slate-500 uppercase tracking-wider">
-                                  <th className="px-3 py-2 text-center w-8">#</th>
-                                  <th className="px-3 py-2 text-left">Entité</th>
+                                  <th className="px-3 py-2 text-center w-12">N° AO</th>
                                   <th className="px-3 py-2 text-left">Objet</th>
+                                  <th className="px-3 py-2 text-left">Statut</th>
+                                  <th className="px-3 py-2 text-right">CP</th>
+                                  <th className="px-3 py-2 text-right">CE</th>
                                   <th className="px-3 py-2 text-right">Estimation</th>
-                                  <th className="px-3 py-2 text-right">Engagement</th>
                                   <th className="px-3 py-2 text-center">Ouv. Plis</th>
                                   <th className="px-3 py-2 text-center">Jugement</th>
                                   <th className="px-3 py-2 text-center">Engagé le</th>
                                   <th className="px-3 py-2 text-center">N° Marché</th>
+                                  <th className="px-3 py-2 text-right">Eng. Total</th>
+                                  <th className="px-3 py-2 text-right">Eng. CP</th>
+                                  <th className="px-3 py-2 text-right">Eng. CE</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {statusProjects.map(p => (
                                   <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-3 py-2 text-center text-slate-400 font-mono">{p.id}</td>
-                                    <td className="px-3 py-2"><span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded bg-gradient-to-br from-blue-500 to-violet-500 text-white font-bold text-[9px]">{p.entite}</span></td>
-                                    <td className="px-3 py-2 text-slate-700 max-w-[250px]"><span className="line-clamp-1">{p.objet}</span></td>
-                                    <td className="px-3 py-2 text-right mdh text-slate-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
-                                    <td className="px-3 py-2 text-right mdh text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
+                                    <td className="px-3 py-2 text-center text-slate-600 font-mono text-[10px]">{p.numAO || '—'}</td>
+                                    <td className="px-3 py-2 text-slate-700 min-w-[200px]">{p.objet}</td>
+                                    <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{p.situationAvancement}</Badge></td>
+                                    <td className="px-3 py-2 text-right text-slate-700">{p.cp ? fmtM(p.cp) : '—'}</td>
+                                    <td className="px-3 py-2 text-right text-slate-700">{p.ce ? fmtM(p.ce) : '—'}</td>
+                                    <td className="px-3 py-2 text-right text-blue-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
                                     <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateOuverture || '—'}</td>
                                     <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateJugement || '—'}</td>
                                     <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateEngagement || '—'}</td>
                                     <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.numMarche || '—'}</td>
+                                    <td className="px-3 py-2 text-right text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
+                                    <td className="px-3 py-2 text-right text-violet-700">{p.engagementCP ? fmtM(p.engagementCP) : '—'}</td>
+                                    <td className="px-3 py-2 text-right text-cyan-700">{p.engagementCE ? fmtM(p.engagementCE) : '—'}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -1140,7 +1192,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <h3 className="text-sm font-semibold text-slate-800">{entity}</h3>
-                          <p className="text-[10px] text-slate-500">{d.count} projets · Estim: {fmtM(d.estimation)} DH · Engagé: {fmtM(d.engagement)} DH · Taux: {engRate}%</p>
+                          <p className="text-[10px] text-slate-500">{d.count} projets · Estim: {fmtM(d.estimation)} · Engagé: {fmtM(d.engagement)} · Taux: {engRate}%</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1154,31 +1206,37 @@ export default function Dashboard() {
                           <table className="w-full text-xs">
                             <thead>
                               <tr className="bg-slate-50 border-b border-slate-100 text-[9px] text-slate-500 uppercase tracking-wider">
-                                <th className="px-3 py-2 text-center w-8">#</th>
+                                <th className="px-3 py-2 text-center w-12">N° AO</th>
                                 <th className="px-3 py-2 text-left">Objet</th>
                                 <th className="px-3 py-2 text-left">Statut</th>
+                                <th className="px-3 py-2 text-right">CP</th>
+                                <th className="px-3 py-2 text-right">CE</th>
                                 <th className="px-3 py-2 text-right">Estimation</th>
-                                <th className="px-3 py-2 text-right">Engagement</th>
                                 <th className="px-3 py-2 text-center">Ouv. Plis</th>
                                 <th className="px-3 py-2 text-center">Jugement</th>
                                 <th className="px-3 py-2 text-center">Engagé le</th>
-                                <th className="px-3 py-2 text-center">Eng. CP</th>
                                 <th className="px-3 py-2 text-center">N° Marché</th>
+                                <th className="px-3 py-2 text-right">Eng. Total</th>
+                                <th className="px-3 py-2 text-right">Eng. CP</th>
+                                <th className="px-3 py-2 text-right">Eng. CE</th>
                               </tr>
                             </thead>
                             <tbody>
                               {entityProjects.map(p => (
                                 <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                  <td className="px-3 py-2 text-center text-slate-400 font-mono">{p.id}</td>
-                                  <td className="px-3 py-2 text-slate-700 max-w-[250px]"><span className="line-clamp-1">{p.objet}</span></td>
-                                  <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{statusIcon[p.situationAvancement]}{p.situationAvancement}</Badge></td>
-                                  <td className="px-3 py-2 text-right mdh text-slate-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
-                                  <td className="px-3 py-2 text-right mdh text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
+                                  <td className="px-3 py-2 text-center text-slate-600 font-mono text-[10px]">{p.numAO || '—'}</td>
+                                  <td className="px-3 py-2 text-slate-700 min-w-[200px]">{p.objet}</td>
+                                  <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{p.situationAvancement}</Badge></td>
+                                  <td className="px-3 py-2 text-right text-slate-700">{p.cp ? fmtM(p.cp) : '—'}</td>
+                                  <td className="px-3 py-2 text-right text-slate-700">{p.ce ? fmtM(p.ce) : '—'}</td>
+                                  <td className="px-3 py-2 text-right text-blue-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
                                   <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateOuverture || '—'}</td>
                                   <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateJugement || '—'}</td>
                                   <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateEngagement || '—'}</td>
-                                  <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.engagementCP ? fmtM(p.engagementCP) : '—'}</td>
                                   <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.numMarche || '—'}</td>
+                                  <td className="px-3 py-2 text-right text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
+                                  <td className="px-3 py-2 text-right text-violet-700">{p.engagementCP ? fmtM(p.engagementCP) : '—'}</td>
+                                  <td className="px-3 py-2 text-right text-cyan-700">{p.engagementCE ? fmtM(p.engagementCE) : '—'}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -1283,25 +1341,31 @@ export default function Dashboard() {
                           <div className="flex items-center gap-2"><CalendarDays className="w-4 h-4 text-violet-500" /><span className="text-sm font-bold text-slate-800">{date}</span></div>
                           <div className="flex items-center gap-3">
                             <Badge className="text-[9px] h-5 bg-violet-100 text-violet-700 border-violet-200 border hover:bg-violet-200">{projectsList.length} AO</Badge>
-                            <span className="text-[10px] text-slate-500">Estim: <strong className="text-blue-600">{fmtM(totalEstim)}</strong> DH</span>
+                            <span className="text-[10px] text-slate-500">Estim: <strong className="text-blue-600">{fmtM(totalEstim)}</strong></span>
                             <span className="text-[10px] text-slate-500">Engagé: <strong className="text-green-600">{engRatio}%</strong></span>
                           </div>
                         </div>
                         <div className="overflow-x-auto">
                           <table className="w-full text-xs">
                             <thead><tr className="bg-slate-50 border-b border-slate-100 text-[9px] text-slate-500 uppercase tracking-wider">
-                              <th className="px-3 py-2 text-center w-8">#</th><th className="px-3 py-2 text-left">Objet</th><th className="px-3 py-2 text-right">Estimation</th><th className="px-3 py-2 text-right">Engagement</th><th className="px-3 py-2 text-center">Statut</th><th className="px-3 py-2 text-left">Attributaire</th><th className="px-3 py-2 text-center">N° Marché</th>
+                              <th className="px-3 py-2 text-center w-12">N° AO</th><th className="px-3 py-2 text-left">Objet</th><th className="px-3 py-2 text-left">Statut</th><th className="px-3 py-2 text-right">CP</th><th className="px-3 py-2 text-right">CE</th><th className="px-3 py-2 text-right">Estimation</th><th className="px-3 py-2 text-center">Ouv. Plis</th><th className="px-3 py-2 text-center">Jugement</th><th className="px-3 py-2 text-center">Engagé le</th><th className="px-3 py-2 text-center">N° Marché</th><th className="px-3 py-2 text-right">Eng. Total</th><th className="px-3 py-2 text-right">Eng. CP</th><th className="px-3 py-2 text-right">Eng. CE</th>
                             </tr></thead>
                             <tbody>
                               {projectsList.map(p => (
                                 <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer" onClick={() => { setSidebarTab('dashboard'); setTimeout(() => setExpandedAO(p.id), 100); }}>
-                                  <td className="px-3 py-2 text-center text-slate-400 font-mono">{p.id}</td>
-                                  <td className="px-3 py-2 text-slate-700 max-w-[300px]"><span className="line-clamp-1">{p.objet}</span></td>
-                                  <td className="px-3 py-2 text-right mdh text-slate-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
-                                  <td className="px-3 py-2 text-right mdh text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
-                                  <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{statusIcon[p.situationAvancement]}{p.situationAvancement}</Badge></td>
-                                  <td className="px-3 py-2 text-slate-600 max-w-[130px]"><span className="line-clamp-1 text-[10px]" title={p.attributaire || ''}>{p.attributaire || '—'}</span></td>
+                                  <td className="px-3 py-2 text-center text-slate-600 font-mono text-[10px]">{p.numAO || '—'}</td>
+                                  <td className="px-3 py-2 text-slate-700 min-w-[200px]">{p.objet}</td>
+                                  <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{p.situationAvancement}</Badge></td>
+                                  <td className="px-3 py-2 text-right text-slate-700">{p.cp ? fmtM(p.cp) : '—'}</td>
+                                  <td className="px-3 py-2 text-right text-slate-700">{p.ce ? fmtM(p.ce) : '—'}</td>
+                                  <td className="px-3 py-2 text-right text-blue-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
+                                  <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateOuverture || '—'}</td>
+                                  <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateJugement || '—'}</td>
+                                  <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.dateEngagement || '—'}</td>
                                   <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{p.numMarche || '—'}</td>
+                                  <td className="px-3 py-2 text-right text-green-700">{p.montantEngagement ? fmtM(p.montantEngagement) : '—'}</td>
+                                  <td className="px-3 py-2 text-right text-violet-700">{p.engagementCP ? fmtM(p.engagementCP) : '—'}</td>
+                                  <td className="px-3 py-2 text-right text-cyan-700">{p.engagementCE ? fmtM(p.engagementCE) : '—'}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -1317,9 +1381,87 @@ export default function Dashboard() {
         )}
 
         {/* ── Full-Screen View 5: Rapports ── */}
-        {sidebarTab === 'reports' && (
-          <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
-            {/* Top Bar */}
+        {sidebarTab === 'reports' && (() => {
+          /* ── Alert categories for report ── */
+          const alertCats = [
+            { key: 'ouvert-sans-date', label: 'Ouvert sans date', color: '#3b82f6', count: filtered.filter(p => (p.situationAvancement === 'Ouvert' || (PIPELINE_STATUS_MAP['Ouvert'] !== '__computed__' && p.situationAvancement === PIPELINE_STATUS_MAP['Ouvert'])) && !isValidDate(p.dateOuverture)).length },
+            { key: 'juge-sans-engagement', label: 'Jugé sans engagement', color: '#d97706', count: filtered.filter(p => p.situationAvancement === 'Jugé' && (!p.montantEngagement || p.montantEngagement === 0)).length },
+            { key: 'juge-sans-date', label: 'Jugé sans date', color: '#2563eb', count: filtered.filter(p => p.situationAvancement === 'Jugé' && !isValidDate(p.dateJugement)).length },
+            { key: 'infructueux-sans-date', label: 'Infructueux sans date', color: '#dc2626', count: filtered.filter(p => p.situationAvancement === 'Infructueux' && !isValidDate(p.dateJugement)).length },
+            { key: 'annule-sans-date', label: 'Annulé sans date', color: '#991b1b', count: filtered.filter(p => p.situationAvancement === 'Annulé' && !isValidDate(p.dateJugement)).length },
+            { key: 'dao-sans-date', label: 'DAO CE sans date', color: '#0891b2', count: filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE' && !isValidDate(p.dateJugement) && !isValidDate(p.dateOuverture)).length },
+            { key: 'publie-sans-date', label: 'Publié PPM sans date', color: '#7c3aed', count: filtered.filter(p => p.situationAvancement === 'Publié sur PMP' && !isValidDate(p.dateOuverture)).length },
+            { key: 'a-programmer', label: 'À programmer', color: '#6b7280', count: filtered.filter(p => p.situationAvancement === 'A programmer').length },
+          ];
+          const totalAlertCount = alertCats.reduce((s, a) => s + a.count, 0);
+          const engRate = filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0;
+
+          const reportTypes = [
+            { key: 'synthese', icon: <BarChart3 className="w-5 h-5" />, label: 'Synthèse Générale', desc: 'Vue d\'ensemble complète', color: '#2563eb' },
+            { key: 'entite', icon: <Building2 className="w-5 h-5" />, label: 'Par Entité', desc: 'Répartition par entité', color: '#16a34a' },
+            { key: 'statut', icon: <ClipboardList className="w-5 h-5" />, label: 'Par Statut / Étape', desc: 'Pipeline et statuts', color: '#d97706' },
+            { key: 'alertes', icon: <AlertTriangle className="w-5 h-5" />, label: 'Alertes', desc: 'Points d\'attention', color: '#dc2626' },
+            { key: 'financier', icon: <Wallet className="w-5 h-5" />, label: 'Suivi Financier', desc: 'Budgets et engagements', color: '#0891b2' },
+            { key: 'chrono', icon: <CalendarDays className="w-5 h-5" />, label: 'Chronologique', desc: 'Timeline mensuelle', color: '#7c3aed' },
+          ];
+
+          /* ── Print-optimized header ── */
+          const printHeader = (
+            <div className="hidden print:block mb-8">
+              <div className="flex items-center justify-between border-b-2 border-gray-800 pb-4 mb-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center">
+                    <BarChart3 className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900">Office Régional de Mise en Valeur Agricole du Gharb</h1>
+                    <p className="text-sm text-gray-600 font-medium">Plan de Passation des Marchés — Exercice 2026</p>
+                  </div>
+                </div>
+                <div className="text-right text-xs text-gray-500">
+                  <p>Rapport généré le {new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                  <p>à {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+              </div>
+            </div>
+          );
+
+          /* ── Action bar for print/export ── */
+          const actionBar = (
+            <div className="print:hidden flex items-center justify-between bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-3 mt-6">
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <Eye className="w-4 h-4" />
+                <span>{filtered.length} projets · {reportTypes.find(r => r.key === reportType)?.label}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button onClick={() => setSidebarTab('dashboard')} variant="outline" className="h-8 text-xs gap-1.5 border-slate-200 hover:bg-slate-50">
+                  <BarChart3 className="w-3.5 h-3.5" />Retour Vue d&apos;ensemble
+                </Button>
+                <Button onClick={exportToExcel} variant="outline" className="h-8 text-xs gap-1.5 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200">
+                  <Download className="w-3.5 h-3.5" />Exporter CSV
+                </Button>
+                <Button onClick={() => window.print()} className="h-8 text-xs gap-1.5 bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 shadow-sm">
+                  <Printer className="w-3.5 h-3.5" />Imprimer
+                </Button>
+              </div>
+            </div>
+          );
+
+          return (
+          <div className="min-h-screen bg-slate-50 text-slate-800 animate-fade-in-up">
+            {/* ── Print-specific CSS ── */}
+            <style>{`
+              @media print {
+                body * { visibility: visible !important; }
+                aside, .print\\:hidden { display: none !important; }
+                main { margin-left: 0 !important; }
+                .print\\:break-before { page-break-before: always; }
+                .print\\:break-after { page-break-after: always; }
+                .print\\:no-break { page-break-inside: avoid; }
+              }
+            `}</style>
+
+            {/* ── Top Sticky Bar ── */}
             <div className="print:hidden sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
               <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
                 <div className="flex items-center justify-between gap-4">
@@ -1329,7 +1471,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <h2 className="text-sm font-bold text-slate-800">Rapports</h2>
-                      <p className="text-[10px] text-slate-500">Génération et impression des rapports</p>
+                      <p className="text-[10px] text-slate-500">Génération et impression des rapports PPM 2026</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1368,90 +1510,1141 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-            {/* Content */}
-            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-              {/* Report Generation Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Rapport Synthétique */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5" style={{ borderTop: '4px solid #3b82f6' }}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><BarChart3 className="w-5 h-5 text-blue-500" /></div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-800">Rapport Synthétique</h3>
-                      <p className="text-[10px] text-slate-500">Vue d&apos;ensemble des KPIs</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2 mb-4 text-[11px]">
-                    <div className="flex justify-between"><span className="text-slate-500">Total Projets</span><span className="font-bold text-slate-800">{filteredKpis.totalProjects}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Budget Total</span><span className="font-bold text-blue-600">{fmtM(filteredKpis.totalBudget)} DH</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Estimation</span><span className="font-bold text-amber-600">{fmtM(filteredKpis.totalEstimation)} DH</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Engagement</span><span className="font-bold text-green-600">{fmtM(filteredKpis.totalEngagement)} DH</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Taux Engagement</span><span className="font-bold text-violet-600">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span></div>
-                  </div>
-                  <Button onClick={() => window.print()} className="w-full h-8 text-xs gap-1.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"><Printer className="w-3.5 h-3.5" />Imprimer</Button>
-                </div>
 
-                {/* Rapport par Entité */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5" style={{ borderTop: '4px solid #16a34a' }}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center"><Building2 className="w-5 h-5 text-green-500" /></div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-800">Rapport par Entité</h3>
-                      <p className="text-[10px] text-slate-500">Résumé par entité</p>
+            {/* ── Report Type Selector ── */}
+            <div className="print:hidden max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+              <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                {reportTypes.map(rt => (
+                  <button
+                    key={rt.key}
+                    onClick={() => setReportType(rt.key)}
+                    className={`shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all duration-200 cursor-pointer min-w-[180px]
+                      ${reportType === rt.key
+                        ? 'bg-white shadow-lg -translate-y-0.5'
+                        : 'bg-white/60 border-transparent hover:bg-white hover:shadow-md hover:-translate-y-0.5'
+                      }`}
+                    style={{ borderColor: reportType === rt.key ? rt.color : 'transparent' }}
+                  >
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200
+                      ${reportType === rt.key ? 'text-white shadow-sm' : 'bg-slate-100 text-slate-500'}`}
+                      style={{ backgroundColor: reportType === rt.key ? rt.color : undefined }}
+                    >
+                      {rt.icon}
                     </div>
-                  </div>
-                  <div className="space-y-1.5 mb-4 max-h-[150px] overflow-y-auto custom-scrollbar text-[10px]">
-                    {Object.entries(filteredEntityBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => (
-                      <div key={name} className="flex justify-between items-center py-1 border-b border-slate-50">
-                        <span className="font-medium text-slate-700">{name}</span>
-                        <div className="flex items-center gap-3">
-                          <span className="text-blue-600">{fmtM(d.estimation)}</span>
-                          <span className="text-green-600">{fmtM(d.engagement)}</span>
-                          <span className={`font-bold ${filteredEntityEngagementRate[name] >= 50 ? 'text-green-600' : 'text-amber-600'}`}>{filteredEntityEngagementRate[name]}%</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <Button onClick={() => window.print()} className="w-full h-8 text-xs gap-1.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"><Printer className="w-3.5 h-3.5" />Imprimer</Button>
-                </div>
-
-                {/* Rapport par Statut */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5" style={{ borderTop: '4px solid #d97706' }}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center"><ClipboardList className="w-5 h-5 text-amber-500" /></div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-800">Rapport par Statut</h3>
-                      <p className="text-[10px] text-slate-500">Résumé par statut</p>
+                    <div className="text-left">
+                      <p className={`text-xs font-semibold transition-colors ${reportType === rt.key ? 'text-slate-900' : 'text-slate-600'}`}>{rt.label}</p>
+                      <p className="text-[9px] text-slate-400">{rt.desc}</p>
                     </div>
-                  </div>
-                  <div className="space-y-1.5 mb-4 max-h-[150px] overflow-y-auto custom-scrollbar text-[10px]">
-                    {Object.entries(filteredStatusCount).sort(([,a],[,b]) => b - a).map(([status, count]) => (
-                      <div key={status} className="flex justify-between items-center py-1 border-b border-slate-50">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor[status] }} />
-                          <span className="font-medium text-slate-700">{status}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-blue-600">{fmtM(filteredStatusBudget[status]?.estimation || 0)}</span>
-                          <span className="text-green-600">{fmtM(filteredStatusBudget[status]?.engagement || 0)}</span>
-                          <span className="font-bold text-slate-800">{count}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <Button onClick={() => window.print()} className="w-full h-8 text-xs gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"><Printer className="w-3.5 h-3.5" />Imprimer</Button>
-                </div>
-              </div>
-
-              {/* Export Excel Button */}
-              <div className="flex justify-center">
-                <Button onClick={exportToExcel} className="h-10 text-sm gap-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-lg shadow-green-500/20 px-8">
-                  <Download className="w-4 h-4" />Exporter Excel (CSV)
-                </Button>
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* ── Report Content Area ── */}
+            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6">
+
+              {printHeader}
+
+              {/* ════════════════════════════════════════════════════
+                  📊 SYNTHÈSE GÉNÉRALE
+              ════════════════════════════════════════════════════ */}
+              {reportType === 'synthese' && (
+                <div className="space-y-6">
+                  {/* Professional header */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                            <BarChart3 className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-bold text-white">Rapport de Synthèse Générale</h2>
+                            <p className="text-xs text-slate-300">Plan de Passation des Marchés — ORMVAG — Exercice 2026</p>
+                          </div>
+                        </div>
+                        <div className="text-right text-xs text-slate-400">
+                          <p>{new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                          <p>{filtered.length} projets analysés</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* KPI Cards */}
+                    <div className="p-6">
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-4 border border-blue-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center"><FileText className="w-4 h-4 text-blue-600" /></div>
+                            <span className="text-[10px] font-medium text-blue-600 uppercase tracking-wide">Total Projets</span>
+                          </div>
+                          <p className="text-2xl font-bold text-slate-900">{filteredKpis.totalProjects}</p>
+                          <p className="text-[10px] text-slate-500 mt-1">{filtered.length} marchés dans le PPM</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-violet-50 to-violet-100/50 rounded-xl p-4 border border-violet-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center"><DollarSign className="w-4 h-4 text-violet-600" /></div>
+                            <span className="text-[10px] font-medium text-violet-600 uppercase tracking-wide">Budget Total</span>
+                          </div>
+                          <p className="text-2xl font-bold text-slate-900">{fmtMDH(filteredKpis.totalBudget)}</p>
+                          <p className="text-[10px] text-slate-500 mt-1">CP + CE cumulés</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-xl p-4 border border-amber-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center"><TrendingUp className="w-4 h-4 text-amber-600" /></div>
+                            <span className="text-[10px] font-medium text-amber-600 uppercase tracking-wide">Estimation</span>
+                          </div>
+                          <p className="text-2xl font-bold text-slate-900">{fmtMDH(filteredKpis.totalEstimation)}</p>
+                          <p className="text-[10px] text-slate-500 mt-1">Estimation administrative</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-4 border border-green-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-green-600" /></div>
+                            <span className="text-[10px] font-medium text-green-600 uppercase tracking-wide">Engagements</span>
+                          </div>
+                          <p className="text-2xl font-bold text-slate-900">{fmtMDH(filteredKpis.totalEngagement)}</p>
+                          <p className="text-[10px] text-slate-500 mt-1">Montant engagé total</p>
+                        </div>
+                      </div>
+
+                      {/* Engagement Rate */}
+                      <div className="mt-6 bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold text-slate-700">Taux d&apos;engagement global</span>
+                          <span className={`text-sm font-bold ${engRate >= 50 ? 'text-green-600' : engRate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{engRate}%</span>
+                        </div>
+                        <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, engRate)}%`, backgroundColor: engRate >= 50 ? '#16a34a' : engRate >= 25 ? '#d97706' : '#dc2626' }} />
+                        </div>
+                        <div className="flex justify-between text-[9px] text-slate-400 mt-1">
+                          <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Distribution Table + Chart */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Status Distribution Table */}
+                    <div className="lg:col-span-2 print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <div className="px-6 py-4 border-b border-slate-100">
+                        <h3 className="text-sm font-bold text-slate-800">Répartition par Statut</h3>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="bg-slate-50 border-b border-slate-100">
+                              <th className="px-4 py-2.5 text-left font-semibold text-slate-600">Statut</th>
+                              <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Nb Projets</th>
+                              <th className="px-4 py-2.5 text-center font-semibold text-slate-600">%</th>
+                              <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Estimation</th>
+                              <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Engagement</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {statuses.map(s => {
+                              const count = filteredStatusCount[s] || 0;
+                              const pct = filteredKpis.totalProjects > 0 ? (count / filteredKpis.totalProjects * 100).toFixed(1) : '0.0';
+                              return (
+                                <tr key={s} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                  <td className="px-4 py-2.5">
+                                    <div className="flex items-center gap-2">
+                                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: statusColor[s] }} />
+                                      <span className="font-medium text-slate-700">{s}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-2.5 text-center font-semibold text-slate-800">{count}</td>
+                                  <td className="px-4 py-2.5 text-center text-slate-500">{pct}%</td>
+                                  <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtMDH(filteredStatusBudget[s]?.estimation || 0)}</td>
+                                  <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtMDH(filteredStatusBudget[s]?.engagement || 0)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                          <tfoot>
+                            <tr className="bg-slate-50 font-semibold">
+                              <td className="px-4 py-2.5 text-slate-800">Total</td>
+                              <td className="px-4 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                              <td className="px-4 py-2.5 text-center text-slate-800">100%</td>
+                              <td className="px-4 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
+                              <td className="px-4 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Mini Pie Chart */}
+                    <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                      <h3 className="text-sm font-bold text-slate-800 mb-3">Distribution des Statuts</h3>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                          <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value" nameKey="name">
+                            {statusData.map((entry, i) => (
+                              <Cell key={i} fill={statusColor[entry.name] || CHART_COLORS[i % CHART_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(v: number) => [`${v} projets`, '']} contentStyle={{ fontSize: 11, borderRadius: 10 }} />
+                          <Legend wrapperStyle={{ fontSize: 10 }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Auto-generated Summary */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <FileText className="w-4 h-4 text-slate-500" />
+                      <h3 className="text-sm font-bold text-slate-800">Synthèse Automatique</h3>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Le PPM 2026 de l&apos;ORMVAG comprend <strong>{filteredKpis.totalProjects} marchés</strong> pour un budget total de <strong>{fmtMDH(filteredKpis.totalBudget)}</strong>.
+                      L&apos;estimation administrative s&apos;élève à <strong>{fmtMDH(filteredKpis.totalEstimation)}</strong> et les engagements atteignent <strong>{fmtMDH(filteredKpis.totalEngagement)}</strong>,
+                      soit un taux d&apos;engagement de <strong>{engRate}%</strong>.
+                      {filteredStatusCount['Engagé'] > 0 && ` ${filteredStatusCount['Engagé']} marchés sont engagés.`}
+                      {filteredStatusCount['Ouvert'] > 0 && ` ${filteredStatusCount['Ouvert']} marchés restent ouverts.`}
+                      {filteredStatusCount['Jugé'] > 0 && ` ${filteredStatusCount['Jugé']} marchés ont été jugés.`}
+                      {totalAlertCount > 0 && ` ${totalAlertCount} point(s) d'attention nécessitent un suivi.`}
+                      {engRate >= 50
+                        ? ' Le taux d\'engagement est satisfaisant, supérieur à 50%.'
+                        : engRate >= 25
+                        ? ' Le taux d\'engagement est moyen, des actions d\'accélération sont recommandées.'
+                        : ' Le taux d\'engagement est faible, des mesures correctives urgentes sont nécessaires.'
+                      }
+                    </p>
+                  </div>
+
+                  {actionBar}
+                </div>
+              )}
+
+              {/* ════════════════════════════════════════════════════
+                  🏢 PAR ENTITÉ
+              ════════════════════════════════════════════════════ */}
+              {reportType === 'entite' && (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-green-700 to-emerald-800 px-6 py-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                            <Building2 className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-bold text-white">Rapport par Entité</h2>
+                            <p className="text-xs text-green-200">Répartition détaillée des marchés par entité — PPM 2026</p>
+                          </div>
+                        </div>
+                        <div className="text-right text-xs text-green-200">
+                          <p>{entities.length} entités</p>
+                          <p>{filtered.length} marchés</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Entity Detail Table */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100">
+                      <h3 className="text-sm font-bold text-slate-800">Détail par Entité</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100">
+                            <th className="px-4 py-2.5 text-left font-semibold text-slate-600">Entité</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Nb Projets</th>
+                            <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Estimation (MDH)</th>
+                            <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Engagement (MDH)</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Taux Engagement</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.entries(filteredEntityBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
+                            const rate = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
+                            const entityProjects = filtered.filter(p => p.entite === name);
+                            const isExpanded = expandedReportEntity === name;
+                            return (
+                              <Fragment key={name}>
+                                <tr className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer ${isExpanded ? 'bg-green-50/30' : ''}`} onClick={() => setExpandedReportEntity(isExpanded ? null : name)}>
+                                  <td className="px-4 py-2.5">
+                                    <div className="flex items-center gap-2">
+                                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entityColorMap[name] }} />
+                                      <span className="font-semibold text-slate-700">{name}</span>
+                                      <span className="print:hidden">{isExpanded ? <ChevronUp className="w-3 h-3 text-slate-400" /> : <ChevronDown className="w-3 h-3 text-slate-400" />}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-2.5 text-center font-semibold text-slate-800">{d.count}</td>
+                                  <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtMDH(d.estimation)}</td>
+                                  <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtMDH(d.engagement)}</td>
+                                  <td className="px-4 py-2.5">
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, rate)}%`, backgroundColor: rate >= 50 ? '#16a34a' : rate >= 25 ? '#d97706' : '#dc2626' }} />
+                                      </div>
+                                      <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
+                                    </div>
+                                  </td>
+                                </tr>
+                                {isExpanded && entityProjects.map(p => (
+                                  <tr key={`${name}-${p.id}`} className="bg-slate-50/50 border-b border-slate-100">
+                                    <td className="px-4 py-2 pl-10 text-slate-600" colSpan={2}>{p.objet.length > 60 ? p.objet.substring(0, 60) + '...' : p.objet}</td>
+                                    <td className="px-4 py-2 text-right text-blue-500">{fmtMDH(p.estimationAdmin || 0)}</td>
+                                    <td className="px-4 py-2 text-right text-green-500">{fmtMDH(p.montantEngagement || 0)}</td>
+                                    <td className="px-4 py-2">
+                                      <Badge className="text-[9px] h-4" style={{ backgroundColor: statusColor[p.situationAvancement] + '20', color: statusColor[p.situationAvancement], borderColor: statusColor[p.situationAvancement] + '30' }} variant="outline">
+                                        {p.situationAvancement}
+                                      </Badge>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </Fragment>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="bg-slate-50 font-semibold">
+                            <td className="px-4 py-2.5 text-slate-800">Total</td>
+                            <td className="px-4 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                            <td className="px-4 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
+                            <td className="px-4 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                            <td className="px-4 py-2.5">
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, engRate)}%`, backgroundColor: engRate >= 50 ? '#16a34a' : engRate >= 25 ? '#d97706' : '#dc2626' }} />
+                                </div>
+                                <span className="font-bold w-8 text-right text-[10px]">{engRate}%</span>
+                              </div>
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Entity Comparison Chart */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                    <h3 className="text-sm font-bold text-slate-800 mb-4">Comparaison Estimation vs Engagement par Entité</h3>
+                    <ResponsiveContainer width="100%" height={350}>
+                      <BarChart data={entityData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-20} textAnchor="end" height={60} />
+                        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => fmtMDH(v)} />
+                        <Tooltip formatter={(v: number) => fmtMDH(v)} contentStyle={{ fontSize: 11, borderRadius: 10 }} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Bar dataKey="estimation" name="Estimation" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="engagement" name="Engagement" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {actionBar}
+                </div>
+              )}
+
+              {/* ════════════════════════════════════════════════════
+                  📋 PAR STATUT / ÉTAPE
+              ════════════════════════════════════════════════════ */}
+              {reportType === 'statut' && (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-amber-600 to-amber-700 px-6 py-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                            <ClipboardList className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-bold text-white">Rapport par Statut / Étape</h2>
+                            <p className="text-xs text-amber-200">Pipeline d&apos;avancement des marchés — PPM 2026</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pipeline Visualization */}
+                    <div className="p-6">
+                      <div className="flex items-center gap-0 overflow-x-auto pb-2">
+                        {PIPELINE_ORDER.map((step, i) => {
+                          const mappedStatus = PIPELINE_STATUS_MAP[step];
+                          const count = mappedStatus === '__computed__' ? ouvertProjects.length : (filteredStatusCount[mappedStatus] || 0);
+                          const color = statusColor[mappedStatus === '__computed__' ? 'Ouvert' : mappedStatus] || '#6b7280';
+                          return (
+                            <div key={step} className="flex items-center shrink-0">
+                              <div className="flex flex-col items-center min-w-[100px]">
+                                <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md" style={{ backgroundColor: color }}>
+                                  {count}
+                                </div>
+                                <p className="text-[9px] font-medium text-slate-600 text-center mt-1.5 leading-tight max-w-[100px]">{step}</p>
+                              </div>
+                              {i < PIPELINE_ORDER.length - 1 && (
+                                <div className="w-8 h-0.5 bg-slate-200 mx-1 shrink-0" />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status Detail Table */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100">
+                      <h3 className="text-sm font-bold text-slate-800">Détail par Statut</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100">
+                            <th className="px-4 py-2.5 text-left font-semibold text-slate-600">Statut</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Nb Projets</th>
+                            <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Estimation (MDH)</th>
+                            <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Engagement (MDH)</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Taux Engag.</th>
+                            <th className="px-4 py-2.5 w-[140px] font-semibold text-slate-600 text-center">Répartition</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {statuses.map(s => {
+                            const count = filteredStatusCount[s] || 0;
+                            const est = filteredStatusBudget[s]?.estimation || 0;
+                            const eng = filteredStatusBudget[s]?.engagement || 0;
+                            const sRate = est > 0 ? Math.round((eng / est) * 100) : 0;
+                            const pct = filteredKpis.totalProjects > 0 ? (count / filteredKpis.totalProjects * 100) : 0;
+                            return (
+                              <tr key={s} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                <td className="px-4 py-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: statusColor[s] }} />
+                                    <span className="font-semibold text-slate-700">{s}</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-2.5 text-center font-semibold text-slate-800">{count}</td>
+                                <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtMDH(est)}</td>
+                                <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtMDH(eng)}</td>
+                                <td className="px-4 py-2.5 text-center">
+                                  <span className={`font-bold ${sRate >= 50 ? 'text-green-600' : sRate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{sRate}%</span>
+                                </td>
+                                <td className="px-4 py-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                      <div className="h-full rounded-full" style={{ width: `${Math.min(100, pct * 2)}%`, backgroundColor: statusColor[s] }} />
+                                    </div>
+                                    <span className="text-[10px] text-slate-500 w-8 text-right">{pct.toFixed(0)}%</span>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Status Distribution Pie Chart */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                    <h3 className="text-sm font-bold text-slate-800 mb-4">Distribution des Statuts</h3>
+                    <ResponsiveContainer width="100%" height={350}>
+                      <PieChart>
+                        <Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={110} paddingAngle={3} dataKey="value" nameKey="name" label={({ name, percent }: { name: string; percent: number }) => `${name}: ${(percent * 100).toFixed(0)}%`}>
+                          {statusData.map((entry, i) => (
+                            <Cell key={i} fill={statusColor[entry.name] || CHART_COLORS[i % CHART_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(v: number) => [`${v} projets`, '']} contentStyle={{ fontSize: 11, borderRadius: 10 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {actionBar}
+                </div>
+              )}
+
+              {/* ════════════════════════════════════════════════════
+                  ⚠️ ALERTES
+              ════════════════════════════════════════════════════ */}
+              {reportType === 'alertes' && (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                            <AlertTriangle className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-bold text-white">Rapport d&apos;Alertes</h2>
+                            <p className="text-xs text-red-200">Points d&apos;attention nécessitant un suivi — PPM 2026</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center gap-2">
+                            <span className="text-3xl font-bold text-white">{totalAlertCount}</span>
+                            <span className="text-xs text-red-200">alertes<br/>actives</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Alert Summary Cards */}
+                    <div className="p-6">
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        {alertCats.filter(a => a.count > 0).slice(0, 4).map(cat => (
+                          <div key={cat.key} className="rounded-xl border p-3" style={{ borderColor: cat.color + '30', backgroundColor: cat.color + '08' }}>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                              <span className="text-[10px] font-medium text-slate-600">{cat.label}</span>
+                            </div>
+                            <p className="text-xl font-bold" style={{ color: cat.color }}>{cat.count}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Alert Detail Table */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100">
+                      <h3 className="text-sm font-bold text-slate-800">Détail des Alertes</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100">
+                            <th className="px-4 py-2.5 text-left font-semibold text-slate-600">Catégorie</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Nombre</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Sévérité</th>
+                            <th className="px-4 py-2.5 w-[200px] font-semibold text-slate-600">Proportion</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {alertCats.map(cat => (
+                            <tr key={cat.key} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                                  <span className="font-medium text-slate-700">{cat.label}</span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-2.5 text-center">
+                                <span className="font-bold text-lg" style={{ color: cat.color }}>{cat.count}</span>
+                              </td>
+                              <td className="px-4 py-2.5 text-center">
+                                <Badge className="text-[9px]" variant="outline" style={{ color: cat.count > 5 ? '#dc2626' : cat.count > 2 ? '#d97706' : '#16a34a', borderColor: cat.count > 5 ? '#dc262630' : cat.count > 2 ? '#d9770630' : '#16a34a30', backgroundColor: cat.count > 5 ? '#dc262608' : cat.count > 2 ? '#d9770608' : '#16a34a08' }}>
+                                  {cat.count > 5 ? 'Élevée' : cat.count > 2 ? 'Moyenne' : 'Faible'}
+                                </Badge>
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-full rounded-full" style={{ width: `${filteredKpis.totalProjects > 0 ? Math.min(100, (cat.count / filteredKpis.totalProjects) * 100 * 3) : 0}%`, backgroundColor: cat.color }} />
+                                  </div>
+                                  <span className="text-[10px] text-slate-500 w-10 text-right">{filteredKpis.totalProjects > 0 ? (cat.count / filteredKpis.totalProjects * 100).toFixed(1) : '0.0'}%</span>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Link to Alertes tab */}
+                  <div className="print:hidden flex justify-center">
+                    <Button onClick={() => setSidebarTab('alerts')} className="h-10 text-sm gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg shadow-red-500/20 px-8">
+                      <AlertTriangle className="w-4 h-4" />Voir les Alertes Détaillées
+                    </Button>
+                  </div>
+
+                  {actionBar}
+                </div>
+              )}
+
+              {/* ════════════════════════════════════════════════════
+                  💰 SUIVI FINANCIER
+              ════════════════════════════════════════════════════ */}
+              {reportType === 'financier' && (() => {
+                const totalReste = filteredKpis.totalEstimation - filteredKpis.totalEngagement;
+                const top5Engagements = [...filtered].filter(p => p.montantEngagement && p.montantEngagement > 0).sort((a, b) => (b.montantEngagement || 0) - (a.montantEngagement || 0)).slice(0, 5);
+                const top5Unengaged = [...filtered].filter(p => p.situationAvancement === 'Jugé' && (!p.montantEngagement || p.montantEngagement === 0)).sort((a, b) => (b.estimationAdmin || 0) - (a.estimationAdmin || 0)).slice(0, 5);
+
+                return (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-cyan-700 to-teal-700 px-6 py-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                            <Wallet className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-bold text-white">Suivi Financier</h2>
+                            <p className="text-xs text-cyan-200">Tableau de bord financier — PPM 2026</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Financial Comparison Cards */}
+                    <div className="p-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="bg-gradient-to-br from-violet-50 to-violet-100/50 rounded-xl p-5 border border-violet-100 text-center">
+                          <DollarSign className="w-6 h-6 text-violet-500 mx-auto mb-2" />
+                          <p className="text-[10px] font-medium text-violet-600 uppercase tracking-wide">Budget (CP+CE)</p>
+                          <p className="text-xl font-bold text-slate-900 mt-1">{fmtMDH(filteredKpis.totalBudget)}</p>
+                          <p className="text-[10px] text-slate-400 mt-1">CP: {fmtMDH(filteredKpis.totalCP)} · CE: {fmtMDH(filteredKpis.totalCE)}</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-xl p-5 border border-amber-100 text-center">
+                          <TrendingUp className="w-6 h-6 text-amber-500 mx-auto mb-2" />
+                          <p className="text-[10px] font-medium text-amber-600 uppercase tracking-wide">Estimation Admin.</p>
+                          <p className="text-xl font-bold text-slate-900 mt-1">{fmtMDH(filteredKpis.totalEstimation)}</p>
+                          <p className="text-[10px] text-slate-400 mt-1">Total des estimations</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-5 border border-green-100 text-center">
+                          <CheckCircle2 className="w-6 h-6 text-green-500 mx-auto mb-2" />
+                          <p className="text-[10px] font-medium text-green-600 uppercase tracking-wide">Engagement</p>
+                          <p className="text-xl font-bold text-slate-900 mt-1">{fmtMDH(filteredKpis.totalEngagement)}</p>
+                          <p className="text-[10px] text-slate-400 mt-1">Reste à engager: {fmtMDH(totalReste)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Entity Financial Breakdown Table */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100">
+                      <h3 className="text-sm font-bold text-slate-800">Ventilation Financière par Entité</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100">
+                            <th className="px-3 py-2.5 text-left font-semibold text-slate-600">Entité</th>
+                            <th className="px-3 py-2.5 text-right font-semibold text-slate-600">Budget CP</th>
+                            <th className="px-3 py-2.5 text-right font-semibold text-slate-600">Budget CE</th>
+                            <th className="px-3 py-2.5 text-right font-semibold text-slate-600">Estimation</th>
+                            <th className="px-3 py-2.5 text-right font-semibold text-slate-600">Engagement</th>
+                            <th className="px-3 py-2.5 text-center font-semibold text-slate-600">Taux</th>
+                            <th className="px-3 py-2.5 text-right font-semibold text-slate-600">Reste à engager</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.entries(filteredEntityBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
+                            const rate = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
+                            const reste = d.estimation - d.engagement;
+                            return (
+                              <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                <td className="px-3 py-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entityColorMap[name] }} />
+                                    <span className="font-semibold text-slate-700">{name}</span>
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2.5 text-right text-slate-600">{fmtMDH(d.cp)}</td>
+                                <td className="px-3 py-2.5 text-right text-slate-600">{fmtMDH(d.ce)}</td>
+                                <td className="px-3 py-2.5 text-right font-medium text-blue-600">{fmtMDH(d.estimation)}</td>
+                                <td className="px-3 py-2.5 text-right font-medium text-green-600">{fmtMDH(d.engagement)}</td>
+                                <td className="px-3 py-2.5 text-center">
+                                  <div className="flex items-center justify-center gap-1.5">
+                                    <div className="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                      <div className="h-full rounded-full" style={{ width: `${Math.min(100, rate)}%`, backgroundColor: rate >= 50 ? '#16a34a' : rate >= 25 ? '#d97706' : '#dc2626' }} />
+                                    </div>
+                                    <span className={`font-bold text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2.5 text-right font-medium text-red-600">{fmtMDH(reste)}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="bg-slate-50 font-semibold">
+                            <td className="px-3 py-2.5 text-slate-800">Total</td>
+                            <td className="px-3 py-2.5 text-right text-slate-700">{fmtMDH(filteredKpis.totalCP)}</td>
+                            <td className="px-3 py-2.5 text-right text-slate-700">{fmtMDH(filteredKpis.totalCE)}</td>
+                            <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
+                            <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                            <td className="px-3 py-2.5 text-center">
+                              <span className={`font-bold text-[10px] ${engRate >= 50 ? 'text-green-600' : engRate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{engRate}%</span>
+                            </td>
+                            <td className="px-3 py-2.5 text-right text-red-700">{fmtMDH(totalReste)}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Top 5 Lists */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Top 5 Engagements */}
+                    <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <TrendingUp className="w-4 h-4 text-green-500" />
+                        <h3 className="text-sm font-bold text-slate-800">Top 5 Engagements</h3>
+                      </div>
+                      {top5Engagements.length > 0 ? (
+                        <div className="space-y-3">
+                          {top5Engagements.map((p, i) => (
+                            <div key={p.id} className="flex items-center gap-3 p-2 rounded-lg bg-green-50/50 border border-green-100/50">
+                              <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0">{i + 1}</span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[11px] font-medium text-slate-700 truncate">{p.objet}</p>
+                                <p className="text-[9px] text-slate-400">{p.entite}</p>
+                              </div>
+                              <span className="text-xs font-bold text-green-600 shrink-0">{fmtMDH(p.montantEngagement || 0)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-400 text-center py-4">Aucun engagement enregistré</p>
+                      )}
+                    </div>
+
+                    {/* Top 5 Unengaged */}
+                    <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <AlertCircle className="w-4 h-4 text-amber-500" />
+                        <h3 className="text-sm font-bold text-slate-800">Top 5 Jugés sans Engagement</h3>
+                      </div>
+                      {top5Unengaged.length > 0 ? (
+                        <div className="space-y-3">
+                          {top5Unengaged.map((p, i) => (
+                            <div key={p.id} className="flex items-center gap-3 p-2 rounded-lg bg-amber-50/50 border border-amber-100/50">
+                              <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold shrink-0">{i + 1}</span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[11px] font-medium text-slate-700 truncate">{p.objet}</p>
+                                <p className="text-[9px] text-slate-400">{p.entite}</p>
+                              </div>
+                              <span className="text-xs font-bold text-amber-600 shrink-0">{fmtMDH(p.estimationAdmin || 0)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-400 text-center py-4">Aucun marché jugé sans engagement</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {actionBar}
+                </div>
+                );
+              })()}
+
+              {/* ════════════════════════════════════════════════════
+                  📅 CHRONOLOGIQUE
+              ════════════════════════════════════════════════════ */}
+              {reportType === 'chrono' && (() => {
+                const monthlyEntries = Object.entries(filteredMonthlyTimeline).sort(([a], [b]) => a.localeCompare(b));
+
+                return (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-violet-700 to-purple-700 px-6 py-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                            <CalendarDays className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-bold text-white">Rapport Chronologique</h2>
+                            <p className="text-xs text-violet-200">Timeline des ouvertures par mois — PPM 2026</p>
+                          </div>
+                        </div>
+                        <div className="text-right text-xs text-violet-200">
+                          <p>{monthlyEntries.length} mois actifs</p>
+                          <p>{filtered.filter(p => isValidDate(p.dateOuverture)).length} ouvertures planifiées</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Monthly Table */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100">
+                      <h3 className="text-sm font-bold text-slate-800">Ouvertures par Mois</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100">
+                            <th className="px-4 py-2.5 text-left font-semibold text-slate-600">Mois</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Nb AO</th>
+                            <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Estimation (MDH)</th>
+                            <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Engagement (MDH)</th>
+                            <th className="px-4 py-2.5 w-[140px] font-semibold text-slate-600 text-center">Activité</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {monthlyEntries.map(([month, d]) => {
+                            const maxCount = Math.max(...monthlyEntries.map(([, md]) => md.count), 1);
+                            const barWidth = (d.count / maxCount) * 100;
+                            return (
+                              <tr key={month} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                <td className="px-4 py-2.5">
+                                  <span className="font-semibold text-slate-700">{monthLabel(month)}</span>
+                                </td>
+                                <td className="px-4 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                                <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtMDH(d.estimation)}</td>
+                                <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtMDH(d.engagement)}</td>
+                                <td className="px-4 py-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                      <div className="h-full rounded-full bg-violet-500" style={{ width: `${barWidth}%` }} />
+                                    </div>
+                                    <span className="text-[10px] text-slate-500 w-6 text-right">{d.count}</span>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="bg-slate-50 font-semibold">
+                            <td className="px-4 py-2.5 text-slate-800">Total</td>
+                            <td className="px-4 py-2.5 text-center text-slate-800">{monthlyEntries.reduce((s, [, d]) => s + d.count, 0)}</td>
+                            <td className="px-4 py-2.5 text-right text-blue-700">{fmtMDH(monthlyEntries.reduce((s, [, d]) => s + d.estimation, 0))}</td>
+                            <td className="px-4 py-2.5 text-right text-green-700">{fmtMDH(monthlyEntries.reduce((s, [, d]) => s + d.engagement, 0))}</td>
+                            <td className="px-4 py-2.5"></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Monthly Trend Area Chart */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                    <h3 className="text-sm font-bold text-slate-800 mb-4">Tendance Mensuelle</h3>
+                    <ResponsiveContainer width="100%" height={350}>
+                      <AreaChart data={timelineData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
+                        <defs>
+                          <linearGradient id="estGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="engGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => fmtMDH(v)} />
+                        <Tooltip formatter={(v: number) => fmtMDH(v)} contentStyle={{ fontSize: 11, borderRadius: 10 }} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Area type="monotone" dataKey="estimation" name="Estimation" stroke="#3b82f6" fill="url(#estGrad)" strokeWidth={2} />
+                        <Area type="monotone" dataKey="engagement" name="Engagement" stroke="#16a34a" fill="url(#engGrad)" strokeWidth={2} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {actionBar}
+                </div>
+                );
+              })()}
+
+            </div>
           </div>
-        )}
+          );
+        })()}
+
+        {/* ── Full-Screen View 6: Alertes ── */}
+        {sidebarTab === 'alerts' && (() => {
+          const alertCategories = [
+            {
+              key: 'ouvert-sans-date',
+              label: 'Ouvert sans date d\'ouverture des plis',
+              icon: <CalendarDays className="w-4 h-4" />,
+              color: '#3b82f6',
+              bg: 'bg-blue-50',
+              border: 'border-blue-200',
+              textColor: 'text-blue-700',
+              headerBg: 'bg-blue-500',
+              items: filtered.filter(p => (p.situationAvancement === 'Ouvert' || (PIPELINE_STATUS_MAP['Ouvert'] !== '__computed__' && p.situationAvancement === PIPELINE_STATUS_MAP['Ouvert'])) && !isValidDate(p.dateOuverture)),
+              columns: ['Objet', 'Entité', 'Estimation', 'N° AO'] as const,
+              getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'Objet') return p.objet;
+                if (col === 'Entité') return p.entite;
+                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
+                if (col === 'N° AO') return p.numAO || '—';
+                return '';
+              },
+            },
+            {
+              key: 'juge-sans-engagement',
+              label: 'Jugé sans engagement',
+              icon: <DollarSign className="w-4 h-4" />,
+              color: '#d97706',
+              bg: 'bg-amber-50',
+              border: 'border-amber-200',
+              textColor: 'text-amber-700',
+              headerBg: 'bg-amber-500',
+              items: filtered.filter(p => p.situationAvancement === 'Jugé' && (!p.montantEngagement || p.montantEngagement === 0)),
+              columns: ['Objet', 'Entité', 'Estimation', 'Date Jugement'] as const,
+              getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'Objet') return p.objet;
+                if (col === 'Entité') return p.entite;
+                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
+                if (col === 'Date Jugement') return isValidDate(p.dateJugement) ? p.dateJugement : '—';
+                return '';
+              },
+            },
+            {
+              key: 'juge-sans-date',
+              label: 'Jugé sans date de jugement',
+              icon: <Clock className="w-4 h-4" />,
+              color: '#2563eb',
+              bg: 'bg-indigo-50',
+              border: 'border-indigo-200',
+              textColor: 'text-indigo-700',
+              headerBg: 'bg-indigo-500',
+              items: filtered.filter(p => p.situationAvancement === 'Jugé' && !isValidDate(p.dateJugement)),
+              columns: ['Objet', 'Entité', 'Estimation', 'Ouverture Plis'] as const,
+              getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'Objet') return p.objet;
+                if (col === 'Entité') return p.entite;
+                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
+                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                return '';
+              },
+            },
+            {
+              key: 'infructueux-sans-date',
+              label: 'Infructueux sans date de jugement',
+              icon: <XCircle className="w-4 h-4" />,
+              color: '#dc2626',
+              bg: 'bg-red-50',
+              border: 'border-red-200',
+              textColor: 'text-red-700',
+              headerBg: 'bg-red-500',
+              items: filtered.filter(p => p.situationAvancement === 'Infructueux' && !isValidDate(p.dateJugement)),
+              columns: ['Objet', 'Entité', 'Estimation', 'Ouverture Plis'] as const,
+              getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'Objet') return p.objet;
+                if (col === 'Entité') return p.entite;
+                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
+                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                return '';
+              },
+            },
+            {
+              key: 'annule-sans-date',
+              label: 'Annulé sans date de jugement',
+              icon: <XCircle className="w-4 h-4" />,
+              color: '#991b1b',
+              bg: 'bg-rose-50',
+              border: 'border-rose-200',
+              textColor: 'text-rose-700',
+              headerBg: 'bg-rose-600',
+              items: filtered.filter(p => p.situationAvancement === 'Annulé' && !isValidDate(p.dateJugement)),
+              columns: ['Objet', 'Entité', 'Estimation', 'Ouverture Plis'] as const,
+              getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'Objet') return p.objet;
+                if (col === 'Entité') return p.entite;
+                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
+                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                return '';
+              },
+            },
+            {
+              key: 'dao-sans-date',
+              label: 'DAO Envoyé au CE sans date',
+              icon: <Send className="w-4 h-4" />,
+              color: '#0891b2',
+              bg: 'bg-cyan-50',
+              border: 'border-cyan-200',
+              textColor: 'text-cyan-700',
+              headerBg: 'bg-cyan-500',
+              items: filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE' && !isValidDate(p.dateJugement) && !isValidDate(p.dateOuverture)),
+              columns: ['Objet', 'Entité', 'Estimation', 'N° AO'] as const,
+              getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'Objet') return p.objet;
+                if (col === 'Entité') return p.entite;
+                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
+                if (col === 'N° AO') return p.numAO || '—';
+                return '';
+              },
+            },
+            {
+              key: 'publie-sans-date',
+              label: 'Publié PPM sans date d\'ouverture',
+              icon: <Activity className="w-4 h-4" />,
+              color: '#7c3aed',
+              bg: 'bg-violet-50',
+              border: 'border-violet-200',
+              textColor: 'text-violet-700',
+              headerBg: 'bg-violet-500',
+              items: filtered.filter(p => p.situationAvancement === 'Publié sur PMP' && !isValidDate(p.dateOuverture)),
+              columns: ['Objet', 'Entité', 'Estimation', 'N° AO'] as const,
+              getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'Objet') return p.objet;
+                if (col === 'Entité') return p.entite;
+                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
+                if (col === 'N° AO') return p.numAO || '—';
+                return '';
+              },
+            },
+            {
+              key: 'a-programmer',
+              label: 'À programmer',
+              icon: <AlertCircle className="w-4 h-4" />,
+              color: '#6b7280',
+              bg: 'bg-slate-50',
+              border: 'border-slate-200',
+              textColor: 'text-slate-700',
+              headerBg: 'bg-slate-500',
+              items: filtered.filter(p => p.situationAvancement === 'A programmer'),
+              columns: ['Objet', 'Entité', 'Estimation', 'CP'] as const,
+              getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'Objet') return p.objet;
+                if (col === 'Entité') return p.entite;
+                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
+                if (col === 'CP') return fmtM(p.cp || 0);
+                return '';
+              },
+            },
+          ];
+
+          const activeAlerts = alertCategories.filter(a => a.items.length > 0);
+          const totalAlertCount = activeAlerts.reduce((s, a) => s + a.items.length, 0);
+          const totalAlertEstimation = activeAlerts.reduce((s, a) => s + a.items.reduce((ss, p) => ss + (p.estimationAdmin || 0), 0), 0);
+
+          return (
+            <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
+              {/* Top Bar */}
+              <div className="print:hidden sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+                <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                        <AlertTriangle className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-sm font-bold text-slate-800">Alertes Information</h2>
+                        <p className="text-[10px] text-slate-500">Marchés nécessitant une attention particulière</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                        <Input placeholder="Rechercher..." className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-48" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Filter Bar */}
+                <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select value={filterEntity} onValueChange={setFilterEntity}>
+                      <SelectTrigger className="h-7 text-[10px] w-[130px] bg-white border-slate-200"><SelectValue placeholder="Entité" /></SelectTrigger>
+                      <SelectContent>{entities.map(e => <SelectItem key={e} value={e} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: entityColorMap[e]}} />{e}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes les entités</SelectItem></SelectContent>
+                    </Select>
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Statut" /></SelectTrigger>
+                      <SelectContent>{statuses.map(s => <SelectItem key={s} value={s} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: statusColor[s]}} />{s}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous les statuts</SelectItem></SelectContent>
+                    </Select>
+                    {hasActiveFilters && (
+                      <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">
+                        <X className="w-3 h-3" />Réinitialiser
+                      </Button>
+                    )}
+                    <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
+                  </div>
+                </div>
+              </div>
+              {/* Content */}
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+                {/* Summary Stats */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex items-center gap-4" style={{ borderTop: '4px solid #f59e0b' }}>
+                    <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center">
+                      <AlertTriangle className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-slate-800">{totalAlertCount}</p>
+                      <p className="text-[10px] text-slate-500">Total alertes</p>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex items-center gap-4" style={{ borderTop: '4px solid #ef4444' }}>
+                    <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
+                      <AlertCircle className="w-6 h-6 text-red-500" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-slate-800">{activeAlerts.length} <span className="text-sm font-normal text-slate-400">/ {alertCategories.length}</span></p>
+                      <p className="text-[10px] text-slate-500">Catégories actives</p>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex items-center gap-4" style={{ borderTop: '4px solid #3b82f6' }}>
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
+                      <DollarSign className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-slate-800">{fmtMDH(totalAlertEstimation)}</p>
+                      <p className="text-[10px] text-slate-500">Estimation à risque</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Alert Category Cards */}
+                {alertCategories.map(cat => (
+                  <div key={cat.key} className={`rounded-xl shadow-sm border ${cat.border} ${cat.bg} overflow-hidden`} style={{ borderLeftWidth: '5px', borderLeftColor: cat.color }}>
+                    {/* Category Header */}
+                    <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100/50">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: cat.color }}>
+                          {cat.icon}
+                        </div>
+                        <div>
+                          <h3 className={`text-sm font-semibold ${cat.textColor}`}>{cat.label}</h3>
+                          <p className="text-[10px] text-slate-500">{cat.items.length} marché{cat.items.length > 1 ? 's' : ''} concerné{cat.items.length > 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+                      <Badge className="text-[10px] h-6 border-0 text-white" style={{ backgroundColor: cat.color }}>
+                        {cat.items.length}
+                      </Badge>
+                    </div>
+                    {/* Category Table */}
+                    {cat.items.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-[11px]">
+                          <thead>
+                            <tr className="bg-slate-50/80">
+                              <th className="px-4 py-2 text-left font-semibold text-slate-600 w-10">#</th>
+                              {cat.columns.map(col => (
+                                <th key={col} className="px-4 py-2 text-left font-semibold text-slate-600">{col}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100/50">
+                            {cat.items.map((p, i) => (
+                              <tr key={p.id || i} className="hover:bg-white/60 transition-colors">
+                                <td className="px-4 py-2 text-slate-400 font-mono">{i + 1}</td>
+                                {cat.columns.map(col => (
+                                  <td key={col} className={`px-4 py-2 ${col === 'Objet' ? 'font-medium text-slate-800 max-w-[300px] truncate' : col === 'Estimation' ? 'font-semibold text-blue-700' : 'text-slate-600'}`}>
+                                    {cat.getCellValue(p, col)}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="px-5 py-6 text-center">
+                        <CheckCircle2 className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                        <p className="text-xs text-slate-400">Aucune alerte dans cette catégorie</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── Dashboard Content ── */}
         {sidebarTab === 'dashboard' && (
@@ -1680,59 +2873,104 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* ── Premium KPI Cards ── */}
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-          <KPICard
-            title="Total Projets"
-            value={filteredKpis.totalProjects}
-            isNumeric
-            subtitle={`${completedCount} traités · ${toProgramCount} à programmer`}
-            icon={<FileText className="w-5 h-5" />}
-            trend={{ value: filteredKpis.totalProjects > 0 ? Math.round(completedCount / filteredKpis.totalProjects * 100) : 0, label: '% traités', up: true }}
-            color="blue"
-            sparkData={timelineCounts}
-          />
-          <KPICard
-            title="Budget Total"
-            value={filteredKpis.totalBudget}
-            subtitle={`CP: ${fmtM(filteredKpis.totalCP)} · CE: ${fmtM(filteredKpis.totalCE)}`}
-            icon={<DollarSign className="w-5 h-5" />}
-            trend={{ value: filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0, label: '% engagé', up: filteredKpis.totalEngagement > filteredKpis.totalEstimation * 0.5 }}
-            color="green"
-            sparkData={timelineEstimations}
-          />
-          <KPICard
-            title="Estimation"
-            value={filteredKpis.totalEstimation}
-            subtitle={`Montant extrait: ${fmtM(filteredKpis.totalMontantExtrait)}`}
-            icon={<TrendingUp className="w-5 h-5" />}
-            trend={{ value: filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalMontantExtrait / filteredKpis.totalEstimation * 100) : 0, label: '% extraction', up: filteredKpis.totalMontantExtrait > filteredKpis.totalEstimation * 0.5 }}
-            color="amber"
-            sparkData={timelineEstimations}
-          />
-          <KPICard
-            title="Engagements"
-            value={filteredKpis.totalEngagement}
-            subtitle={`${completedCount + inProgressCount + pmpCount} marchés en cours`}
-            icon={<CheckCircle2 className="w-5 h-5" />}
-            trend={{ value: filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0, label: '%/estim.', up: true }}
-            color="violet"
-            sparkData={timelineEngagements}
-          />
-          <KPICard
-            title="Échoués / Annulés"
-            value={failedCount}
-            isNumeric
-            subtitle={`${filteredStatusCount['Infructueux'] || 0} infructueux · ${filteredStatusCount['Annulé'] || 0} annulés`}
-            icon={<XCircle className="w-5 h-5" />}
-            trend={{ value: filteredKpis.totalProjects > 0 ? Math.round(failedCount / filteredKpis.totalProjects * 100) : 0, label: '% du total', up: false }}
-            color="red"
-            sparkData={[]}
-          />
+        {/* ── 1. Indicateurs clés nombre AO ── */}
+        <section className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-blue-500" />
+            1. Indicateurs Clés — Nombre AO
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* AO Ouvert */}
+            <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #3b82f6' }}>
+              <CardHeader className="pb-2 pt-4 px-5">
+                <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center"><Activity className="w-4 h-4 text-blue-500" /></span>
+                  AO Ouvert
+                  <Badge className="text-[9px] bg-blue-100 text-blue-700 border-blue-200 border ml-auto">{aoOuvertCount} marchés</Badge>
+                </CardTitle>
+                <p className="text-[10px] text-slate-400">En cours de jugement, Jugé, Engagé, Infructueux, Annulé</p>
+              </CardHeader>
+              <CardContent className="px-5 pb-4">
+                <div className="grid grid-cols-5 gap-3">
+                  {[
+                    { label: 'En cours jugement', count: filteredStatusCount['En cours de jugement'] || 0, color: '#f59e0b' },
+                    { label: 'Jugé', count: filteredStatusCount['Jugé'] || 0, color: '#8b5cf6' },
+                    { label: 'Engagé', count: filteredStatusCount['Engagé'] || 0, color: '#16a34a' },
+                    { label: 'Infructueux', count: filteredStatusCount['Infructueux'] || 0, color: '#dc2626' },
+                    { label: 'Annulé', count: filteredStatusCount['Annulé'] || 0, color: '#991b1b' },
+                  ].map(item => (
+                    <div key={item.label} className="text-center">
+                      <div className="w-8 h-8 mx-auto rounded-lg flex items-center justify-center text-white shadow-sm text-xs font-bold" style={{ backgroundColor: item.color }}>{item.count}</div>
+                      <p className="text-[9px] text-slate-500 mt-1">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex justify-between text-[10px]">
+                  <span className="text-slate-500">Total AO Ouvert: <strong className="text-blue-700">{aoOuvertCount}</strong></span>
+                  <span className="text-slate-500">Estim: <strong className="text-blue-600">{fmtMDH(aoOuvertEstimation)}</strong></span>
+                  <span className="text-slate-500">Engagé: <strong className="text-green-600">{fmtMDH(aoOuvertEngagement)}</strong></span>
+                </div>
+              </CardContent>
+            </Card>
+            {/* AO Restants */}
+            <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #f59e0b' }}>
+              <CardHeader className="pb-2 pt-4 px-5">
+                <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center"><Clock className="w-4 h-4 text-amber-500" /></span>
+                  AO Restants
+                  <Badge className="text-[9px] bg-amber-100 text-amber-700 border-amber-200 border ml-auto">{aoRestantsCount} marchés</Badge>
+                </CardTitle>
+                <p className="text-[10px] text-slate-400">Publié Portail, Envoyé au CE, À programmer</p>
+              </CardHeader>
+              <CardContent className="px-5 pb-4">
+                <div className="grid grid-cols-3 gap-4">
+                  {[
+                    { label: 'Publié PPM', count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed' },
+                    { label: 'DAO au CE', count: filteredStatusCount['DAO Envoyé au CE'] || 0, color: '#0891b2' },
+                    { label: 'À programmer', count: filteredStatusCount['A programmer'] || 0, color: '#6b7280' },
+                  ].map(item => (
+                    <div key={item.label} className="text-center">
+                      <div className="w-10 h-10 mx-auto rounded-lg flex items-center justify-center text-white shadow-sm text-sm font-bold" style={{ backgroundColor: item.color }}>{item.count}</div>
+                      <p className="text-[9px] text-slate-500 mt-1">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex justify-between text-[10px]">
+                  <span className="text-slate-500">Total AO Restants: <strong className="text-amber-700">{aoRestantsCount}</strong></span>
+                  <span className="text-slate-500">Estim: <strong className="text-blue-600">{fmtMDH(aoRestantsEstimation)}</strong></span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </section>
 
-        {/* ── Rate Cards ── */}
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 animate-fade-in-up" style={{ animationDelay: '0.18s' }}>
+        {/* ── 2. Indicateurs clés montant (MDH) ── */}
+        <section className="animate-fade-in-up" style={{ animationDelay: '0.13s' }}>
+          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-green-500" />
+            2. Indicateurs Clés — Montants (MDH)
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { label: 'CP', value: filteredKpis.totalCP / 1_000_000, color: '#3b82f6', icon: '💰' },
+              { label: 'CE', value: filteredKpis.totalCE / 1_000_000, color: '#06b6d4', icon: '🏦' },
+              { label: 'Estimation', value: filteredKpis.totalEstimation / 1_000_000, color: '#d97706', icon: '📊' },
+              { label: 'Engagement CP', value: filteredKpis.totalEngagementCP / 1_000_000, color: '#7c3aed', icon: '📝' },
+              { label: 'Engagement CE', value: filteredKpis.totalEngagementCE / 1_000_000, color: '#0891b2', icon: '📋' },
+              { label: 'Engagement Total', value: filteredKpis.totalEngagement / 1_000_000, color: '#16a34a', icon: '✅' },
+            ].map(item => (
+              <Card key={item.label} className="border-0 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden" style={{ borderTop: `3px solid ${item.color}` }}>
+                <CardContent className="p-4 text-center space-y-1">
+                  <p className="text-[9px] text-slate-400 uppercase tracking-wider font-medium">{item.label}</p>
+                  <p className="text-lg font-bold text-slate-800">{item.value.toFixed(2)} <span className="text-xs text-slate-500">MDH</span></p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Rate Cards (Pipeline) ── */}
+        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 animate-fade-in-up" style={{ animationDelay: '0.16s' }}>
           {rateCards.map(rc => (
             <Card key={rc.label} className="border-0 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden bg-white"
               style={{ borderTop: `3px solid ${rc.color}` }}>
@@ -1757,12 +2995,285 @@ export default function Dashboard() {
           ))}
         </section>
 
+        {/* ── Alertes Summary ── */}
+        {(() => {
+          const alertCategories = [
+            { key: 'ouvert-sans-date', label: 'Ouvert sans date d\'ouverture des plis', color: '#3b82f6', icon: <CalendarDays className="w-3.5 h-3.5" />, items: filtered.filter(p => (p.situationAvancement === 'Ouvert' || (PIPELINE_STATUS_MAP['Ouvert'] !== '__computed__' && p.situationAvancement === PIPELINE_STATUS_MAP['Ouvert'])) && !isValidDate(p.dateOuverture)) },
+            { key: 'juge-sans-engagement', label: 'Jugé sans engagement', color: '#d97706', icon: <DollarSign className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'Jugé' && (!p.montantEngagement || p.montantEngagement === 0)) },
+            { key: 'juge-sans-date', label: 'Jugé sans date de jugement', color: '#2563eb', icon: <Clock className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'Jugé' && !isValidDate(p.dateJugement)) },
+            { key: 'infructueux-sans-date', label: 'Infructueux sans date de jugement', color: '#dc2626', icon: <XCircle className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'Infructueux' && !isValidDate(p.dateJugement)) },
+            { key: 'annule-sans-date', label: 'Annulé sans date de jugement', color: '#991b1b', icon: <XCircle className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'Annulé' && !isValidDate(p.dateJugement)) },
+            { key: 'dao-sans-date', label: 'DAO Envoyé au CE sans date', color: '#0891b2', icon: <Send className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE' && !isValidDate(p.dateJugement) && !isValidDate(p.dateOuverture)) },
+            { key: 'publie-sans-date', label: 'Publié PPM sans date d\'ouverture', color: '#7c3aed', icon: <Activity className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'Publié sur PMP' && !isValidDate(p.dateOuverture)) },
+            { key: 'a-programmer', label: 'À programmer', color: '#6b7280', icon: <AlertCircle className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'A programmer') },
+          ];
+
+          const activeAlerts = alertCategories.filter(a => a.items.length > 0);
+          const totalAlertCount = activeAlerts.reduce((s, a) => s + a.items.length, 0);
+
+          return (
+            <Card className="border-0 shadow-md animate-fade-in-up" style={{ animationDelay: '0.19s', borderTop: '4px solid #f59e0b' }}>
+              <CardHeader className="pb-2 pt-5 px-5">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <span className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+                      <AlertTriangle className="w-4 h-4 text-amber-500" />
+                    </span>
+                    Alertes Information
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">
+                      {totalAlertCount} alerte{totalAlertCount > 1 ? 's' : ''}
+                    </Badge>
+                    <Button variant="ghost" size="sm" onClick={() => setSidebarTab('alerts')} className="h-6 text-[10px] text-amber-600 hover:text-amber-800 hover:bg-amber-50 gap-1 px-2">
+                      Voir tout <ArrowUpRight className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-0.5">{activeAlerts.length} catégorie{activeAlerts.length > 1 ? 's' : ''} d&apos;alertes nécessitent votre attention</p>
+              </CardHeader>
+              <CardContent className="px-5 pb-5">
+                <div className="flex flex-wrap gap-2">
+                  {alertCategories.map(cat => (
+                    <button key={cat.key} onClick={() => setSidebarTab('alerts')} className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium border transition-all duration-200 hover:shadow-sm ${cat.items.length > 0 ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                      <span style={{ color: cat.color }}>{cat.icon}</span>
+                      <span className="max-w-[140px] truncate">{cat.label}</span>
+                      <Badge className="text-[8px] h-4 min-w-[18px] flex items-center justify-center border-0 text-white" style={{ backgroundColor: cat.items.length > 0 ? cat.color : '#cbd5e1' }}>
+                        {cat.items.length}
+                      </Badge>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
+
+        {/* ── 3. État d'avancement par entité ── */}
+        <section className="animate-fade-in-up" style={{ animationDelay: '0.19s' }}>
+          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-green-500" />
+            3. État d&apos;Avancement par Entité
+          </h2>
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardContent className="p-5">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                      <th className="px-3 py-2.5 text-left">Entité</th>
+                      <th className="px-3 py-2.5 text-center">Nb AO</th>
+                      <th className="px-3 py-2.5 text-right">CP (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">CE (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Estimation (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. CP (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. CE (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. Total (MDH)</th>
+                      <th className="px-3 py-2.5 text-center">Taux</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(filteredEntityBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
+                      const engCP = filtered.filter(p => p.entite === name).reduce((s, p) => s + (p.engagementCP || 0), 0);
+                      const engCE = filtered.filter(p => p.entite === name).reduce((s, p) => s + (p.engagementCE || 0), 0);
+                      const engTotal = d.engagement;
+                      const rate = d.estimation > 0 ? Math.round((engTotal / d.estimation) * 100) : 0;
+                      const accentColor = entityColorMap[name] || '#3b82f6';
+                      return (
+                        <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
+                              <span className="font-semibold text-slate-700">{name}</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
+                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
+                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
+                          <td className="px-3 py-2.5 text-right text-violet-600">{fmtMDH(engCP)}</td>
+                          <td className="px-3 py-2.5 text-right text-teal-600">{fmtMDH(engCE)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtMDH(engTotal)}</td>
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full" style={{ width: `${Math.min(100, rate)}%`, backgroundColor: rate >= 50 ? '#16a34a' : rate >= 25 ? '#d97706' : '#dc2626' }} />
+                              </div>
+                              <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-slate-50 font-semibold">
+                      <td className="px-3 py-2.5 text-slate-800">Total</td>
+                      <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-violet-700">{fmtMDH(filteredKpis.totalEngagementCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-teal-700">{fmtMDH(filteredKpis.totalEngagementCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${Math.min(100, filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0)}%`, backgroundColor: '#16a34a' }} />
+                          </div>
+                          <span className="font-bold w-8 text-right text-[10px]">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ── 4. État d'avancement par type ── */}
+        <section className="animate-fade-in-up" style={{ animationDelay: '0.22s' }}>
+          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-amber-500" />
+            4. État d&apos;Avancement par Type
+          </h2>
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardContent className="p-5">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                      <th className="px-3 py-2.5 text-left">Type</th>
+                      <th className="px-3 py-2.5 text-center">Nb AO</th>
+                      <th className="px-3 py-2.5 text-right">CP (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">CE (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Estimation (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Engagement (MDH)</th>
+                      <th className="px-3 py-2.5 text-center">Taux</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(filteredTypeBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
+                      const rate = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
+                      return (
+                        <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                          <td className="px-3 py-2.5 font-semibold text-slate-700">{name}</td>
+                          <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
+                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
+                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtMDH(d.engagement)}</td>
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full" style={{ width: `${Math.min(100, rate)}%`, backgroundColor: rate >= 50 ? '#16a34a' : rate >= 25 ? '#d97706' : '#dc2626' }} />
+                              </div>
+                              <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-slate-50 font-semibold">
+                      <td className="px-3 py-2.5 text-slate-800">Total</td>
+                      <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${Math.min(100, filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0)}%`, backgroundColor: '#16a34a' }} />
+                          </div>
+                          <span className="font-bold w-8 text-right text-[10px]">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ── 5. État d'avancement par programme ── */}
+        <section className="animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
+          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <ClipboardList className="w-4 h-4 text-violet-500" />
+            5. État d&apos;Avancement par Programme
+          </h2>
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardContent className="p-5">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                      <th className="px-3 py-2.5 text-left">Programme</th>
+                      <th className="px-3 py-2.5 text-center">Nb AO</th>
+                      <th className="px-3 py-2.5 text-right">CP (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">CE (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Estimation (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Engagement (MDH)</th>
+                      <th className="px-3 py-2.5 text-center">Taux</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(filteredProgrammeBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
+                      const rate = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
+                      return (
+                        <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                          <td className="px-3 py-2.5 font-semibold text-slate-700">{name}</td>
+                          <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
+                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
+                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtMDH(d.engagement)}</td>
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full" style={{ width: `${Math.min(100, rate)}%`, backgroundColor: rate >= 50 ? '#16a34a' : rate >= 25 ? '#d97706' : '#dc2626' }} />
+                              </div>
+                              <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-slate-50 font-semibold">
+                      <td className="px-3 py-2.5 text-slate-800">Total</td>
+                      <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${Math.min(100, filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0)}%`, backgroundColor: '#16a34a' }} />
+                          </div>
+                          <span className="font-bold w-8 text-right text-[10px]">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
         {/* ── Animated Status Progress Bar ── */}
         <Card className="border-0 shadow-md glass-card animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-slate-700">Avancement Global des Marchés</h3>
-              <span className="text-xs text-slate-400">{completedCount} / {filteredKpis.totalProjects} traités — Engagé: {fmtM(filteredKpis.totalEngagement)} DH</span>
+              <span className="text-xs text-slate-400">{completedCount} / {filteredKpis.totalProjects} traités — Engagé: {fmtM(filteredKpis.totalEngagement)}</span>
             </div>
             <div className="flex h-6 rounded-full overflow-hidden bg-slate-100 shadow-inner">
               {Object.entries(filteredStatusCount).sort(([a],[b]) => {
@@ -1776,7 +3287,7 @@ export default function Dashboard() {
                     key={status}
                     style={{ width: `${pct}%`, backgroundColor: statusColor[status] || '#6b7280' }}
                     className={`flex items-center justify-center transition-all duration-700 ease-out shadow-sm animate-progress-fill group relative ${pct > 3 ? 'hover:brightness-110' : ''}`}
-                    title={`${status}: ${count} (${Math.round(pct)}%) — Estim: ${fmtM(filteredStatusBudget[status]?.estimation || 0)} DH — Engagé: ${fmtM(filteredStatusBudget[status]?.engagement || 0)} DH`}
+                    title={`${status}: ${count} (${Math.round(pct)}%) — Estim: ${fmtM(filteredStatusBudget[status]?.estimation || 0)} — Engagé: ${fmtM(filteredStatusBudget[status]?.engagement || 0)}`}
                   >
                     {pct > 8 && (
                       <span className="text-[10px] font-bold text-white drop-shadow-sm">{Math.round(pct)}%</span>
@@ -1797,7 +3308,7 @@ export default function Dashboard() {
                 <div key={status} className="flex items-center gap-1.5 group cursor-default">
                   <span className="w-2.5 h-2.5 rounded-full shadow-sm group-hover:scale-125 transition-transform" style={{ backgroundColor: statusColor[status] }} />
                   <span className="text-[11px] text-slate-500 group-hover:text-slate-700 transition-colors">{status} ({count})</span>
-                  <span className="text-[9px] text-blue-600 font-medium">{fmtM(filteredStatusBudget[status]?.estimation || 0)} DH</span>
+                  <span className="text-[9px] text-blue-600 font-medium">{fmtM(filteredStatusBudget[status]?.estimation || 0)}</span>
                 </div>
               ))}
             </div>
@@ -1841,9 +3352,9 @@ export default function Dashboard() {
                             <span key="v">
                               <strong>{d.value} marchés</strong>
                               <br />
-                              <span className="text-blue-600">Estim: {fmtM(d.estimation)} DH</span>
+                              <span className="text-blue-600">Estim: {fmtM(d.estimation)}</span>
                               <br />
-                              <span className="text-green-600">Engagé: {fmtM(d.engagement)} DH</span>
+                              <span className="text-green-600">Engagé: {fmtM(d.engagement)}</span>
                             </span>,
                             name
                           ];
@@ -1861,7 +3372,7 @@ export default function Dashboard() {
                       formatter={(value, entry) => {
                         const item = statusData.find(d => d.name === value);
                         const amt = item ? fmtM(item.estimation) : '';
-                        return <span className="text-[11px] text-slate-600 hover:text-slate-900 transition-colors">{value} <span className="text-[9px] text-slate-400">({amt} DH)</span></span>;
+                        return <span className="text-[11px] text-slate-600 hover:text-slate-900 transition-colors">{value} <span className="text-[9px] text-slate-400">({amt})</span></span>;
                       }}
                     />
                   </PieChart>
@@ -1984,8 +3495,8 @@ export default function Dashboard() {
                   </div>
                   <Progress value={item.rate} className="h-2 transition-all duration-500" />
                   <div className="flex items-center justify-between text-[9px]">
-                    <span className="text-blue-600">Estim: {fmtM(item.estimation)} DH</span>
-                    <span className="text-green-600">Engagé: {fmtM(item.engagement)} DH</span>
+                    <span className="text-blue-600">Estim: {fmtM(item.estimation)}</span>
+                    <span className="text-green-600">Engagé: {fmtM(item.engagement)}</span>
                   </div>
                 </div>
               ))}
@@ -2209,16 +3720,17 @@ export default function Dashboard() {
 
 /* ── Premium KPI Card Component ── */
 function KPICard({
-  title, value, isNumeric, subtitle, icon, trend, color, sparkData
+  title, value, subtitle, icon, trend, color, sparkData, format, unit
 }: {
   title: string;
   value: number;
-  isNumeric?: boolean;
   subtitle: string;
   icon: React.ReactNode;
   trend: { value: number; label: string; up: boolean };
   color: 'blue' | 'green' | 'amber' | 'violet' | 'red';
   sparkData: number[];
+  format?: 'number' | 'mdh' | 'amount';
+  unit?: string;
 }) {
   const colorMap = {
     blue: { gradient: 'from-blue-500 to-blue-600', shadow: 'shadow-blue-500/20', glow: 'glow-blue', border: '#3b82f6', spark: '#3b82f6', bg: 'from-blue-50/80 to-white' },
@@ -2256,8 +3768,8 @@ function KPICard({
         </div>
         <div>
           <p className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-            {isNumeric ? <AnimatedNumber value={value} /> : <AnimatedNumber value={value} />}
-            {!isNumeric && ' DH'}
+            <AnimatedNumber value={value} format={format} />
+            {unit || ''}
           </p>
           <p className="text-[10px] text-slate-400 mt-0.5">{title}</p>
         </div>

@@ -7,6 +7,8 @@
     "build": "node scripts/generate-static-data.js && next build",
     "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
+    "deploy": "git add -A && git commit -m 'deploy' && git push origin main",
+    "check:push": "bash scripts/auto-push-check.sh",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

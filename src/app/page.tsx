@@ -26,6 +26,9 @@ interface PPMProject {
   id: number;
   typeBudget: string;
   natureBudget: string;
+  sourceFinancement?: string | null;
+  programme?: string | null;
+  projet?: string | null;
   numAO: string | number | null;
   entite: string;
   objet: string;
@@ -42,6 +45,7 @@ interface PPMProject {
   engagementCP: number | null;
   engagementCE: number | null;
   dateEngagement: string | null;
+  delaisExecution?: string | null;
 }
 
 interface Soumissionnaire {
@@ -411,17 +415,42 @@ export default function Dashboard() {
     setRefreshing(true);
     try {
       const res = await fetch('/api/ppm');
-      const json = await res.json();
       if (res.ok) {
-        setData(json);
-        lastChecksumRef.current = json.fileChecksum || null;
-        setFileChanged(false);
+        const json = await res.json();
+        if (json.projects && json.projects.length > 0) {
+          setData(json);
+          lastChecksumRef.current = json.fileChecksum || null;
+          setFileChanged(false);
+        } else {
+          // API returned no data, try static JSON fallback
+          await fetchStaticJsonFallback();
+        }
+      } else {
+        // API error, try static JSON fallback
+        await fetchStaticJsonFallback();
       }
     } catch (e) {
-      console.error('Fetch error:', e);
+      console.error('API fetch error, trying static JSON fallback:', e);
+      await fetchStaticJsonFallback();
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  }, []);
+
+  const fetchStaticJsonFallback = useCallback(async () => {
+    try {
+      const res = await fetch('/data/ppm.json');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.projects && json.projects.length > 0) {
+          setData(json);
+          lastChecksumRef.current = json.fileChecksum || null;
+          setFileChanged(false);
+        }
+      }
+    } catch (e2) {
+      console.error('Static JSON fallback also failed:', e2);
     }
   }, []);
 
@@ -502,7 +531,7 @@ export default function Dashboard() {
   }, [data]);
 
   /* ── Premium Loading skeleton ── */
-  if (loading || !data) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dot-pattern">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -537,6 +566,28 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── No data state ── */
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
+        <div className="text-center space-y-4 p-8">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+            <FileText className="w-8 h-8 text-blue-500" />
+          </div>
+          <h2 className="text-xl font-semibold text-slate-800">Chargement des données</h2>
+          <p className="text-sm text-slate-500 max-w-md">Impossible de charger les données du PPM. Veuillez vérifier que les fichiers Excel sont disponibles ou réessayez.</p>
+          <button
+            onClick={() => fetchData(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            <RefreshCw className="w-4 h-4 inline mr-2" />
+            Réessayer
+          </button>
         </div>
       </div>
     );

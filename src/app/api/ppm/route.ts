@@ -93,12 +93,40 @@ function parseExcelFile(filePath: string) {
 
   const projects: Array<{
     id: number; typeBudget: string; natureBudget: string; numAO: string | null;
+    sourceFinancement: string | null; programme: string | null; projet: string | null;
     entite: string; objet: string; cp: number; ce: number; estimationAdmin: number | null;
     dateOuverture: string | null; situationAvancement: string; dateJugement: string | null;
     attributaire: string | null; montantExtrait: number | null; numMarche: string | null;
     montantEngagement: number | null; engagementCP: number | null; engagementCE: number | null;
-    dateEngagement: string | null;
+    dateEngagement: string | null; delaisExecution: string | null;
   }> = [];
+
+  /*
+   * Actual column layout in ppm.xlsx:
+   *   0  Nombre d'AO (id)
+   *   1  Type de budget
+   *   2  Nature de budget
+   *   3  Source de financement
+   *   4  Programme
+   *   5  Projet
+   *   6  N° AO
+   *   7  Entité
+   *   8  Objet
+   *   9  CP
+   *  10  CE
+   *  11  Estimation administrative
+   *  12  Date d'ouverture des plis
+   *  13  Situation avancement
+   *  14  Date de jugement
+   *  15  Attributaire
+   *  16  Montant extrait
+   *  17  N° marché
+   *  18  Montant engagement
+   *  19  Engagement CP
+   *  20  Engagement CE
+   *  21  Date d'engagement
+   *  22  Délais d'exécution
+   */
 
   for (let i = 3; i < rawData.length; i++) {
     const row = rawData[i];
@@ -110,22 +138,26 @@ function parseExcelFile(filePath: string) {
       id,
       typeBudget: String(row[1] || ''),
       natureBudget: String(row[2] || ''),
-      numAO: row[3] != null ? String(row[3]) : null,
-      entite: String(row[4] || ''),
-      objet: String(row[5] || ''),
-      cp: formatNumber(row[6]) ?? 0,
-      ce: formatNumber(row[7]) ?? 0,
-      estimationAdmin: formatNumber(row[8]),
-      dateOuverture: formatDate(row[9]),
-      situationAvancement: String(row[10] || ''),
-      dateJugement: formatDate(row[11]),
-      attributaire: row[12] ? String(row[12]) : null,
-      montantExtrait: formatNumber(row[13]),
-      numMarche: row[14] ? String(row[14]) : null,
-      montantEngagement: formatNumber(row[15]),
-      engagementCP: formatNumber(row[16]),
-      engagementCE: formatNumber(row[17]),
-      dateEngagement: formatDate(row[18]),
+      sourceFinancement: row[3] != null ? String(row[3]) : null,
+      programme: row[4] != null ? String(row[4]) : null,
+      projet: row[5] != null ? String(row[5]) : null,
+      numAO: row[6] != null ? String(row[6]) : null,
+      entite: String(row[7] || ''),
+      objet: String(row[8] || ''),
+      cp: formatNumber(row[9]) ?? 0,
+      ce: formatNumber(row[10]) ?? 0,
+      estimationAdmin: formatNumber(row[11]),
+      dateOuverture: formatDate(row[12]),
+      situationAvancement: String(row[13] || ''),
+      dateJugement: formatDate(row[14]),
+      attributaire: row[15] ? String(row[15]) : null,
+      montantExtrait: formatNumber(row[16]),
+      numMarche: row[17] ? String(row[17]) : null,
+      montantEngagement: formatNumber(row[18]),
+      engagementCP: formatNumber(row[19]),
+      engagementCE: formatNumber(row[20]),
+      dateEngagement: formatDate(row[21]),
+      delaisExecution: row[22] ? String(row[22]) : null,
     });
   }
   return projects;
@@ -272,13 +304,44 @@ function buildResponseFromExcel() {
   };
 }
 
+/* ── Try reading static JSON (pre-built, works on Vercel) ── */
+function readStaticJson(): PPMResponse | null {
+  const jsonPath = path.join(process.cwd(), 'public', 'data', 'ppm.json');
+  try {
+    if (fs.existsSync(jsonPath)) {
+      const content = fs.readFileSync(jsonPath, 'utf-8');
+      const data = JSON.parse(content);
+      if (data.projects && data.projects.length > 0) {
+        data.lastUpdated = new Date().toISOString();
+        return data;
+      }
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+type PPMResponse = {
+  lastUpdated: string; fileChecksum?: string; fileName?: string;
+  fileLastModified?: string; fileSize?: number; dataSaved?: boolean;
+  projects: unknown[]; soumissionnaires: unknown[];
+  kpis: unknown; statusCount: unknown; entityBudget: unknown;
+  natureBudget: unknown; typeBudget: unknown; monthlyTimeline: unknown;
+  entityEngagementRate: unknown;
+};
+
 /* ── GET: Load data ── */
 export async function GET() {
   try {
-    // First try: read directly from Excel files (works on Vercel)
+    // First try: read directly from Excel files (works locally and on Vercel if files are accessible)
     const excelResponse = buildResponseFromExcel();
     if (excelResponse) {
       return NextResponse.json(excelResponse);
+    }
+
+    // Second try: read from pre-built static JSON (works on Vercel where fs may not find public/)
+    const staticResponse = readStaticJson();
+    if (staticResponse) {
+      return NextResponse.json(staticResponse);
     }
 
     // Fallback: try loading from DB
@@ -294,7 +357,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Aucune donnée sauvegardée. Veuillez uploader un fichier Excel.', noFile: true }, { status: 404 });
     }
 
-    const analytics = computeAnalytics(projects);
+    const analytics = computeAnalytics(projects as any);
     const soumissionnaires = await db.soumissionnaire.findMany({ orderBy: [{ numAOComplet: 'asc' }, { id: 'asc' }] });
     return NextResponse.json({
       lastUpdated: meta?.lastSyncAt.toISOString() || new Date().toISOString(),
@@ -309,7 +372,12 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error loading data:', error);
-    // Last resort: try Excel again even if there was a DB error
+    // Last resort: try static JSON
+    try {
+      const staticResponse = readStaticJson();
+      if (staticResponse) return NextResponse.json(staticResponse);
+    } catch { /* ignore */ }
+    // Then try Excel again
     try {
       const excelResponse = buildResponseFromExcel();
       if (excelResponse) return NextResponse.json(excelResponse);

@@ -208,6 +208,7 @@ export async function GET() {
       const syncResult = await syncExcelToDB();
       const projects = await db.pPMProject.findMany({ orderBy: { id: 'asc' } });
       const analytics = computeAnalytics(projects);
+      const soumissionnaires = await db.soumissionnaire.findMany({ orderBy: [{ numAOComplet: 'asc' }, { id: 'asc' }] });
 
       return NextResponse.json({
         lastUpdated: new Date().toISOString(),
@@ -217,6 +218,7 @@ export async function GET() {
         fileSize: syncResult.fileSize,
         dataSaved: true,
         projects,
+        soumissionnaires,
         ...analytics,
       });
     }
@@ -230,6 +232,7 @@ export async function GET() {
     }
 
     const analytics = computeAnalytics(projects);
+    const soumissionnaires = await db.soumissionnaire.findMany({ orderBy: [{ numAOComplet: 'asc' }, { id: 'asc' }] });
     return NextResponse.json({
       lastUpdated: meta?.lastSyncAt.toISOString() || new Date().toISOString(),
       fileChecksum: meta?.fileChecksum,
@@ -238,6 +241,7 @@ export async function GET() {
       fileSize: meta?.fileSize,
       dataSaved: true,
       projects,
+      soumissionnaires,
       ...analytics,
     });
   } catch (error) {
@@ -274,6 +278,7 @@ export async function POST(request: Request) {
     const syncResult = await syncExcelToDB();
     const projects = await db.pPMProject.findMany({ orderBy: { id: 'asc' } });
     const analytics = computeAnalytics(projects);
+    const soumissionnaires = await db.soumissionnaire.findMany({ orderBy: [{ numAOComplet: 'asc' }, { id: 'asc' }] });
 
     return NextResponse.json({
       lastUpdated: new Date().toISOString(),
@@ -285,6 +290,7 @@ export async function POST(request: Request) {
       uploadSuccess: true,
       message: `Fichier "${file.name}" sauvegardé avec succès — ${syncResult.projectCount} marchés enregistrés en base`,
       projects,
+      soumissionnaires,
       ...analytics,
     });
   } catch (error) {

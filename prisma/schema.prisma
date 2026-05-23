@@ -46,3 +46,24 @@ model PPMProject {
   @@index([natureBudget])
   @@index([typeBudget])
 }
+
+model Soumissionnaire {
+  id                 Int      @id @default(autoincrement())
+  numAO              String   // Numéro AO extrait (ex: "1")
+  entite             String   // Entité (ex: "DPF")
+  numAOComplet       String   // N° AO complet du fichier (ex: "1/2026/DPF")
+  semaine            String?  // Semaine (ex: "Semaine du 12 au 16/01/2026 -")
+  seance             String?  // Séance (ex: "Séance du 13 Janvier 2026")
+  objetAO            String?  // Objet de l'AO
+  objetSeance        String?  // Objet de la séance (DA, DT, OF, etc.)
+  nbSoumissionnaires Int?     // Nombre de soumissionnaires pour cet AO
+  nomSoumissionnaire String?  // Nom du soumissionnaire
+  decision           String?  // Décision commission (Admis, Ecarté, etc.)
+  offreFinanciere    String?  // Offre financière proposée
+  decisionOF         String?  // Décision commission sur l'OF
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([numAO, entite])
+  @@index([numAOComplet])
+}

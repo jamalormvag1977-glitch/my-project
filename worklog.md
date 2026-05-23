@@ -1,5 +1,66 @@
 # PPM Dashboard — Work Log
 
+## Session: Fix Vercel Deployment Crash
+
+### Date: 2026-05-24
+
+### Summary
+Fixed the Vercel deployment crash (Application error: a client-side exception has occurred) by correcting the Excel column mapping, adding static JSON fallback, and making the client resilient to API failures.
+
+### Root Cause Analysis
+1. **Wrong column mapping in parseExcelFile()**: The API route used columns 0-18, but the actual Excel has 3 extra columns (Source de financement=3, Programme=4, Projet=5) that shift all subsequent columns. This caused numAO to read "ELF" instead of "1", entite to read "IAEA" instead of "DPF", etc.
+2. **No data on Vercel**: The API route tried to read Excel files via `fs` from `public/data/`, but on Vercel serverless functions, the `public/` directory is not accessible via filesystem. SQLite also doesn't work on Vercel.
+3. **No error boundary**: When the API failed, the client showed an infinite loading skeleton or crashed with a client-side exception.
+
+### Changes Made
+
+#### 1. Fixed parseExcelFile() column mapping (src/app/api/ppm/route.ts)
+- Column 3: sourceFinancement (was numAO)
+- Column 4: programme (was entite)
+- Column 5: projet (was objet)
+- Column 6: numAO (was cp)
+- Column 7: entite (was ce)
+- Column 8: objet (was estimationAdmin)
+- Column 9: cp, 10: ce, 11: estimationAdmin, 12: dateOuverture, 13: situationAvancement, etc.
+- Column 22: delaisExecution (new field)
+
+#### 2. Added static JSON fallback
+- Created `scripts/generate-static-data.js` to pre-generate `public/data/ppm.json` at build time
+- Added `readStaticJson()` in API route as fallback when Excel files not accessible via `fs`
+- Added `fetchStaticJsonFallback()` in client to fetch `/data/ppm.json` when API fails
+- API now tries: Excel → Static JSON → DB → Error
+- Client now tries: API → Static JSON → No-data state
+
+#### 3. Added proper no-data state (page.tsx)
+- Replaced `if (loading || !data)` with separate `if (loading)` and `if (!data)` blocks
+- Loading state: shows skeleton animation
+- No-data state: shows friendly message with retry button
+- This prevents the "Application error: a client-side exception has occurred" page
+
+#### 4. Updated PPMProject interface
+- Added: `sourceFinancement?: string | null`
+- Added: `programme?: string | null`
+- Added: `projet?: string | null`
+- Added: `delaisExecution?: string | null`
+
+#### 5. Updated package.json
+- Build script: `node scripts/generate-static-data.js && next build`
+- Postinstall: `DATABASE_URL=file:./dev.db prisma generate` (ensures Prisma works on Vercel without .env)
+
+### Generated Static Data (public/data/ppm.json)
+- 77 projects parsed
+- 319 soumissionnaire records
+- 8 statuses: Engagé(25), A programmer(25), DAO Envoyé au CE(10), Publié sur PMP(7), Infructueux(4), Jugé(4), En cours de jugement(1), Annulé(1)
+- 7 entities: DPF, SMG, DDA, DGR, SAI, DAM, DRH
+- KPIs: totalBudget=469M, engagementRate=25.3%, extractionRate=27%
+
+### Git Push
+- Commit: `4dc45bd fix: correct Excel column mapping, add static JSON fallback for Vercel, fix Vercel deployment crash`
+- Pushed to: `origin/main`
+
+### Build Verification
+- `npx next build` ✓ Compiled successfully
+
 ## Session: Reapply Pipeline & Status Changes
 
 ### Date: 2026-05-19

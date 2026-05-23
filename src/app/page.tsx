@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, Fragment } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area,
@@ -18,7 +18,7 @@ import {
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
-  X, ClipboardList, History, Download, Printer, Send, Users, Eye, Wallet
+  X, ClipboardList, History, Download, Printer, Send
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */

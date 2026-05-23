@@ -68,22 +68,6 @@ function findExcelFile(): string | null {
   return null;
 }
 
-function findSoumissionnaireFile(): string | null {
-  // Check public/data first (works on Vercel)
-  if (fs.existsSync(PUBLIC_DATA_DIR)) {
-    const files = fs.readdirSync(PUBLIC_DATA_DIR);
-    const xlsx = files.find(f => (f.endsWith('.xlsx') || f.endsWith('.xls')) && f.toLowerCase().includes('soumissionnaire'));
-    if (xlsx) return path.join(PUBLIC_DATA_DIR, xlsx);
-  }
-  // Then check upload dir (local dev)
-  if (fs.existsSync(UPLOAD_DIR)) {
-    const files = fs.readdirSync(UPLOAD_DIR);
-    const xlsx = files.find(f => (f.endsWith('.xlsx') || f.endsWith('.xls')) && f.toLowerCase().includes('soumissionnaire'));
-    if (xlsx) return path.join(UPLOAD_DIR, xlsx);
-  }
-  return null;
-}
-
 function parseExcelFile(filePath: string) {
   const fileBuffer = fs.readFileSync(filePath);
   const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
@@ -161,49 +145,6 @@ function parseExcelFile(filePath: string) {
     });
   }
   return projects;
-}
-
-function parseSoumissionnaireFile(filePath: string) {
-  const fileBuffer = fs.readFileSync(filePath);
-  const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
-  const sheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[sheetName];
-  const rows: unknown[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 2 });
-
-  const soumissionnaires: Array<{
-    id: number; numAO: string; entite: string; numAOComplet: string;
-    semaine: string | null; seance: string | null; objetAO: string | null;
-    objetSeance: string | null; nbSoumissionnaires: number | null;
-    nomSoumissionnaire: string | null; decision: string | null;
-    offreFinanciere: string | null; decisionOF: string | null;
-  }> = [];
-
-  rows.forEach((row, idx) => {
-    const numAOComplet = row[2] ? String(row[2]).trim() : null;
-    if (!numAOComplet) return;
-
-    const parts = numAOComplet.split('/');
-    const numAO = parts.length === 3 ? parts[0].trim() : numAOComplet;
-    const entite = parts.length === 3 ? parts[2].trim() : '';
-
-    soumissionnaires.push({
-      id: idx + 1,
-      numAO,
-      entite,
-      numAOComplet,
-      semaine: row[0] ? String(row[0]).trim() : null,
-      seance: row[1] ? String(row[1]).trim() : null,
-      objetAO: row[3] ? String(row[3]).trim() : null,
-      objetSeance: row[4] ? String(row[4]).trim() : null,
-      nbSoumissionnaires: row[6] ? parseInt(String(row[6]).trim()) : null,
-      nomSoumissionnaire: row[7] ? String(row[7]).trim() : null,
-      decision: row[8] ? String(row[8]).trim() : null,
-      offreFinanciere: row[9] ? String(row[9]).trim() : null,
-      decisionOF: row[10] ? String(row[10]).trim() : null,
-    });
-  });
-
-  return soumissionnaires;
 }
 
 /* ── Compute analytics from projects ── */
@@ -287,10 +228,6 @@ function buildResponseFromExcel() {
   const fileName = path.basename(filePath);
   const fileStats = fs.statSync(filePath);
 
-  // Parse soumissionnaire file
-  const soumFilePath = findSoumissionnaireFile();
-  const soumissionnaires = soumFilePath ? parseSoumissionnaireFile(soumFilePath) : [];
-
   return {
     lastUpdated: new Date().toISOString(),
     fileChecksum: checksum,
@@ -299,7 +236,6 @@ function buildResponseFromExcel() {
     fileSize: fileStats.size,
     dataSaved: true,
     projects,
-    soumissionnaires,
     ...analytics,
   };
 }
@@ -323,7 +259,7 @@ function readStaticJson(): PPMResponse | null {
 type PPMResponse = {
   lastUpdated: string; fileChecksum?: string; fileName?: string;
   fileLastModified?: string; fileSize?: number; dataSaved?: boolean;
-  projects: unknown[]; soumissionnaires: unknown[];
+  projects: unknown[];
   kpis: unknown; statusCount: unknown; entityBudget: unknown;
   natureBudget: unknown; typeBudget: unknown; monthlyTimeline: unknown;
   entityEngagementRate: unknown;
@@ -358,7 +294,6 @@ export async function GET() {
     }
 
     const analytics = computeAnalytics(projects as any);
-    const soumissionnaires = await db.soumissionnaire.findMany({ orderBy: [{ numAOComplet: 'asc' }, { id: 'asc' }] });
     return NextResponse.json({
       lastUpdated: meta?.lastSyncAt.toISOString() || new Date().toISOString(),
       fileChecksum: meta?.fileChecksum,
@@ -367,7 +302,6 @@ export async function GET() {
       fileSize: meta?.fileSize,
       dataSaved: true,
       projects,
-      soumissionnaires,
       ...analytics,
     });
   } catch (error) {

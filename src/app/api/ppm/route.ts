@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'upload');
+const PUBLIC_DATA_DIR = path.join(process.cwd(), 'public', 'data');
 
 // Check if DB (Prisma) is available
 let _db: any = null;
@@ -52,18 +53,35 @@ function getFileChecksum(filePath: string): string {
 }
 
 function findExcelFile(): string | null {
-  if (!fs.existsSync(UPLOAD_DIR)) return null;
-  const files = fs.readdirSync(UPLOAD_DIR);
-  // Prefer the main PPM file (not the soumissionnaire file)
-  const xlsx = files.find(f => (f.endsWith('.xlsx') || f.endsWith('.xls')) && !f.toLowerCase().includes('soumissionnaire'));
-  return xlsx ? path.join(UPLOAD_DIR, xlsx) : null;
+  // Check public/data first (works on Vercel)
+  if (fs.existsSync(PUBLIC_DATA_DIR)) {
+    const files = fs.readdirSync(PUBLIC_DATA_DIR);
+    const xlsx = files.find(f => (f.endsWith('.xlsx') || f.endsWith('.xls')) && !f.toLowerCase().includes('soumissionnaire'));
+    if (xlsx) return path.join(PUBLIC_DATA_DIR, xlsx);
+  }
+  // Then check upload dir (local dev)
+  if (fs.existsSync(UPLOAD_DIR)) {
+    const files = fs.readdirSync(UPLOAD_DIR);
+    const xlsx = files.find(f => (f.endsWith('.xlsx') || f.endsWith('.xls')) && !f.toLowerCase().includes('soumissionnaire'));
+    if (xlsx) return path.join(UPLOAD_DIR, xlsx);
+  }
+  return null;
 }
 
 function findSoumissionnaireFile(): string | null {
-  if (!fs.existsSync(UPLOAD_DIR)) return null;
-  const files = fs.readdirSync(UPLOAD_DIR);
-  const xlsx = files.find(f => (f.endsWith('.xlsx') || f.endsWith('.xls')) && f.toLowerCase().includes('soumissionnaire'));
-  return xlsx ? path.join(UPLOAD_DIR, xlsx) : null;
+  // Check public/data first (works on Vercel)
+  if (fs.existsSync(PUBLIC_DATA_DIR)) {
+    const files = fs.readdirSync(PUBLIC_DATA_DIR);
+    const xlsx = files.find(f => (f.endsWith('.xlsx') || f.endsWith('.xls')) && f.toLowerCase().includes('soumissionnaire'));
+    if (xlsx) return path.join(PUBLIC_DATA_DIR, xlsx);
+  }
+  // Then check upload dir (local dev)
+  if (fs.existsSync(UPLOAD_DIR)) {
+    const files = fs.readdirSync(UPLOAD_DIR);
+    const xlsx = files.find(f => (f.endsWith('.xlsx') || f.endsWith('.xls')) && f.toLowerCase().includes('soumissionnaire'));
+    if (xlsx) return path.join(UPLOAD_DIR, xlsx);
+  }
+  return null;
 }
 
 function parseExcelFile(filePath: string) {

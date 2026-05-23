@@ -542,7 +542,7 @@ export default function Dashboard() {
     );
   }
 
-  const { projects, soumissionnaires: soumissionnaireData, kpis, statusCount, entityBudget, natureBudget, typeBudget, monthlyTimeline, entityEngagementRate } = data;
+  const { projects = [], soumissionnaires: soumissionnaireData = [], kpis, statusCount = {}, entityBudget = {}, natureBudget = {}, typeBudget = {}, monthlyTimeline = {}, entityEngagementRate = {} } = data || {} as any;
 
   /* ── Filtered projects ── */
   const filtered = projects.filter(p => {

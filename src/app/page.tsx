@@ -48,22 +48,6 @@ interface PPMProject {
   delaisExecution?: string | null;
 }
 
-interface Soumissionnaire {
-  id: number;
-  numAO: string;
-  entite: string;
-  numAOComplet: string;
-  semaine: string | null;
-  seance: string | null;
-  objetAO: string | null;
-  objetSeance: string | null;
-  nbSoumissionnaires: number | null;
-  nomSoumissionnaire: string | null;
-  decision: string | null;
-  offreFinanciere: string | null;
-  decisionOF: string | null;
-}
-
 interface KPIs {
   totalProjects: number;
   totalCP: number;
@@ -84,7 +68,6 @@ interface PPMData {
   fileSize?: number;
   dataSaved?: boolean;
   projects: PPMProject[];
-  soumissionnaires: Soumissionnaire[];
   kpis: KPIs;
   statusCount: Record<string, number>;
   entityBudget: Record<string, { cp: number; ce: number; estimation: number; engagement: number; count: number }>;
@@ -390,7 +373,6 @@ export default function Dashboard() {
   const lastChecksumRef = useRef<string | null>(null);
   const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'reports' | 'dashboard'>('dashboard');
   const [expandedAO, setExpandedAO] = useState<number | null>(null);
-  const [expandedSoumAO, setExpandedSoumAO] = useState<string | null>(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
   const [mounted, setMounted] = useState(false);
@@ -593,7 +575,7 @@ export default function Dashboard() {
     );
   }
 
-  const { projects = [], soumissionnaires: soumissionnaireData = [], kpis, statusCount = {}, entityBudget = {}, natureBudget = {}, typeBudget = {}, monthlyTimeline = {}, entityEngagementRate = {} } = data || {} as any;
+  const { projects = [], kpis, statusCount = {}, entityBudget = {}, natureBudget = {}, typeBudget = {}, monthlyTimeline = {}, entityEngagementRate = {} } = data || {} as any;
 
   /* ── Filtered projects ── */
   const filtered = projects.filter(p => {
@@ -750,74 +732,6 @@ export default function Dashboard() {
   const timelineEstimations = timelineData.map(d => d.estimation);
   const timelineEngagements = timelineData.map(d => d.engagement);
   const timelineCounts = timelineData.map(d => d.count);
-
-  // ── Soumissionnaire data processing ──
-  const soumissionnaires = soumissionnaireData || [];
-  // Group soumissionnaire data by numAOComplet
-  const soumByAO: Record<string, typeof soumissionnaires> = {};
-  soumissionnaires.forEach(s => {
-    if (!soumByAO[s.numAOComplet]) soumByAO[s.numAOComplet] = [];
-    soumByAO[s.numAOComplet].push(s);
-  });
-  // Map project numAO + entite to soumissionnaire data
-  const getSoumForProject = (numAO: string | null, entite: string) => {
-    if (!numAO) return [];
-    // Try exact match with "numAO/2026/entite" format
-    const fullKey = `${numAO}/2026/${entite}`;
-    if (soumByAO[fullKey]) return soumByAO[fullKey];
-    // Try with just numAO as part of the key
-    const matches = soumissionnaires.filter(s => s.numAO === numAO && s.entite === entite);
-    return matches;
-  };
-  // Get unique soumissionnaire names for a project (excluding "-" and empty)
-  const getSoumNames = (numAO: string | null, entite: string) => {
-    const records = getSoumForProject(numAO, entite);
-    const names = new Set<string>();
-    records.forEach(s => {
-      if (s.nomSoumissionnaire && s.nomSoumissionnaire !== '-' && s.nomSoumissionnaire !== '') {
-        names.add(s.nomSoumissionnaire);
-      }
-    });
-    return Array.from(names);
-  };
-  // Get nb soumissionnaires for a project
-  const getNbSoum = (numAO: string | null, entite: string) => {
-    const records = getSoumForProject(numAO, entite);
-    for (const r of records) {
-      if (r.nbSoumissionnaires && r.nbSoumissionnaires > 0) return r.nbSoumissionnaires;
-    }
-    return 0;
-  };
-  // Get decision for a soumissionnaire in a project (latest)
-  const getSoumDecision = (numAO: string | null, entite: string, soumName: string) => {
-    const records = getSoumForProject(numAO, entite).filter(s => s.nomSoumissionnaire === soumName);
-    // Return the most recent decision (prefer "Offre financière" > "Dossier technique" > "Dossier Administratif")
-    const of = records.find(s => s.objetSeance === 'Offre financière' && s.decision);
-    if (of?.decision) return of.decision;
-    const dt = records.find(s => s.objetSeance === 'Dossier technique' && s.decision);
-    if (dt?.decision) return dt.decision;
-    const da = records.find(s => s.objetSeance === 'Dossier Administratif' && s.decision);
-    if (da?.decision) return da.decision;
-    // Fallback: any decision
-    const anyDec = records.find(s => s.decision && s.decision !== '-');
-    return anyDec?.decision || null;
-  };
-  // Get offre financière for a soumissionnaire
-  const getSoumOffre = (numAO: string | null, entite: string, soumName: string) => {
-    const records = getSoumForProject(numAO, entite).filter(s => s.nomSoumissionnaire === soumName);
-    const ofRecord = records.find(s => s.objetSeance === 'Offre financière' && s.offreFinanciere && s.offreFinanciere !== '-');
-    if (ofRecord?.offreFinanciere) return ofRecord.offreFinanciere;
-    // Try any record with offre financiere
-    const anyOF = records.find(s => s.offreFinanciere && s.offreFinanciere !== '-');
-    return anyOF?.offreFinanciere || null;
-  };
-  // Soumissionnaire summary stats
-  const aoAvecSoum = filtered.filter(p => getNbSoum(p.numAO, p.entite) > 0).length;
-  const totalSoumissionnaires = filtered.reduce((s, p) => s + getNbSoum(p.numAO, p.entite), 0);
-  const avgSoumPerAO = aoAvecSoum > 0 ? (totalSoumissionnaires / aoAvecSoum).toFixed(1) : '0';
-  // Decision stats
-  const admisCount = soumissionnaires.filter(s => s.decision?.includes('Admis')).length;
-  const ecarteCount = soumissionnaires.filter(s => s.decision?.includes('Ecarté')).length;
 
   const hasActiveFilters = filterStatus !== 'all' || filterEntity !== 'all' || filterNature !== 'all' || filterType !== 'all';
   const clearAllFilters = () => { setFilterStatus('all'); setFilterEntity('all'); setFilterNature('all'); setFilterType('all'); setSearchTerm(''); };
@@ -2273,191 +2187,6 @@ export default function Dashboard() {
             })}
           </div>
         </section>
-
-        {/* ── 7. Détail Soumissionnaires par AO ── */}
-        {soumissionnaires.length > 0 && (
-        <section className="animate-fade-in-up" style={{ animationDelay: '0.31s' }}>
-          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <Users className="w-4 h-4 text-indigo-500" />
-            7. Détail Soumissionnaires par Appel d&apos;Offres
-            <Badge className="text-[9px] bg-indigo-100 text-indigo-700 border-indigo-200 border ml-2">{aoAvecSoum} AO avec soumissionnaires</Badge>
-          </h2>
-          
-          {/* Summary cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-            <Card className="border-0 shadow-sm" style={{ borderTop: '3px solid #6366f1' }}>
-              <CardContent className="p-3 text-center">
-                <p className="text-[9px] text-slate-400 uppercase">AO avec Soum.</p>
-                <p className="text-lg font-bold text-indigo-700">{aoAvecSoum}</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm" style={{ borderTop: '3px solid #8b5cf6' }}>
-              <CardContent className="p-3 text-center">
-                <p className="text-[9px] text-slate-400 uppercase">Total Soumissionnaires</p>
-                <p className="text-lg font-bold text-violet-700">{totalSoumissionnaires}</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm" style={{ borderTop: '3px solid #16a34a' }}>
-              <CardContent className="p-3 text-center">
-                <p className="text-[9px] text-slate-400 uppercase">Moy. Soum./AO</p>
-                <p className="text-lg font-bold text-green-700">{avgSoumPerAO}</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm" style={{ borderTop: '3px solid #d97706' }}>
-              <CardContent className="p-3 text-center">
-                <p className="text-[9px] text-slate-400 uppercase">Admis / Ecartés</p>
-                <p className="text-lg font-bold"><span className="text-green-600">{admisCount}</span> / <span className="text-red-600">{ecarteCount}</span></p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* AO Table with expandable soumissionnaire details */}
-          <Card className="border-0 shadow-md overflow-hidden">
-            <CardContent className="p-5">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
-                      <th className="px-3 py-2.5 text-left w-8"></th>
-                      <th className="px-3 py-2.5 text-left">N° AO</th>
-                      <th className="px-3 py-2.5 text-left">Objet</th>
-                      <th className="px-3 py-2.5 text-left">Entité</th>
-                      <th className="px-3 py-2.5 text-center">Nb Soum.</th>
-                      <th className="px-3 py-2.5 text-center">Admis</th>
-                      <th className="px-3 py-2.5 text-center">Ecartés</th>
-                      <th className="px-3 py-2.5 text-center">Taux Admis (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.filter(p => getNbSoum(p.numAO, p.entite) > 0).map(p => {
-                      const soumNames = getSoumNames(p.numAO, p.entite);
-                      const nbSoum = getNbSoum(p.numAO, p.entite);
-                      const admis = soumNames.filter(n => getSoumDecision(p.numAO, p.entite, n)?.includes('Admis')).length;
-                      const ecartes = soumNames.filter(n => getSoumDecision(p.numAO, p.entite, n)?.includes('Ecarté')).length;
-                      const tauxAdmis = soumNames.length > 0 ? Math.round((admis / soumNames.length) * 100) : 0;
-                      const isExpanded = expandedSoumAO === `${p.numAO}-${p.entite}`;
-                      const aoKey = `${p.numAO}-${p.entite}`;
-                      return (
-                        <Fragment key={p.id}>
-                          <tr className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer ${isExpanded ? 'bg-indigo-50/30' : ''}`} onClick={() => setExpandedSoumAO(isExpanded ? null : aoKey)}>
-                            <td className="px-3 py-2.5">
-                              {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-indigo-500" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
-                            </td>
-                            <td className="px-3 py-2.5 font-bold text-slate-800">{p.numAO || '-'}</td>
-                            <td className="px-3 py-2.5 text-slate-600 max-w-[300px] truncate" title={p.objet}>{p.objet}</td>
-                            <td className="px-3 py-2.5">
-                              <span className="inline-flex items-center gap-1.5">
-                                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entityColorMap[p.entite] || '#6366f1' }} />
-                                <span className="font-medium text-slate-700">{p.entite}</span>
-                              </span>
-                            </td>
-                            <td className="px-3 py-2.5 text-center font-bold text-indigo-700">{nbSoum}</td>
-                            <td className="px-3 py-2.5 text-center text-green-600 font-semibold">{admis}</td>
-                            <td className="px-3 py-2.5 text-center text-red-600 font-semibold">{ecartes}</td>
-                            <td className="px-3 py-2.5 text-center">
-                              <div className="flex items-center gap-2 justify-center">
-                                <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, tauxAdmis)}%`, backgroundColor: tauxAdmis >= 50 ? '#16a34a' : tauxAdmis >= 25 ? '#d97706' : '#dc2626' }} />
-                                </div>
-                                <span className={`font-bold text-[10px] ${tauxAdmis >= 50 ? 'text-green-600' : tauxAdmis >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{tauxAdmis}</span>
-                              </div>
-                            </td>
-                          </tr>
-                          {/* Expanded soumissionnaire details */}
-                          {isExpanded && (
-                            <tr key={`${p.id}-detail`}>
-                              <td colSpan={8} className="px-3 py-0">
-                                <div className="bg-indigo-50/40 border border-indigo-100 rounded-lg m-2 p-3">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <Eye className="w-3.5 h-3.5 text-indigo-500" />
-                                    <span className="text-[10px] font-semibold text-indigo-700 uppercase">Détail des soumissionnaires — N° {p.numAO}</span>
-                                  </div>
-                                  <table className="w-full text-xs">
-                                    <thead>
-                                      <tr className="text-[9px] text-slate-500 uppercase border-b border-indigo-100">
-                                        <th className="px-2 py-1.5 text-left">Soumissionnaire</th>
-                                        <th className="px-2 py-1.5 text-center">Décision DA</th>
-                                        <th className="px-2 py-1.5 text-center">Décision DT</th>
-                                        <th className="px-2 py-1.5 text-center">Décision OF</th>
-                                        <th className="px-2 py-1.5 text-right">Offre Financière</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {soumNames.map((name, idx) => {
-                                        const soumRecords = getSoumForProject(p.numAO, p.entite).filter(s => s.nomSoumissionnaire === name);
-                                        const daRec = soumRecords.find(s => s.objetSeance === 'Dossier Administratif');
-                                        const dtRec = soumRecords.find(s => s.objetSeance === 'Dossier technique');
-                                        const ofRec = soumRecords.find(s => s.objetSeance === 'Offre financière');
-                                        const offre = getSoumOffre(p.numAO, p.entite, name);
-                                        return (
-                                          <tr key={idx} className="border-b border-indigo-50/50 hover:bg-white/60">
-                                            <td className="px-2 py-1.5 font-medium text-slate-700">{name}</td>
-                                            <td className="px-2 py-1.5 text-center">
-                                              {daRec?.decision ? (
-                                                <Badge className={`text-[8px] h-4 border-0 ${daRec.decision.includes('Admis') ? 'bg-green-100 text-green-700' : daRec.decision.includes('Ecarté') ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>
-                                                  {daRec.decision.length > 25 ? daRec.decision.substring(0, 25) + '...' : daRec.decision}
-                                                </Badge>
-                                              ) : '-'}
-                                            </td>
-                                            <td className="px-2 py-1.5 text-center">
-                                              {dtRec?.decision ? (
-                                                <Badge className={`text-[8px] h-4 border-0 ${dtRec.decision.includes('Admis') ? 'bg-green-100 text-green-700' : dtRec.decision.includes('Ecarté') ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>
-                                                  {dtRec.decision.length > 25 ? dtRec.decision.substring(0, 25) + '...' : dtRec.decision}
-                                                </Badge>
-                                              ) : '-'}
-                                            </td>
-                                            <td className="px-2 py-1.5 text-center">
-                                              {ofRec?.decision ? (
-                                                <Badge className={`text-[8px] h-4 border-0 ${ofRec.decision.includes('Admis') ? 'bg-green-100 text-green-700' : ofRec.decision.includes('Ecarté') ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>
-                                                  {ofRec.decision.length > 25 ? ofRec.decision.substring(0, 25) + '...' : ofRec.decision}
-                                                </Badge>
-                                              ) : '-'}
-                                            </td>
-                                            <td className="px-2 py-1.5 text-right font-mono text-slate-700">{offre || '-'}</td>
-                                          </tr>
-                                        );
-                                      })}
-                                    </tbody>
-                                  </table>
-                                  {/* Séance details */}
-                                  {(() => {
-                                    const allRecords = getSoumForProject(p.numAO, p.entite);
-                                    const allSeances = allRecords.map(s => s.seance).filter((v, i, a) => v && a.indexOf(v) === i);
-                                    if (allSeances.length > 0) {
-                                      return (
-                                        <div className="mt-2 pt-2 border-t border-indigo-100">
-                                          <p className="text-[9px] text-indigo-500 font-medium">Séances: {allSeances.join(' · ')}</p>
-                                        </div>
-                                      );
-                                    }
-                                    return null;
-                                  })()}
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </Fragment>
-                      );
-                    })}
-                  </tbody>
-                  <tfoot>
-                    <tr className="bg-slate-50 font-semibold">
-                      <td className="px-3 py-2.5"></td>
-                      <td className="px-3 py-2.5 text-slate-800" colSpan={3}>Total</td>
-                      <td className="px-3 py-2.5 text-center text-indigo-700">{totalSoumissionnaires}</td>
-                      <td className="px-3 py-2.5 text-center text-green-600">{admisCount}</td>
-                      <td className="px-3 py-2.5 text-center text-red-600">{ecarteCount}</td>
-                      <td className="px-3 py-2.5 text-center">
-                        <span className="font-bold text-[10px]">{(admisCount + ecarteCount) > 0 ? Math.round((admisCount / (admisCount + ecarteCount)) * 100) : 0}%</span>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-        )}
 
         {/* ── Footer ── */}
         <footer className="text-center text-xs text-slate-400 pb-6 pt-2 space-y-1">

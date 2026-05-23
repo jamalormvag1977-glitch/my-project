@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef, Fragment } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area,
@@ -18,7 +19,7 @@ import {
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
-  X, ClipboardList, History, Download, Printer, Send, Wallet, Shield, Eye, Users, UserCheck, UserX
+  X, ClipboardList, History, Download, Printer, Send, Wallet, Shield, Eye, Users, UserCheck, UserX, LogOut
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -399,6 +400,9 @@ function SkeletonCard() {
 
 /* ── Main Page ────────────────────────────────────────── */
 export default function Dashboard() {
+  const { data: session, status: sessionStatus } = useSession();
+  const isAdmin = (session?.user as any)?.role === 'admin';
+  
   const [data, setData] = useState<PPMData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -632,6 +636,27 @@ export default function Dashboard() {
     link.click();
     URL.revokeObjectURL(url);
   }, [data]);
+
+  /* ── Auth guard ── */
+  if (sessionStatus === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <BarChart3 className="w-6 h-6 text-white animate-pulse" />
+          </div>
+          <p className="text-sm text-gray-400">Vérification de l&apos;authentification...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (sessionStatus === 'unauthenticated') {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+    return null;
+  }
 
   /* ── Premium Loading skeleton ── */
   if (loading) {
@@ -1064,14 +1089,26 @@ export default function Dashboard() {
                   <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
                   Actualiser
                 </Button>
+                {isAdmin && (
                 <Button variant="outline" size="sm" onClick={() => setShowUpload(!showUpload)} className="text-[10px] h-7 gap-1 rounded-full px-3 border-blue-200 text-blue-600 hover:bg-blue-50">
                   <Upload className="w-3 h-3" />
                   Charger
                 </Button>
+                )}
                 <Button variant="outline" size="sm" onClick={exportToExcel} className="text-[10px] h-7 gap-1 rounded-full px-3 border-green-200 text-green-600 hover:bg-green-50">
                   <Download className="w-3 h-3" />
                   Export
                 </Button>
+                {/* Role indicator & Logout */}
+                <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-700">
+                  <Badge className={`text-[9px] h-5 border-0 ${isAdmin ? 'bg-violet-500/20 text-violet-300' : 'bg-blue-500/20 text-blue-300'}`}>
+                    <Shield className="w-2.5 h-2.5 mr-1" />
+                    {isAdmin ? 'Admin' : 'Observateur'}
+                  </Badge>
+                  <button onClick={() => signOut({ callbackUrl: '/login' })} className="w-6 h-6 rounded-lg bg-gray-800 hover:bg-red-500/20 flex items-center justify-center transition-colors group" title="Déconnexion">
+                    <LogOut className="w-3 h-3 text-gray-500 group-hover:text-red-400" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -3821,6 +3858,7 @@ export default function Dashboard() {
                 </Badge>
               )}
             </h2>
+            {isAdmin && (
             <Button
               variant="outline"
               size="sm"
@@ -3830,6 +3868,7 @@ export default function Dashboard() {
               <Upload className="w-3 h-3" />
               {showSoumUpload ? 'Fermer' : 'Mettre à jour le fichier'}
             </Button>
+            )}
           </div>
 
           {/* Upload zone for soumissionnaires */}

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -323,6 +324,16 @@ export async function GET() {
 /* ── POST: Upload new Excel file ── */
 export async function POST(request: Request) {
   try {
+    // Check admin role
+    const session = await getServerSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
+    const userRole = (session.user as any)?.role;
+    if (userRole !== 'admin') {
+      return NextResponse.json({ error: 'Accès réservé aux administrateurs' }, { status: 403 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     if (!file) return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 });

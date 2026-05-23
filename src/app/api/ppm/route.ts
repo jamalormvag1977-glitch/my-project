@@ -3,15 +3,30 @@ import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { db } from '@/lib/db';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'upload');
+
+// Check if DB (Prisma) is available
+let _db: any = null;
+let _dbAvailable: boolean | null = null;
+async function getDb() {
+  if (_dbAvailable === false) return null;
+  if (_db) return _db;
+  try {
+    const { db } = await import('@/lib/db');
+    _db = db;
+    _dbAvailable = true;
+    return db;
+  } catch {
+    _dbAvailable = false;
+    return null;
+  }
+}
 
 /* ── Helpers ──────────────────────────────────────────── */
 function formatDate(val: unknown): string | null {
   if (!val) return null;
   if (val instanceof Date) return val.toISOString().split('T')[0];
-  // Handle Excel serial date numbers (e.g., 46037 = a date in 2026)
   if (typeof val === 'number' && val > 40000 && val < 60000) {
     try {
       const d = XLSX.SSF.parse_date_code(val);
@@ -39,7 +54,15 @@ function getFileChecksum(filePath: string): string {
 function findExcelFile(): string | null {
   if (!fs.existsSync(UPLOAD_DIR)) return null;
   const files = fs.readdirSync(UPLOAD_DIR);
-  const xlsx = files.find(f => f.endsWith('.xlsx') || f.endsWith('.xls'));
+  // Prefer the main PPM file (not the soumissionnaire file)
+  const xlsx = files.find(f => (f.endsWith('.xlsx') || f.endsWith('.xls')) && !f.toLowerCase().includes('soumissionnaire'));
+  return xlsx ? path.join(UPLOAD_DIR, xlsx) : null;
+}
+
+function findSoumissionnaireFile(): string | null {
+  if (!fs.existsSync(UPLOAD_DIR)) return null;
+  const files = fs.readdirSync(UPLOAD_DIR);
+  const xlsx = files.find(f => (f.endsWith('.xlsx') || f.endsWith('.xls')) && f.toLowerCase().includes('soumissionnaire'));
   return xlsx ? path.join(UPLOAD_DIR, xlsx) : null;
 }
 
@@ -90,7 +113,50 @@ function parseExcelFile(filePath: string) {
   return projects;
 }
 
-/* ── Compute analytics from DB projects ── */
+function parseSoumissionnaireFile(filePath: string) {
+  const fileBuffer = fs.readFileSync(filePath);
+  const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  const rows: unknown[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 2 });
+
+  const soumissionnaires: Array<{
+    id: number; numAO: string; entite: string; numAOComplet: string;
+    semaine: string | null; seance: string | null; objetAO: string | null;
+    objetSeance: string | null; nbSoumissionnaires: number | null;
+    nomSoumissionnaire: string | null; decision: string | null;
+    offreFinanciere: string | null; decisionOF: string | null;
+  }> = [];
+
+  rows.forEach((row, idx) => {
+    const numAOComplet = row[2] ? String(row[2]).trim() : null;
+    if (!numAOComplet) return;
+
+    const parts = numAOComplet.split('/');
+    const numAO = parts.length === 3 ? parts[0].trim() : numAOComplet;
+    const entite = parts.length === 3 ? parts[2].trim() : '';
+
+    soumissionnaires.push({
+      id: idx + 1,
+      numAO,
+      entite,
+      numAOComplet,
+      semaine: row[0] ? String(row[0]).trim() : null,
+      seance: row[1] ? String(row[1]).trim() : null,
+      objetAO: row[3] ? String(row[3]).trim() : null,
+      objetSeance: row[4] ? String(row[4]).trim() : null,
+      nbSoumissionnaires: row[6] ? parseInt(String(row[6]).trim()) : null,
+      nomSoumissionnaire: row[7] ? String(row[7]).trim() : null,
+      decision: row[8] ? String(row[8]).trim() : null,
+      offreFinanciere: row[9] ? String(row[9]).trim() : null,
+      decisionOF: row[10] ? String(row[10]).trim() : null,
+    });
+  });
+
+  return soumissionnaires;
+}
+
+/* ── Compute analytics from projects ── */
 function computeAnalytics(projects: Array<{
   id: number; typeBudget: string; natureBudget: string; entite: string;
   cp: number; ce: number; estimationAdmin: number | null; dateOuverture: string | null;
@@ -160,70 +226,49 @@ function computeAnalytics(projects: Array<{
   };
 }
 
-/* ── Sync Excel → DB ── */
-async function syncExcelToDB(): Promise<{ checksum: string; fileName: string; fileLastModified: string; fileSize: number; projectCount: number; wasNewSync: boolean }> {
+/* ── Build response from Excel files (no DB needed) ── */
+function buildResponseFromExcel() {
   const filePath = findExcelFile();
-  if (!filePath) throw new Error('Aucun fichier Excel trouvé');
+  if (!filePath) return null;
 
+  const projects = parseExcelFile(filePath);
+  const analytics = computeAnalytics(projects);
   const checksum = getFileChecksum(filePath);
   const fileName = path.basename(filePath);
   const fileStats = fs.statSync(filePath);
-  const fileLastModified = fileStats.mtime.toISOString();
-  const fileSize = fileStats.size;
 
-  // Check if already synced with this checksum
-  const existingMeta = await db.fileMetadata.findFirst({ orderBy: { lastSyncAt: 'desc' } });
-  if (existingMeta && existingMeta.fileChecksum === checksum) {
-    return { checksum, fileName, fileLastModified, fileSize, projectCount: existingMeta.id === '0' ? 0 : (await db.pPMProject.count()), wasNewSync: false };
-  }
+  // Parse soumissionnaire file
+  const soumFilePath = findSoumissionnaireFile();
+  const soumissionnaires = soumFilePath ? parseSoumissionnaireFile(soumFilePath) : [];
 
-  // Parse Excel and upsert all projects
-  const projects = parseExcelFile(filePath);
-
-  // Delete old data and replace
-  await db.$transaction(async (tx) => {
-    await tx.pPMProject.deleteMany();
-    await tx.fileMetadata.deleteMany();
-
-    await tx.fileMetadata.create({
-      data: { fileName, fileChecksum: checksum, fileSize, fileLastModified: new Date(fileLastModified) },
-    });
-
-    for (const p of projects) {
-      await tx.pPMProject.create({ data: p });
-    }
-  });
-
-  return { checksum, fileName, fileLastModified, fileSize, projectCount: projects.length, wasNewSync: true };
+  return {
+    lastUpdated: new Date().toISOString(),
+    fileChecksum: checksum,
+    fileName,
+    fileLastModified: fileStats.mtime.toISOString(),
+    fileSize: fileStats.size,
+    dataSaved: true,
+    projects,
+    soumissionnaires,
+    ...analytics,
+  };
 }
 
-/* ── GET: Load from DB (sync if needed) ── */
+/* ── GET: Load data ── */
 export async function GET() {
   try {
-    const filePath = findExcelFile();
-    const hasExcel = !!filePath;
-
-    // If Excel file exists, check if we need to sync
-    if (hasExcel) {
-      const syncResult = await syncExcelToDB();
-      const projects = await db.pPMProject.findMany({ orderBy: { id: 'asc' } });
-      const analytics = computeAnalytics(projects);
-      const soumissionnaires = await db.soumissionnaire.findMany({ orderBy: [{ numAOComplet: 'asc' }, { id: 'asc' }] });
-
-      return NextResponse.json({
-        lastUpdated: new Date().toISOString(),
-        fileChecksum: syncResult.checksum,
-        fileName: syncResult.fileName,
-        fileLastModified: syncResult.fileLastModified,
-        fileSize: syncResult.fileSize,
-        dataSaved: true,
-        projects,
-        soumissionnaires,
-        ...analytics,
-      });
+    // First try: read directly from Excel files (works on Vercel)
+    const excelResponse = buildResponseFromExcel();
+    if (excelResponse) {
+      return NextResponse.json(excelResponse);
     }
 
-    // No Excel file: try loading from DB
+    // Fallback: try loading from DB
+    const db = await getDb();
+    if (!db) {
+      return NextResponse.json({ error: 'Aucune donnée disponible. Veuillez uploader un fichier Excel.', noFile: true }, { status: 404 });
+    }
+
     const meta = await db.fileMetadata.findFirst({ orderBy: { lastSyncAt: 'desc' } });
     const projects = await db.pPMProject.findMany({ orderBy: { id: 'asc' } });
 
@@ -246,11 +291,16 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error loading data:', error);
+    // Last resort: try Excel again even if there was a DB error
+    try {
+      const excelResponse = buildResponseFromExcel();
+      if (excelResponse) return NextResponse.json(excelResponse);
+    } catch { /* ignore */ }
     return NextResponse.json({ error: 'Erreur de chargement des données' }, { status: 500 });
   }
 }
 
-/* ── POST: Upload new Excel file & save to DB ── */
+/* ── POST: Upload new Excel file ── */
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
@@ -265,34 +315,42 @@ export async function POST(request: Request) {
 
     if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-    // Remove old Excel files
-    const existingFiles = fs.readdirSync(UPLOAD_DIR).filter(f => f.endsWith('.xlsx') || f.endsWith('.xls'));
-    existingFiles.forEach(f => fs.unlinkSync(path.join(UPLOAD_DIR, f)));
-
-    // Save new file
+    // Save file
     const filePath = path.join(UPLOAD_DIR, file.name);
     const bytes = await file.arrayBuffer();
     fs.writeFileSync(filePath, Buffer.from(bytes));
 
-    // Sync to DB
-    const syncResult = await syncExcelToDB();
-    const projects = await db.pPMProject.findMany({ orderBy: { id: 'asc' } });
-    const analytics = computeAnalytics(projects);
-    const soumissionnaires = await db.soumissionnaire.findMany({ orderBy: [{ numAOComplet: 'asc' }, { id: 'asc' }] });
+    // Build response from Excel
+    const excelResponse = buildResponseFromExcel();
+    if (excelResponse) {
+      // Also try to sync to DB if available
+      const db = await getDb();
+      if (db) {
+        try {
+          const projects = parseExcelFile(filePath);
+          const checksum = getFileChecksum(filePath);
+          await db.$transaction(async (tx: any) => {
+            await tx.pPMProject.deleteMany();
+            await tx.fileMetadata.deleteMany();
+            await tx.fileMetadata.create({
+              data: { fileName: file.name, fileChecksum: checksum, fileSize: Buffer.from(bytes).length, fileLastModified: new Date() },
+            });
+            for (const p of projects) {
+              await tx.pPMProject.create({ data: p });
+            }
+          });
+        } catch (dbErr) {
+          console.error('DB sync failed (non-critical):', dbErr);
+        }
+      }
+      return NextResponse.json({
+        ...excelResponse,
+        uploadSuccess: true,
+        message: `Fichier "${file.name}" sauvegardé avec succès`,
+      });
+    }
 
-    return NextResponse.json({
-      lastUpdated: new Date().toISOString(),
-      fileChecksum: syncResult.checksum,
-      fileName: syncResult.fileName,
-      fileLastModified: syncResult.fileLastModified,
-      fileSize: syncResult.fileSize,
-      dataSaved: true,
-      uploadSuccess: true,
-      message: `Fichier "${file.name}" sauvegardé avec succès — ${syncResult.projectCount} marchés enregistrés en base`,
-      projects,
-      soumissionnaires,
-      ...analytics,
-    });
+    return NextResponse.json({ error: 'Erreur lors du traitement du fichier' }, { status: 500 });
   } catch (error) {
     console.error('Error uploading file:', error);
     return NextResponse.json({ error: 'Erreur lors du chargement du fichier' }, { status: 500 });
@@ -306,27 +364,29 @@ export async function PUT(request: Request) {
     const clientChecksum = body.checksum as string | undefined;
     const filePath = findExcelFile();
 
-    if (!filePath) {
-      // Check DB for saved data
-      const meta = await db.fileMetadata.findFirst({ orderBy: { lastSyncAt: 'desc' } });
-      if (!meta) return NextResponse.json({ changed: true, noFile: true });
+    if (filePath) {
+      const currentChecksum = getFileChecksum(filePath);
+      const fileStats = fs.statSync(filePath);
+      const changed = !clientChecksum || clientChecksum !== currentChecksum;
       return NextResponse.json({
-        changed: clientChecksum !== meta.fileChecksum,
-        checksum: meta.fileChecksum,
-        fileName: meta.fileName,
-        fileLastModified: meta.fileLastModified.toISOString(),
+        changed,
+        checksum: currentChecksum,
+        fileName: path.basename(filePath),
+        fileLastModified: fileStats.mtime.toISOString(),
       });
     }
 
-    const currentChecksum = getFileChecksum(filePath);
-    const fileStats = fs.statSync(filePath);
-    const changed = !clientChecksum || clientChecksum !== currentChecksum;
+    // No Excel: check DB
+    const db = await getDb();
+    if (!db) return NextResponse.json({ changed: true, noFile: true });
 
+    const meta = await db.fileMetadata.findFirst({ orderBy: { lastSyncAt: 'desc' } });
+    if (!meta) return NextResponse.json({ changed: true, noFile: true });
     return NextResponse.json({
-      changed,
-      checksum: currentChecksum,
-      fileName: path.basename(filePath),
-      fileLastModified: fileStats.mtime.toISOString(),
+      changed: clientChecksum !== meta.fileChecksum,
+      checksum: meta.fileChecksum,
+      fileName: meta.fileName,
+      fileLastModified: meta.fileLastModified.toISOString(),
     });
   } catch (error) {
     console.error('Error checking file:', error);

@@ -18,7 +18,7 @@ import {
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
-  X, ClipboardList, History, Download, Printer, Send
+  X, ClipboardList, History, Download, Printer, Send, Bell, BellRing, Timer
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -371,7 +371,7 @@ export default function Dashboard() {
   const [showUpload, setShowUpload] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const lastChecksumRef = useRef<string | null>(null);
-  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'reports' | 'dashboard'>('dashboard');
+  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'reports' | 'alerts' | 'dashboard'>('dashboard');
   const [expandedAO, setExpandedAO] = useState<number | null>(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
@@ -836,6 +836,7 @@ export default function Dashboard() {
               { key: 'step' as const, label: 'Par Étape', icon: <ClipboardList className="w-4.5 h-4.5" /> },
               { key: 'history' as const, label: 'Historique', icon: <History className="w-4.5 h-4.5" /> },
               { key: 'reports' as const, label: 'Rapports', icon: <FileText className="w-4.5 h-4.5" /> },
+              { key: 'alerts' as const, label: 'Alertes', icon: <Bell className="w-4.5 h-4.5" /> },
             ].map(tab => (
               <button
                 key={tab.key}

@@ -212,6 +212,49 @@ const findPPMForSoum = (projects: PPMProject[] | undefined, numAO: string, entit
 const fmtMDH = (n: number) => (n / 1_000_000).toFixed(2) + ' MDH';
 const fmtNum = (n: number) => (n / 1_000_000).toFixed(2);
 
+// Compute AO status indicators for a group of projects
+const computeAOIndicators = (projects: PPMProject[]) => {
+  const nbOuvert = projects.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).length;
+  const nbJuge = projects.filter(p => p.situationAvancement === 'Jugé' || p.situationAvancement === 'En cours de jugement').length;
+  const nbEngage = projects.filter(p => p.situationAvancement === 'Engagé').length;
+  const nbInfructueux = projects.filter(p => p.situationAvancement === 'Infructueux').length;
+  const nbAnnule = projects.filter(p => p.situationAvancement === 'Annulé').length;
+  const nbPublie = projects.filter(p => p.situationAvancement === 'Publié sur PMP').length;
+  const nbDaoCE = projects.filter(p => p.situationAvancement === 'DAO Envoyé au CE').length;
+  const nbProgrammer = projects.filter(p => p.situationAvancement === 'A programmer').length;
+  const engCP = projects.reduce((s, p) => s + (p.engagementCP || 0), 0);
+  const engCE = projects.reduce((s, p) => s + (p.engagementCE || 0), 0);
+  return { nbOuvert, nbJuge, nbEngage, nbInfructueux, nbAnnule, nbPublie, nbDaoCE, nbProgrammer, engCP, engCE };
+};
+
+// Reusable AO indicator header columns
+const aoIndicatorHeaders = () => (
+  <>
+    <th className="px-3 py-2.5 text-center text-blue-500">Ouvert</th>
+    <th className="px-3 py-2.5 text-center text-amber-500">Jugé</th>
+    <th className="px-3 py-2.5 text-center text-green-500">Engagé</th>
+    <th className="px-3 py-2.5 text-center text-red-500">Infruct.</th>
+    <th className="px-3 py-2.5 text-center text-slate-400">Annulé</th>
+    <th className="px-3 py-2.5 text-center text-violet-500">Publié</th>
+    <th className="px-3 py-2.5 text-center text-cyan-500">DAO CE</th>
+    <th className="px-3 py-2.5 text-center text-gray-400">Progr.</th>
+  </>
+);
+
+// Reusable AO indicator cells for a row
+const aoIndicatorCells = (ind: ReturnType<typeof computeAOIndicators>) => (
+  <>
+    <td className="px-3 py-2.5 text-center">{ind.nbOuvert > 0 ? <Badge className="bg-blue-100 text-blue-700 border-0 text-[10px]">{ind.nbOuvert}</Badge> : <span className="text-slate-300">—</span>}</td>
+    <td className="px-3 py-2.5 text-center">{ind.nbJuge > 0 ? <Badge className="bg-amber-100 text-amber-700 border-0 text-[10px]">{ind.nbJuge}</Badge> : <span className="text-slate-300">—</span>}</td>
+    <td className="px-3 py-2.5 text-center">{ind.nbEngage > 0 ? <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">{ind.nbEngage}</Badge> : <span className="text-slate-300">—</span>}</td>
+    <td className="px-3 py-2.5 text-center">{ind.nbInfructueux > 0 ? <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">{ind.nbInfructueux}</Badge> : <span className="text-slate-300">—</span>}</td>
+    <td className="px-3 py-2.5 text-center">{ind.nbAnnule > 0 ? <Badge className="bg-slate-200 text-slate-600 border-0 text-[10px]">{ind.nbAnnule}</Badge> : <span className="text-slate-300">—</span>}</td>
+    <td className="px-3 py-2.5 text-center">{ind.nbPublie > 0 ? <Badge className="bg-violet-100 text-violet-700 border-0 text-[10px]">{ind.nbPublie}</Badge> : <span className="text-slate-300">—</span>}</td>
+    <td className="px-3 py-2.5 text-center">{ind.nbDaoCE > 0 ? <Badge className="bg-cyan-100 text-cyan-700 border-0 text-[10px]">{ind.nbDaoCE}</Badge> : <span className="text-slate-300">—</span>}</td>
+    <td className="px-3 py-2.5 text-center">{ind.nbProgrammer > 0 ? <Badge className="bg-gray-100 text-gray-700 border-0 text-[10px]">{ind.nbProgrammer}</Badge> : <span className="text-slate-300">—</span>}</td>
+  </>
+);
+
 const fmtFull = (n: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
 
@@ -4058,24 +4101,33 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
                       <th className="px-3 py-2.5 text-left">Type</th>
                       <th className="px-3 py-2.5 text-center">Nb AO</th>
+                      {aoIndicatorHeaders()}
                       <th className="px-3 py-2.5 text-right">CP (MDH)</th>
                       <th className="px-3 py-2.5 text-right">CE (MDH)</th>
                       <th className="px-3 py-2.5 text-right">Estimation (MDH)</th>
-                      <th className="px-3 py-2.5 text-right">Engagement (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. CP (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. CE (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. Total (MDH)</th>
                       <th className="px-3 py-2.5 text-center">Taux</th>
                     </tr>
                   </thead>
                   <tbody>
                     {Object.entries(filteredTypeBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
-                      const rate = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
+                      const rowProjects = filtered.filter(p => p.typeBudget === name);
+                      const ind = computeAOIndicators(rowProjects);
+                      const engTotal = d.engagement;
+                      const rate = d.estimation > 0 ? Math.round((engTotal / d.estimation) * 100) : 0;
                       return (
                         <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                           <td className="px-3 py-2.5 font-semibold text-slate-700">{name}</td>
                           <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                          {aoIndicatorCells(ind)}
                           <td className="px-3 py-2.5 text-right text-blue-600">{fmtNum(d.cp)}</td>
                           <td className="px-3 py-2.5 text-right text-cyan-600">{fmtNum(d.ce)}</td>
                           <td className="px-3 py-2.5 text-right text-amber-600">{fmtNum(d.estimation)}</td>
-                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(d.engagement)}</td>
+                          <td className="px-3 py-2.5 text-right text-violet-600">{fmtNum(ind.engCP)}</td>
+                          <td className="px-3 py-2.5 text-right text-teal-600">{fmtNum(ind.engCE)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(engTotal)}</td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4092,9 +4144,12 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 font-semibold">
                       <td className="px-3 py-2.5 text-slate-800">Total</td>
                       <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                      {aoIndicatorCells(computeAOIndicators(filtered))}
                       <td className="px-3 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalCP)}</td>
                       <td className="px-3 py-2.5 text-right text-cyan-700">{fmtNum(filteredKpis.totalCE)}</td>
                       <td className="px-3 py-2.5 text-right text-amber-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-violet-700">{fmtNum(filteredKpis.totalEngagementCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-teal-700">{fmtNum(filteredKpis.totalEngagementCE)}</td>
                       <td className="px-3 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
@@ -4126,24 +4181,33 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
                       <th className="px-3 py-2.5 text-left">Programme</th>
                       <th className="px-3 py-2.5 text-center">Nb AO</th>
+                      {aoIndicatorHeaders()}
                       <th className="px-3 py-2.5 text-right">CP (MDH)</th>
                       <th className="px-3 py-2.5 text-right">CE (MDH)</th>
                       <th className="px-3 py-2.5 text-right">Estimation (MDH)</th>
-                      <th className="px-3 py-2.5 text-right">Engagement (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. CP (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. CE (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. Total (MDH)</th>
                       <th className="px-3 py-2.5 text-center">Taux</th>
                     </tr>
                   </thead>
                   <tbody>
                     {Object.entries(filteredProgrammeBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
-                      const rate = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
+                      const rowProjects = filtered.filter(p => p.programme === name);
+                      const ind = computeAOIndicators(rowProjects);
+                      const engTotal = d.engagement;
+                      const rate = d.estimation > 0 ? Math.round((engTotal / d.estimation) * 100) : 0;
                       return (
                         <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                           <td className="px-3 py-2.5 font-semibold text-slate-700">{name}</td>
                           <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                          {aoIndicatorCells(ind)}
                           <td className="px-3 py-2.5 text-right text-blue-600">{fmtNum(d.cp)}</td>
                           <td className="px-3 py-2.5 text-right text-cyan-600">{fmtNum(d.ce)}</td>
                           <td className="px-3 py-2.5 text-right text-amber-600">{fmtNum(d.estimation)}</td>
-                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(d.engagement)}</td>
+                          <td className="px-3 py-2.5 text-right text-violet-600">{fmtNum(ind.engCP)}</td>
+                          <td className="px-3 py-2.5 text-right text-teal-600">{fmtNum(ind.engCE)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(engTotal)}</td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4160,9 +4224,12 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 font-semibold">
                       <td className="px-3 py-2.5 text-slate-800">Total</td>
                       <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                      {aoIndicatorCells(computeAOIndicators(filtered))}
                       <td className="px-3 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalCP)}</td>
                       <td className="px-3 py-2.5 text-right text-cyan-700">{fmtNum(filteredKpis.totalCE)}</td>
                       <td className="px-3 py-2.5 text-right text-amber-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-violet-700">{fmtNum(filteredKpis.totalEngagementCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-teal-700">{fmtNum(filteredKpis.totalEngagementCE)}</td>
                       <td className="px-3 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
@@ -4194,16 +4261,22 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
                       <th className="px-3 py-2.5 text-left">Source de Financement</th>
                       <th className="px-3 py-2.5 text-center">Nb AO</th>
+                      {aoIndicatorHeaders()}
                       <th className="px-3 py-2.5 text-right">CP (MDH)</th>
                       <th className="px-3 py-2.5 text-right">CE (MDH)</th>
                       <th className="px-3 py-2.5 text-right">Estimation (MDH)</th>
-                      <th className="px-3 py-2.5 text-right">Engagement (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. CP (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. CE (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. Total (MDH)</th>
                       <th className="px-3 py-2.5 text-center">Taux</th>
                     </tr>
                   </thead>
                   <tbody>
                     {Object.entries(filteredSourceBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
-                      const rate = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
+                      const rowProjects = filtered.filter(p => p.sourceFinancement === name);
+                      const ind = computeAOIndicators(rowProjects);
+                      const engTotal = d.engagement;
+                      const rate = d.estimation > 0 ? Math.round((engTotal / d.estimation) * 100) : 0;
                       return (
                         <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                           <td className="px-3 py-2.5">
@@ -4213,10 +4286,13 @@ export default function Dashboard() {
                             </div>
                           </td>
                           <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                          {aoIndicatorCells(ind)}
                           <td className="px-3 py-2.5 text-right text-blue-600">{fmtNum(d.cp)}</td>
                           <td className="px-3 py-2.5 text-right text-cyan-600">{fmtNum(d.ce)}</td>
                           <td className="px-3 py-2.5 text-right text-amber-600">{fmtNum(d.estimation)}</td>
-                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(d.engagement)}</td>
+                          <td className="px-3 py-2.5 text-right text-violet-600">{fmtNum(ind.engCP)}</td>
+                          <td className="px-3 py-2.5 text-right text-teal-600">{fmtNum(ind.engCE)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(engTotal)}</td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4233,9 +4309,12 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 font-semibold">
                       <td className="px-3 py-2.5 text-slate-800">Total</td>
                       <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                      {aoIndicatorCells(computeAOIndicators(filtered))}
                       <td className="px-3 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalCP)}</td>
                       <td className="px-3 py-2.5 text-right text-cyan-700">{fmtNum(filteredKpis.totalCE)}</td>
                       <td className="px-3 py-2.5 text-right text-amber-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-violet-700">{fmtNum(filteredKpis.totalEngagementCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-teal-700">{fmtNum(filteredKpis.totalEngagementCE)}</td>
                       <td className="px-3 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
@@ -4267,16 +4346,22 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
                       <th className="px-3 py-2.5 text-left">Projet</th>
                       <th className="px-3 py-2.5 text-center">Nb AO</th>
+                      {aoIndicatorHeaders()}
                       <th className="px-3 py-2.5 text-right">CP (MDH)</th>
                       <th className="px-3 py-2.5 text-right">CE (MDH)</th>
                       <th className="px-3 py-2.5 text-right">Estimation (MDH)</th>
-                      <th className="px-3 py-2.5 text-right">Engagement (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. CP (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. CE (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Eng. Total (MDH)</th>
                       <th className="px-3 py-2.5 text-center">Taux</th>
                     </tr>
                   </thead>
                   <tbody>
                     {Object.entries(filteredProjetBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
-                      const rate = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
+                      const rowProjects = filtered.filter(p => p.projet === name);
+                      const ind = computeAOIndicators(rowProjects);
+                      const engTotal = d.engagement;
+                      const rate = d.estimation > 0 ? Math.round((engTotal / d.estimation) * 100) : 0;
                       return (
                         <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                           <td className="px-3 py-2.5">
@@ -4286,10 +4371,13 @@ export default function Dashboard() {
                             </div>
                           </td>
                           <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                          {aoIndicatorCells(ind)}
                           <td className="px-3 py-2.5 text-right text-blue-600">{fmtNum(d.cp)}</td>
                           <td className="px-3 py-2.5 text-right text-cyan-600">{fmtNum(d.ce)}</td>
                           <td className="px-3 py-2.5 text-right text-amber-600">{fmtNum(d.estimation)}</td>
-                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(d.engagement)}</td>
+                          <td className="px-3 py-2.5 text-right text-violet-600">{fmtNum(ind.engCP)}</td>
+                          <td className="px-3 py-2.5 text-right text-teal-600">{fmtNum(ind.engCE)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(engTotal)}</td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4306,9 +4394,12 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 font-semibold">
                       <td className="px-3 py-2.5 text-slate-800">Total</td>
                       <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                      {aoIndicatorCells(computeAOIndicators(filtered))}
                       <td className="px-3 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalCP)}</td>
                       <td className="px-3 py-2.5 text-right text-cyan-700">{fmtNum(filteredKpis.totalCE)}</td>
                       <td className="px-3 py-2.5 text-right text-amber-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-violet-700">{fmtNum(filteredKpis.totalEngagementCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-teal-700">{fmtNum(filteredKpis.totalEngagementCE)}</td>
                       <td className="px-3 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">

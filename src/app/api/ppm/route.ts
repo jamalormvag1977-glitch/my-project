@@ -321,6 +321,58 @@ export async function GET() {
   }
 }
 
+/* ── Parse Excel from buffer (works on Vercel serverless without filesystem) ── */
+function parseExcelBuffer(buffer: Buffer) {
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  const rawData: unknown[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
+
+  const projects: Array<{
+    id: number; typeBudget: string; natureBudget: string; numAO: string | null;
+    sourceFinancement: string | null; programme: string | null; projet: string | null;
+    entite: string; objet: string; cp: number; ce: number; estimationAdmin: number | null;
+    dateOuverture: string | null; situationAvancement: string; dateJugement: string | null;
+    attributaire: string | null; montantExtrait: number | null; numMarche: string | null;
+    montantEngagement: number | null; engagementCP: number | null; engagementCE: number | null;
+    dateEngagement: string | null; delaisExecution: string | null;
+  }> = [];
+
+  for (let i = 3; i < rawData.length; i++) {
+    const row = rawData[i];
+    if (!row || !row[0]) continue;
+    const id = Number(row[0]);
+    if (isNaN(id) || id === 0) continue;
+
+    projects.push({
+      id,
+      typeBudget: String(row[1] || ''),
+      natureBudget: String(row[2] || ''),
+      sourceFinancement: row[3] != null ? String(row[3]) : null,
+      programme: row[4] != null ? String(row[4]) : null,
+      projet: row[5] != null ? String(row[5]) : null,
+      numAO: row[6] != null ? String(row[6]) : null,
+      entite: String(row[7] || ''),
+      objet: String(row[8] || ''),
+      cp: formatNumber(row[9]) ?? 0,
+      ce: formatNumber(row[10]) ?? 0,
+      estimationAdmin: formatNumber(row[11]),
+      dateOuverture: formatDate(row[12]),
+      situationAvancement: String(row[13] || ''),
+      dateJugement: formatDate(row[14]),
+      attributaire: row[15] ? String(row[15]) : null,
+      montantExtrait: formatNumber(row[16]),
+      numMarche: row[17] ? String(row[17]) : null,
+      montantEngagement: formatNumber(row[18]),
+      engagementCP: formatNumber(row[19]),
+      engagementCE: formatNumber(row[20]),
+      dateEngagement: formatDate(row[21]),
+      delaisExecution: row[22] ? String(row[22]) : null,
+    });
+  }
+  return projects;
+}
+
 /* ── POST: Upload new Excel file ── */
 export async function POST(request: Request) {
   try {
@@ -344,47 +396,58 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Format non supporté. Utilisez .xlsx ou .xls' }, { status: 400 });
     }
 
-    if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-
-    // Save file
-    const filePath = path.join(UPLOAD_DIR, file.name);
+    // Parse Excel directly from memory buffer (works on Vercel serverless)
     const bytes = await file.arrayBuffer();
-    fs.writeFileSync(filePath, Buffer.from(bytes));
+    const buffer = Buffer.from(bytes);
+    const projects = parseExcelBuffer(buffer);
+    const analytics = computeAnalytics(projects);
+    const checksum = crypto.createHash('md5').update(buffer).digest('hex');
 
-    // Build response from Excel
-    const excelResponse = buildResponseFromExcel();
-    if (excelResponse) {
-      // Also try to sync to DB if available
-      const db = await getDb();
-      if (db) {
-        try {
-          const projects = parseExcelFile(filePath);
-          const checksum = getFileChecksum(filePath);
-          await db.$transaction(async (tx: any) => {
-            await tx.pPMProject.deleteMany();
-            await tx.fileMetadata.deleteMany();
-            await tx.fileMetadata.create({
-              data: { fileName: file.name, fileChecksum: checksum, fileSize: Buffer.from(bytes).length, fileLastModified: new Date() },
-            });
-            for (const p of projects) {
-              await tx.pPMProject.create({ data: p });
-            }
-          });
-        } catch (dbErr) {
-          console.error('DB sync failed (non-critical):', dbErr);
-        }
-      }
-      return NextResponse.json({
-        ...excelResponse,
-        uploadSuccess: true,
-        message: `Fichier "${file.name}" sauvegardé avec succès`,
-      });
+    // Try to save file to filesystem (works locally, may fail on Vercel — non-critical)
+    try {
+      if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+      const filePath = path.join(UPLOAD_DIR, file.name);
+      fs.writeFileSync(filePath, buffer);
+      // Also copy to public/data for local dev
+      const ppmPath = path.join(PUBLIC_DATA_DIR, 'ppm.xlsx');
+      fs.writeFileSync(ppmPath, buffer);
+    } catch (fsErr) {
+      console.warn('Could not save file to filesystem (expected on Vercel):', (fsErr as Error).message);
     }
 
-    return NextResponse.json({ error: 'Erreur lors du traitement du fichier' }, { status: 500 });
+    // Try to sync to DB if available
+    const db = await getDb();
+    if (db) {
+      try {
+        await db.$transaction(async (tx: any) => {
+          await tx.pPMProject.deleteMany();
+          await tx.fileMetadata.deleteMany();
+          await tx.fileMetadata.create({
+            data: { fileName: file.name, fileChecksum: checksum, fileSize: buffer.length, fileLastModified: new Date() },
+          });
+          for (const p of projects) {
+            await tx.pPMProject.create({ data: p });
+          }
+        });
+      } catch (dbErr) {
+        console.error('DB sync failed (non-critical):', dbErr);
+      }
+    }
+
+    return NextResponse.json({
+      lastUpdated: new Date().toISOString(),
+      fileChecksum: checksum,
+      fileName: file.name,
+      fileSize: buffer.length,
+      dataSaved: true,
+      uploadSuccess: true,
+      message: `Fichier "${file.name}" chargé avec succès — ${projects.length} AO trouvés`,
+      projects,
+      ...analytics,
+    });
   } catch (error) {
     console.error('Error uploading file:', error);
-    return NextResponse.json({ error: 'Erreur lors du chargement du fichier' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur lors du chargement du fichier: ' + (error as Error).message }, { status: 500 });
   }
 }
 

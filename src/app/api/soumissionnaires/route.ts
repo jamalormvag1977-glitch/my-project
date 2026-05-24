@@ -188,26 +188,32 @@ export async function POST(request: Request) {
     // Process the data
     const { projets, totalProjets, totalSoumissionnaires } = processExcelData(rows);
 
-    // Save the Excel file to public/data/
-    const excelPath = path.join(process.cwd(), 'public', 'data', 'soumissionnaires.xlsx');
-    fs.writeFileSync(excelPath, buffer);
+    // Save the Excel file and regenerate JSON (works locally, may fail on Vercel — non-critical)
+    try {
+      const excelPath = path.join(process.cwd(), 'public', 'data', 'soumissionnaires.xlsx');
+      fs.writeFileSync(excelPath, buffer);
 
-    // Also regenerate the static JSON
-    const jsonData = {
-      lastUpdated: new Date().toISOString(),
-      fileName: file.name,
-      totalProjets,
-      totalSoumissionnaires,
-      projets
-    };
-    const jsonPath = path.join(process.cwd(), 'public', 'data', 'soumissionnaires.json');
-    fs.writeFileSync(jsonPath, JSON.stringify(jsonData, null, 2), 'utf8');
+      // Also regenerate the static JSON
+      const jsonData = {
+        lastUpdated: new Date().toISOString(),
+        fileName: file.name,
+        totalProjets,
+        totalSoumissionnaires,
+        projets
+      };
+      const jsonPath = path.join(process.cwd(), 'public', 'data', 'soumissionnaires.json');
+      fs.writeFileSync(jsonPath, JSON.stringify(jsonData, null, 2), 'utf8');
+    } catch (fsErr) {
+      console.warn('Could not save files to filesystem (expected on Vercel):', (fsErr as Error).message);
+    }
 
     return NextResponse.json({
       success: true,
+      uploadSuccess: true,
       message: `Fichier "${file.name}" traité avec succès : ${totalProjets} AO, ${totalSoumissionnaires} soumissionnaires`,
       totalProjets,
-      totalSoumissionnaires
+      totalSoumissionnaires,
+      projets,
     });
   } catch (e: any) {
     console.error('Upload soumissionnaire error:', e.message);

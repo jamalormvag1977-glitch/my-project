@@ -210,6 +210,7 @@ const findPPMForSoum = (projects: PPMProject[] | undefined, numAO: string, entit
 };
 
 const fmtMDH = (n: number) => (n / 1_000_000).toFixed(2) + ' MDH';
+const fmtNum = (n: number) => (n / 1_000_000).toFixed(2);
 
 const fmtFull = (n: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
@@ -2401,8 +2402,8 @@ export default function Dashboard() {
                                   </td>
                                   <td className="px-4 py-2.5 text-center font-semibold text-slate-800">{count}</td>
                                   <td className="px-4 py-2.5 text-center text-slate-500">{pct}%</td>
-                                  <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtMDH(filteredStatusBudget[s]?.estimation || 0)}</td>
-                                  <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtMDH(filteredStatusBudget[s]?.engagement || 0)}</td>
+                                  <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtNum(filteredStatusBudget[s]?.estimation || 0)}</td>
+                                  <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtNum(filteredStatusBudget[s]?.engagement || 0)}</td>
                                 </tr>
                               );
                             })}
@@ -2412,8 +2413,8 @@ export default function Dashboard() {
                               <td className="px-4 py-2.5 text-slate-800">Total</td>
                               <td className="px-4 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
                               <td className="px-4 py-2.5 text-center text-slate-800">100%</td>
-                              <td className="px-4 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
-                              <td className="px-4 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                              <td className="px-4 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                              <td className="px-4 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                             </tr>
                           </tfoot>
                         </table>
@@ -2522,8 +2523,8 @@ export default function Dashboard() {
                                     </div>
                                   </td>
                                   <td className="px-4 py-2.5 text-center font-semibold text-slate-800">{d.count}</td>
-                                  <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtMDH(d.estimation)}</td>
-                                  <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtMDH(d.engagement)}</td>
+                                  <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtNum(d.estimation)}</td>
+                                  <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtNum(d.engagement)}</td>
                                   <td className="px-4 py-2.5">
                                     <div className="flex items-center gap-2">
                                       <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -2536,8 +2537,8 @@ export default function Dashboard() {
                                 {isExpanded && entityProjects.map(p => (
                                   <tr key={`${name}-${p.id}`} className="bg-slate-50/50 border-b border-slate-100">
                                     <td className="px-4 py-2 pl-10 text-slate-600" colSpan={2}>{p.objet.length > 60 ? p.objet.substring(0, 60) + '...' : p.objet}</td>
-                                    <td className="px-4 py-2 text-right text-blue-500">{fmtMDH(p.estimationAdmin || 0)}</td>
-                                    <td className="px-4 py-2 text-right text-green-500">{fmtMDH(p.montantEngagement || 0)}</td>
+                                    <td className="px-4 py-2 text-right text-blue-500">{fmtNum(p.estimationAdmin || 0)}</td>
+                                    <td className="px-4 py-2 text-right text-green-500">{fmtNum(p.montantEngagement || 0)}</td>
                                     <td className="px-4 py-2">
                                       <Badge className="text-[9px] h-4" style={{ backgroundColor: statusColor[p.situationAvancement] + '20', color: statusColor[p.situationAvancement], borderColor: statusColor[p.situationAvancement] + '30' }} variant="outline">
                                         {p.situationAvancement}
@@ -2553,8 +2554,8 @@ export default function Dashboard() {
                           <tr className="bg-slate-50 font-semibold">
                             <td className="px-4 py-2.5 text-slate-800">Total</td>
                             <td className="px-4 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
-                            <td className="px-4 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
-                            <td className="px-4 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                            <td className="px-4 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                            <td className="px-4 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                             <td className="px-4 py-2.5">
                               <div className="flex items-center gap-2">
                                 <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -2668,8 +2669,8 @@ export default function Dashboard() {
                                   </div>
                                 </td>
                                 <td className="px-4 py-2.5 text-center font-semibold text-slate-800">{count}</td>
-                                <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtMDH(est)}</td>
-                                <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtMDH(eng)}</td>
+                                <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtNum(est)}</td>
+                                <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtNum(eng)}</td>
                                 <td className="px-4 py-2.5 text-center">
                                   <span className={`font-bold ${sRate >= 50 ? 'text-green-600' : sRate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{sRate}%</span>
                                 </td>
@@ -2890,10 +2891,10 @@ export default function Dashboard() {
                                     <span className="font-semibold text-slate-700">{name}</span>
                                   </div>
                                 </td>
-                                <td className="px-3 py-2.5 text-right text-slate-600">{fmtMDH(d.cp)}</td>
-                                <td className="px-3 py-2.5 text-right text-slate-600">{fmtMDH(d.ce)}</td>
-                                <td className="px-3 py-2.5 text-right font-medium text-blue-600">{fmtMDH(d.estimation)}</td>
-                                <td className="px-3 py-2.5 text-right font-medium text-green-600">{fmtMDH(d.engagement)}</td>
+                                <td className="px-3 py-2.5 text-right text-slate-600">{fmtNum(d.cp)}</td>
+                                <td className="px-3 py-2.5 text-right text-slate-600">{fmtNum(d.ce)}</td>
+                                <td className="px-3 py-2.5 text-right font-medium text-blue-600">{fmtNum(d.estimation)}</td>
+                                <td className="px-3 py-2.5 text-right font-medium text-green-600">{fmtNum(d.engagement)}</td>
                                 <td className="px-3 py-2.5 text-center">
                                   <div className="flex items-center justify-center gap-1.5">
                                     <div className="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -2902,7 +2903,7 @@ export default function Dashboard() {
                                     <span className={`font-bold text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
                                   </div>
                                 </td>
-                                <td className="px-3 py-2.5 text-right font-medium text-red-600">{fmtMDH(reste)}</td>
+                                <td className="px-3 py-2.5 text-right font-medium text-red-600">{fmtNum(reste)}</td>
                               </tr>
                             );
                           })}
@@ -2910,14 +2911,14 @@ export default function Dashboard() {
                         <tfoot>
                           <tr className="bg-slate-50 font-semibold">
                             <td className="px-3 py-2.5 text-slate-800">Total</td>
-                            <td className="px-3 py-2.5 text-right text-slate-700">{fmtMDH(filteredKpis.totalCP)}</td>
-                            <td className="px-3 py-2.5 text-right text-slate-700">{fmtMDH(filteredKpis.totalCE)}</td>
-                            <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
-                            <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                            <td className="px-3 py-2.5 text-right text-slate-700">{fmtNum(filteredKpis.totalCP)}</td>
+                            <td className="px-3 py-2.5 text-right text-slate-700">{fmtNum(filteredKpis.totalCE)}</td>
+                            <td className="px-3 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                            <td className="px-3 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                             <td className="px-3 py-2.5 text-center">
                               <span className={`font-bold text-[10px] ${engRate >= 50 ? 'text-green-600' : engRate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{engRate}%</span>
                             </td>
-                            <td className="px-3 py-2.5 text-right text-red-700">{fmtMDH(totalReste)}</td>
+                            <td className="px-3 py-2.5 text-right text-red-700">{fmtNum(totalReste)}</td>
                           </tr>
                         </tfoot>
                       </table>
@@ -3035,8 +3036,8 @@ export default function Dashboard() {
                                   <span className="font-semibold text-slate-700">{monthLabel(month)}</span>
                                 </td>
                                 <td className="px-4 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
-                                <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtMDH(d.estimation)}</td>
-                                <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtMDH(d.engagement)}</td>
+                                <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtNum(d.estimation)}</td>
+                                <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtNum(d.engagement)}</td>
                                 <td className="px-4 py-2.5">
                                   <div className="flex items-center gap-2">
                                     <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -3053,8 +3054,8 @@ export default function Dashboard() {
                           <tr className="bg-slate-50 font-semibold">
                             <td className="px-4 py-2.5 text-slate-800">Total</td>
                             <td className="px-4 py-2.5 text-center text-slate-800">{monthlyEntries.reduce((s, [, d]) => s + d.count, 0)}</td>
-                            <td className="px-4 py-2.5 text-right text-blue-700">{fmtMDH(monthlyEntries.reduce((s, [, d]) => s + d.estimation, 0))}</td>
-                            <td className="px-4 py-2.5 text-right text-green-700">{fmtMDH(monthlyEntries.reduce((s, [, d]) => s + d.engagement, 0))}</td>
+                            <td className="px-4 py-2.5 text-right text-blue-700">{fmtNum(monthlyEntries.reduce((s, [, d]) => s + d.estimation, 0))}</td>
+                            <td className="px-4 py-2.5 text-right text-green-700">{fmtNum(monthlyEntries.reduce((s, [, d]) => s + d.engagement, 0))}</td>
                             <td className="px-4 py-2.5"></td>
                           </tr>
                         </tfoot>
@@ -3906,12 +3907,12 @@ export default function Dashboard() {
                           <td className="px-3 py-2.5 text-center">{nbPublie > 0 ? <Badge className="bg-violet-100 text-violet-700 border-0 text-[10px]">{nbPublie}</Badge> : <span className="text-slate-300">—</span>}</td>
                           <td className="px-3 py-2.5 text-center">{nbDaoCE > 0 ? <Badge className="bg-cyan-100 text-cyan-700 border-0 text-[10px]">{nbDaoCE}</Badge> : <span className="text-slate-300">—</span>}</td>
                           <td className="px-3 py-2.5 text-center">{nbProgrammer > 0 ? <Badge className="bg-gray-100 text-gray-700 border-0 text-[10px]">{nbProgrammer}</Badge> : <span className="text-slate-300">—</span>}</td>
-                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
-                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
-                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
-                          <td className="px-3 py-2.5 text-right text-violet-600">{fmtMDH(engCP)}</td>
-                          <td className="px-3 py-2.5 text-right text-teal-600">{fmtMDH(engCE)}</td>
-                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtMDH(engTotal)}</td>
+                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtNum(d.cp)}</td>
+                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtNum(d.ce)}</td>
+                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtNum(d.estimation)}</td>
+                          <td className="px-3 py-2.5 text-right text-violet-600">{fmtNum(engCP)}</td>
+                          <td className="px-3 py-2.5 text-right text-teal-600">{fmtNum(engCE)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(engTotal)}</td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -3936,12 +3937,12 @@ export default function Dashboard() {
                       <td className="px-3 py-2.5 text-center"><Badge className="bg-violet-100 text-violet-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Publié sur PMP').length}</Badge></td>
                       <td className="px-3 py-2.5 text-center"><Badge className="bg-cyan-100 text-cyan-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE').length}</Badge></td>
                       <td className="px-3 py-2.5 text-center"><Badge className="bg-gray-100 text-gray-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'A programmer').length}</Badge></td>
-                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
-                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
-                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
-                      <td className="px-3 py-2.5 text-right text-violet-700">{fmtMDH(filteredKpis.totalEngagementCP)}</td>
-                      <td className="px-3 py-2.5 text-right text-teal-700">{fmtMDH(filteredKpis.totalEngagementCE)}</td>
-                      <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtNum(filteredKpis.totalCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-violet-700">{fmtNum(filteredKpis.totalEngagementCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-teal-700">{fmtNum(filteredKpis.totalEngagementCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4071,10 +4072,10 @@ export default function Dashboard() {
                         <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                           <td className="px-3 py-2.5 font-semibold text-slate-700">{name}</td>
                           <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
-                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
-                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
-                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
-                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtMDH(d.engagement)}</td>
+                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtNum(d.cp)}</td>
+                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtNum(d.ce)}</td>
+                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtNum(d.estimation)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(d.engagement)}</td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4091,10 +4092,10 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 font-semibold">
                       <td className="px-3 py-2.5 text-slate-800">Total</td>
                       <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
-                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
-                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
-                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
-                      <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtNum(filteredKpis.totalCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4139,10 +4140,10 @@ export default function Dashboard() {
                         <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                           <td className="px-3 py-2.5 font-semibold text-slate-700">{name}</td>
                           <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
-                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
-                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
-                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
-                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtMDH(d.engagement)}</td>
+                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtNum(d.cp)}</td>
+                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtNum(d.ce)}</td>
+                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtNum(d.estimation)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(d.engagement)}</td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4159,10 +4160,10 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 font-semibold">
                       <td className="px-3 py-2.5 text-slate-800">Total</td>
                       <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
-                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
-                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
-                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
-                      <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtNum(filteredKpis.totalCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4212,10 +4213,10 @@ export default function Dashboard() {
                             </div>
                           </td>
                           <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
-                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
-                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
-                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
-                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtMDH(d.engagement)}</td>
+                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtNum(d.cp)}</td>
+                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtNum(d.ce)}</td>
+                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtNum(d.estimation)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(d.engagement)}</td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4232,10 +4233,10 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 font-semibold">
                       <td className="px-3 py-2.5 text-slate-800">Total</td>
                       <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
-                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
-                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
-                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
-                      <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtNum(filteredKpis.totalCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4285,10 +4286,10 @@ export default function Dashboard() {
                             </div>
                           </td>
                           <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
-                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
-                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
-                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
-                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtMDH(d.engagement)}</td>
+                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtNum(d.cp)}</td>
+                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtNum(d.ce)}</td>
+                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtNum(d.estimation)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtNum(d.engagement)}</td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -4305,10 +4306,10 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 font-semibold">
                       <td className="px-3 py-2.5 text-slate-800">Total</td>
                       <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
-                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
-                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
-                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
-                      <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtNum(filteredKpis.totalCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">

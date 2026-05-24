@@ -3231,21 +3231,103 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Bar Chart par Entité */}
-                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                    <h3 className="text-sm font-bold text-slate-800 mb-3">Estimation vs Engagement par Entité (MDH)</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={entityData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                        <XAxis dataKey="name" tick={{ fontSize: 9 }} angle={-25} textAnchor="end" height={60} />
-                        <YAxis tick={{ fontSize: 9 }} tickFormatter={(v: number) => `${(v/1e6).toFixed(0)}`} />
-                        <Tooltip formatter={(v: number) => [`${(v/1e6).toFixed(2)} MDH`, '']} contentStyle={{ fontSize: 11, borderRadius: 10 }} />
-                        <Legend wrapperStyle={{ fontSize: 10 }} />
-                        <Bar dataKey="estimation" name="Estimation" fill="#f59e0b" radius={[3,3,0,0]} />
-                        <Bar dataKey="engagement" name="Engagement" fill="#16a34a" radius={[3,3,0,0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {/* ── Synthèse par Nature ── */}
+                  {(() => {
+                    const syntheses = [
+                      { title: 'Synthèse par Nature', icon: <Tag className="w-4 h-4 text-violet-600" />, data: filteredNatureBudget, colorDot: '#8b5cf6' },
+                      { title: 'Synthèse par Source de Financement', icon: <Wallet className="w-4 h-4 text-emerald-600" />, data: filteredSourceBudget, colorDot: '#10b981' },
+                      { title: 'Synthèse par Type', icon: <FileText className="w-4 h-4 text-blue-600" />, data: filteredTypeBudget, colorDot: '#3b82f6' },
+                      { title: 'Synthèse par Programme', icon: <ClipboardList className="w-4 h-4 text-amber-600" />, data: filteredProgrammeBudget, colorDot: '#f59e0b' },
+                      { title: 'Synthèse par Projet', icon: <FolderOpen className="w-4 h-4 text-cyan-600" />, data: filteredProjetBudget, colorDot: '#06b6d4' },
+                    ];
+                    return syntheses.map((synth, si) => {
+                      const entries = Object.entries(synth.data).sort(([,a],[,b]) => b.estimation - a.estimation);
+                      const totalEst = entries.reduce((s,[,d]) => s + d.estimation, 0);
+                      const totalEng = entries.reduce((s,[,d]) => s + d.engagement, 0);
+                      const totalCP = entries.reduce((s,[,d]) => s + d.cp, 0);
+                      const totalCE = entries.reduce((s,[,d]) => s + d.ce, 0);
+                      const totalCount = entries.reduce((s,[,d]) => s + d.count, 0);
+                      const globalTaux = totalEst > 0 ? Math.round(totalEng / totalEst * 100) : 0;
+                      return (
+                        <div key={si} className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                          <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
+                            {synth.icon}
+                            <h3 className="text-sm font-bold text-slate-800">{synth.title}</h3>
+                            <span className="ml-auto text-[10px] text-slate-400">{entries.length} éléments · {totalCount} AO · Taux eng. global : <strong className={globalTaux >= 50 ? 'text-green-600' : globalTaux >= 25 ? 'text-amber-600' : 'text-red-600'}>{globalTaux}%</strong></span>
+                          </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="bg-slate-50 border-b border-slate-100">
+                                  <th className="px-4 py-2.5 text-left font-semibold text-slate-600">Désignation</th>
+                                  <th className="px-3 py-2.5 text-center font-semibold text-slate-600">Nb AO</th>
+                                  <th className="px-3 py-2.5 text-center font-semibold text-slate-600">% Nb</th>
+                                  <th className="px-3 py-2.5 text-right font-semibold text-slate-600">CP (MDH)</th>
+                                  <th className="px-3 py-2.5 text-right font-semibold text-slate-600">CE (MDH)</th>
+                                  <th className="px-3 py-2.5 text-right font-semibold text-slate-600">Estimation (MDH)</th>
+                                  <th className="px-3 py-2.5 text-right font-semibold text-slate-600">% Est.</th>
+                                  <th className="px-3 py-2.5 text-right font-semibold text-slate-600">Engagement (MDH)</th>
+                                  <th className="px-3 py-2.5 text-center font-semibold text-slate-600">Taux Eng.</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {entries.map(([name, d]) => {
+                                  const taux = d.estimation > 0 ? Math.round(d.engagement / d.estimation * 100) : 0;
+                                  const pctNb = totalCount > 0 ? (d.count / totalCount * 100).toFixed(1) : '0.0';
+                                  const pctEst = totalEst > 0 ? (d.estimation / totalEst * 100).toFixed(1) : '0.0';
+                                  return (
+                                    <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                      <td className="px-4 py-2.5">
+                                        <div className="flex items-center gap-2">
+                                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: synth.colorDot }} />
+                                          <span className="font-semibold text-slate-700">{name}</span>
+                                        </div>
+                                      </td>
+                                      <td className="px-3 py-2.5 text-center font-semibold text-slate-800">{d.count}</td>
+                                      <td className="px-3 py-2.5 text-center text-slate-500">{pctNb}%</td>
+                                      <td className="px-3 py-2.5 text-right font-medium text-blue-600">{fmtNum(d.cp)}</td>
+                                      <td className="px-3 py-2.5 text-right font-medium text-indigo-600">{fmtNum(d.ce)}</td>
+                                      <td className="px-3 py-2.5 text-right font-medium text-amber-600">{fmtNum(d.estimation)}</td>
+                                      <td className="px-3 py-2.5 text-right text-slate-500">{pctEst}%</td>
+                                      <td className="px-3 py-2.5 text-right font-medium text-green-600">{fmtNum(d.engagement)}</td>
+                                      <td className="px-3 py-2.5">
+                                        <div className="flex items-center gap-1.5">
+                                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, taux)}%`, backgroundColor: taux >= 50 ? '#16a34a' : taux >= 25 ? '#d97706' : '#dc2626' }} />
+                                          </div>
+                                          <span className={`font-bold w-8 text-right text-[10px] ${taux >= 50 ? 'text-green-600' : taux >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{taux}%</span>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                              <tfoot>
+                                <tr className="bg-slate-50 font-semibold">
+                                  <td className="px-4 py-2.5 text-slate-800">Total</td>
+                                  <td className="px-3 py-2.5 text-center text-slate-800">{totalCount}</td>
+                                  <td className="px-3 py-2.5 text-center text-slate-500">100%</td>
+                                  <td className="px-3 py-2.5 text-right text-blue-700">{fmtNum(totalCP)}</td>
+                                  <td className="px-3 py-2.5 text-right text-indigo-700">{fmtNum(totalCE)}</td>
+                                  <td className="px-3 py-2.5 text-right text-amber-700">{fmtNum(totalEst)}</td>
+                                  <td className="px-3 py-2.5 text-right text-slate-500">100%</td>
+                                  <td className="px-3 py-2.5 text-right text-green-700">{fmtNum(totalEng)}</td>
+                                  <td className="px-3 py-2.5">
+                                    <div className="flex items-center gap-1.5">
+                                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full rounded-full" style={{ width: `${Math.min(100, globalTaux)}%`, backgroundColor: globalTaux >= 50 ? '#16a34a' : globalTaux >= 25 ? '#d97706' : '#dc2626' }} />
+                                      </div>
+                                      <span className="font-bold w-8 text-right text-[10px]">{globalTaux}%</span>
+                                    </div>
+                                  </td>
+                                </tr>
+                              </tfoot>
+                            </table>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
 
                   {/* Auto-generated Summary */}
                   <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm p-6">

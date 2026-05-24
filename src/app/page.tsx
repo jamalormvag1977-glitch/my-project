@@ -3542,8 +3542,8 @@ export default function Dashboard() {
                           <th className="px-4 py-2.5 text-left">Entité</th>
                           <th className="px-4 py-2.5 text-center">Nb AO</th>
                           <th className="px-4 py-2.5 text-center">Avg Ouv.→Jugé (j)</th>
-                          <th className="px-4 py-2.5 text-center">Avg Ouv.→Eng. (j)</th>
                           <th className="px-4 py-2.5 text-center">Avg Jugé→Eng. (j)</th>
+                          <th className="px-4 py-2.5 text-center">Avg Ouv.→Eng. (j)</th>
                           <th className="px-4 py-2.5 text-left">Comparaison</th>
                         </tr>
                       </thead>
@@ -3565,13 +3565,13 @@ export default function Dashboard() {
                                 ) : <span className="text-slate-300">—</span>}
                               </td>
                               <td className="px-4 py-2.5 text-center">
-                                {d.avgOuvEng > 0 ? (
-                                  <span className="font-bold text-blue-600">{d.avgOuvEng}j</span>
+                                {d.avgJugeEng > 0 ? (
+                                  <span className="font-bold text-green-600">{d.avgJugeEng}j</span>
                                 ) : <span className="text-slate-300">—</span>}
                               </td>
                               <td className="px-4 py-2.5 text-center">
-                                {d.avgJugeEng > 0 ? (
-                                  <span className="font-bold text-green-600">{d.avgJugeEng}j</span>
+                                {d.avgOuvEng > 0 ? (
+                                  <span className="font-bold text-blue-600">{d.avgOuvEng}j</span>
                                 ) : <span className="text-slate-300">—</span>}
                               </td>
                               <td className="px-4 py-2.5">
@@ -3579,11 +3579,11 @@ export default function Dashboard() {
                                   {d.avgOuvJuge > 0 && (
                                     <div className="h-2 rounded-full bg-amber-400" style={{ width: `${Math.min(100, (d.avgOuvJuge / maxAvg) * 60)}px` }} title={`Ouv→Jugé: ${d.avgOuvJuge}j`} />
                                   )}
-                                  {d.avgOuvEng > 0 && (
-                                    <div className="h-2 rounded-full bg-blue-400" style={{ width: `${Math.min(100, (d.avgOuvEng / maxAvg) * 60)}px` }} title={`Ouv→Eng: ${d.avgOuvEng}j`} />
-                                  )}
                                   {d.avgJugeEng > 0 && (
                                     <div className="h-2 rounded-full bg-green-400" style={{ width: `${Math.min(100, (d.avgJugeEng / maxAvg) * 60)}px` }} title={`Jugé→Eng: ${d.avgJugeEng}j`} />
+                                  )}
+                                  {d.avgOuvEng > 0 && (
+                                    <div className="h-2 rounded-full bg-blue-400" style={{ width: `${Math.min(100, (d.avgOuvEng / maxAvg) * 60)}px` }} title={`Ouv→Eng: ${d.avgOuvEng}j`} />
                                   )}
                                 </div>
                               </td>
@@ -3612,8 +3612,8 @@ export default function Dashboard() {
                           <th className="px-4 py-2.5 text-left">Statut</th>
                           <th className="px-4 py-2.5 text-center">Nb AO</th>
                           <th className="px-4 py-2.5 text-center">Avg Ouv.→Jugé (j)</th>
-                          <th className="px-4 py-2.5 text-center">Avg Ouv.→Eng. (j)</th>
                           <th className="px-4 py-2.5 text-center">Avg Jugé→Eng. (j)</th>
+                          <th className="px-4 py-2.5 text-center">Avg Ouv.→Eng. (j)</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -3630,10 +3630,10 @@ export default function Dashboard() {
                               {d.avgOuvJuge > 0 ? <span className="font-bold text-amber-600">{d.avgOuvJuge}j</span> : <span className="text-slate-300">—</span>}
                             </td>
                             <td className="px-4 py-2.5 text-center">
-                              {d.avgOuvEng > 0 ? <span className="font-bold text-blue-600">{d.avgOuvEng}j</span> : <span className="text-slate-300">—</span>}
+                              {d.avgJugeEng > 0 ? <span className="font-bold text-green-600">{d.avgJugeEng}j</span> : <span className="text-slate-300">—</span>}
                             </td>
                             <td className="px-4 py-2.5 text-center">
-                              {d.avgJugeEng > 0 ? <span className="font-bold text-green-600">{d.avgJugeEng}j</span> : <span className="text-slate-300">—</span>}
+                              {d.avgOuvEng > 0 ? <span className="font-bold text-blue-600">{d.avgOuvEng}j</span> : <span className="text-slate-300">—</span>}
                             </td>
                           </tr>
                         ))}

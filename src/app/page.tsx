@@ -4022,8 +4022,8 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* ── Analyse par Entité — Vue Progression ── */}
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* ── Analyse par Entité — Vue Progression Améliorée ── */}
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {Object.entries(filteredEntityBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
               const accentColor = entityColorMap[name] || '#3b82f6';
               const engCP = filtered.filter(p => p.entite === name).reduce((s, p) => s + (p.engagementCP || 0), 0);
@@ -4032,117 +4032,141 @@ export default function Dashboard() {
               const tauxEngagement = d.estimation > 0 ? Math.round((engTotal / d.estimation) * 100) : 0;
               const tauxCP = d.cp > 0 ? Math.round((engCP / d.cp) * 100) : 0;
               const tauxCE = d.ce > 0 ? Math.round((engCE / d.ce) * 100) : 0;
-              const nbAOPct = filteredKpis.totalProjects > 0 ? Math.round((d.count / filteredKpis.totalProjects) * 100) : 0;
-              const cpPct = filteredKpis.totalCP > 0 ? Math.round((d.cp / filteredKpis.totalCP) * 100) : 0;
-              const cePct = filteredKpis.totalCE > 0 ? Math.round((d.ce / filteredKpis.totalCE) * 100) : 0;
-              const estPct = filteredKpis.totalEstimation > 0 ? Math.round((d.estimation / filteredKpis.totalEstimation) * 100) : 0;
+              const entityProjects = filtered.filter(p => p.entite === name);
+              const nbOuvert = entityProjects.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).length;
+              const nbJuge = entityProjects.filter(p => p.situationAvancement === 'Jugé' || p.situationAvancement === 'En cours de jugement').length;
+              const nbEngage = entityProjects.filter(p => p.situationAvancement === 'Engagé').length;
+              const nbInfructueux = entityProjects.filter(p => p.situationAvancement === 'Infructueux').length;
+              const nbAnnule = entityProjects.filter(p => p.situationAvancement === 'Annulé').length;
+              const nbPublie = entityProjects.filter(p => p.situationAvancement === 'Publié sur PMP').length;
+              const nbDaoCE = entityProjects.filter(p => p.situationAvancement === 'DAO Envoyé au CE').length;
+              const nbProgrammer = entityProjects.filter(p => p.situationAvancement === 'A programmer').length;
+              const total = d.count || 1;
+              const aoStatusItems = [
+                { label: 'Ouvert', count: nbOuvert, color: '#3b82f6', icon: <CalendarDays className="w-3 h-3" /> },
+                { label: 'Jugé', count: nbJuge, color: '#d97706', icon: <Scale className="w-3 h-3" /> },
+                { label: 'Engagé', count: nbEngage, color: '#16a34a', icon: <CheckCircle2 className="w-3 h-3" /> },
+                { label: 'Infruct.', count: nbInfructueux, color: '#dc2626', icon: <XCircle className="w-3 h-3" /> },
+                { label: 'Annulé', count: nbAnnule, color: '#64748b', icon: <Ban className="w-3 h-3" /> },
+                { label: 'Publié PPM', count: nbPublie, color: '#7c3aed', icon: <Megaphone className="w-3 h-3" /> },
+                { label: 'DAO CE', count: nbDaoCE, color: '#0891b2', icon: <Send className="w-3 h-3" /> },
+                { label: 'Progr.', count: nbProgrammer, color: '#6b7280', icon: <ListTodo className="w-3 h-3" /> },
+              ];
               return (
-                <Card key={name} className="border-0 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden" style={{ borderTop: `3px solid ${accentColor}` }}>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center justify-between">
+                <Card key={name} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group" style={{ borderTop: `3px solid ${accentColor}` }}>
+                  <CardContent className="p-4">
+                    {/* ── Header ── */}
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
-                        <span className="font-bold text-slate-800 text-sm">{name}</span>
-                      </div>
-                      <span className="text-[10px] text-slate-400 font-mono">{d.count} AO</span>
-                    </div>
-
-                    {/* Nombre AO */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-slate-500 uppercase tracking-wider font-medium">Nombre AO</span>
-                        <span className="font-bold text-slate-700">{d.count} <span className="text-slate-400">({nbAOPct}%)</span></span>
-                      </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, nbAOPct)}%`, backgroundColor: accentColor }} />
-                      </div>
-                    </div>
-
-                    {/* CP */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-slate-500 uppercase tracking-wider font-medium">CP</span>
-                        <span className="font-bold text-blue-600">{fmtMDH(d.cp)} <span className="text-slate-400">({cpPct}%)</span></span>
-                      </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, cpPct)}%`, backgroundColor: '#3b82f6' }} />
-                      </div>
-                    </div>
-
-                    {/* CE */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-slate-500 uppercase tracking-wider font-medium">CE</span>
-                        <span className="font-bold text-cyan-600">{fmtMDH(d.ce)} <span className="text-slate-400">({cePct}%)</span></span>
-                      </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, cePct)}%`, backgroundColor: '#06b6d4' }} />
-                      </div>
-                    </div>
-
-                    {/* Estimation */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-slate-500 uppercase tracking-wider font-medium">Estimation</span>
-                        <span className="font-bold text-amber-600">{fmtMDH(d.estimation)} <span className="text-slate-400">({estPct}%)</span></span>
-                      </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, estPct)}%`, backgroundColor: '#d97706' }} />
-                      </div>
-                    </div>
-
-                    {/* Engagement */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-slate-500 uppercase tracking-wider font-medium">Engagement</span>
-                        <span className="font-bold text-green-600">{fmtMDH(engTotal)} <span className="text-slate-400">({tauxEngagement}%)</span></span>
-                      </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, tauxEngagement)}%`, backgroundColor: tauxEngagement >= 50 ? '#16a34a' : tauxEngagement >= 25 ? '#d97706' : '#dc2626' }} />
-                      </div>
-                    </div>
-
-                    {/* ── AO Status Progression ── */}
-                    {(() => {
-                      const entityProjects = filtered.filter(p => p.entite === name);
-                      const nbOuvert = entityProjects.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).length;
-                      const nbJuge = entityProjects.filter(p => p.situationAvancement === 'Jugé' || p.situationAvancement === 'En cours de jugement').length;
-                      const nbEngage = entityProjects.filter(p => p.situationAvancement === 'Engagé').length;
-                      const nbInfructueux = entityProjects.filter(p => p.situationAvancement === 'Infructueux').length;
-                      const nbAnnule = entityProjects.filter(p => p.situationAvancement === 'Annulé').length;
-                      const nbPublie = entityProjects.filter(p => p.situationAvancement === 'Publié sur PMP').length;
-                      const nbDaoCE = entityProjects.filter(p => p.situationAvancement === 'DAO Envoyé au CE').length;
-                      const nbProgrammer = entityProjects.filter(p => p.situationAvancement === 'A programmer').length;
-                      const total = d.count || 1;
-                      const aoStatusItems = [
-                        { label: 'Ouvert', count: nbOuvert, color: '#3b82f6', bg: 'bg-blue-100', text: 'text-blue-700' },
-                        { label: 'Jugé', count: nbJuge, color: '#d97706', bg: 'bg-amber-100', text: 'text-amber-700' },
-                        { label: 'Engagé', count: nbEngage, color: '#16a34a', bg: 'bg-green-100', text: 'text-green-700' },
-                        { label: 'Infruct.', count: nbInfructueux, color: '#dc2626', bg: 'bg-red-100', text: 'text-red-700' },
-                        { label: 'Annulé', count: nbAnnule, color: '#64748b', bg: 'bg-slate-200', text: 'text-slate-600' },
-                        { label: 'Publié PPM', count: nbPublie, color: '#7c3aed', bg: 'bg-violet-100', text: 'text-violet-700' },
-                        { label: 'DAO CE', count: nbDaoCE, color: '#0891b2', bg: 'bg-cyan-100', text: 'text-cyan-700' },
-                        { label: 'Progr.', count: nbProgrammer, color: '#6b7280', bg: 'bg-gray-100', text: 'text-gray-700' },
-                      ];
-                      return (
-                        <div className="mt-2 pt-2 border-t border-slate-100">
-                          <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-2">Progression AO</p>
-                          <div className="space-y-1.5">
-                            {aoStatusItems.map(item => (
-                              <div key={item.label} className="space-y-0.5">
-                                <div className="flex items-center justify-between text-[10px]">
-                                  <span className="text-slate-500 font-medium">{item.label}</span>
-                                  <span className={`font-bold ${item.text}`}>{item.count} <span className="text-slate-400">({Math.round(item.count / total * 100)}%)</span></span>
-                                </div>
-                                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.round(item.count / total * 100))}%`, backgroundColor: item.color }} />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: accentColor }}>
+                          {name.substring(0,2).toUpperCase()}
                         </div>
-                      );
-                    })()}
+                        <div>
+                          <span className="font-bold text-slate-800 text-sm block leading-tight">{name}</span>
+                          <span className="text-[10px] text-slate-400">{d.count} AO · {fmtMDH(d.estimation)}</span>
+                        </div>
+                      </div>
+                      <div className={`px-2 py-1 rounded-md text-[10px] font-bold ${tauxEngagement >= 50 ? 'bg-green-50 text-green-700' : tauxEngagement >= 25 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'}`}>
+                        {tauxEngagement}%
+                      </div>
+                    </div>
+
+                    {/* ── Stacked AO Status Bar ── */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between text-[9px] text-slate-400 mb-1">
+                        <span>Répartition des AO</span>
+                        <span>{d.count} au total</span>
+                      </div>
+                      <div className="h-3 bg-slate-100 rounded-full overflow-hidden flex">
+                        {aoStatusItems.filter(s => s.count > 0).map((s, i) => (
+                          <div
+                            key={s.label}
+                            className="h-full transition-all duration-700 first:rounded-l-full last:rounded-r-full"
+                            style={{ width: `${(s.count / total) * 100}%`, backgroundColor: s.color, minWidth: s.count > 0 ? '4px' : '0' }}
+                            title={`${s.label}: ${s.count} (${Math.round(s.count / total * 100)}%)`}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5">
+                        {aoStatusItems.filter(s => s.count > 0).map(s => (
+                          <span key={s.label} className="flex items-center gap-1 text-[9px]">
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                            <span className="text-slate-500">{s.label}</span>
+                            <span className="font-semibold text-slate-700">{s.count}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* ── Financial KPIs Grid ── */}
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      <div className="bg-blue-50/70 rounded-lg px-2 py-1.5 text-center">
+                        <p className="text-[8px] text-blue-400 uppercase tracking-wider font-medium">CP</p>
+                        <p className="text-xs font-bold text-blue-700 leading-tight">{fmtNum(d.cp)}</p>
+                        <p className="text-[9px] text-blue-500 font-semibold">{tauxCP}% eng.</p>
+                      </div>
+                      <div className="bg-cyan-50/70 rounded-lg px-2 py-1.5 text-center">
+                        <p className="text-[8px] text-cyan-400 uppercase tracking-wider font-medium">CE</p>
+                        <p className="text-xs font-bold text-cyan-700 leading-tight">{fmtNum(d.ce)}</p>
+                        <p className="text-[9px] text-cyan-500 font-semibold">{tauxCE}% eng.</p>
+                      </div>
+                      <div className="bg-amber-50/70 rounded-lg px-2 py-1.5 text-center">
+                        <p className="text-[8px] text-amber-400 uppercase tracking-wider font-medium">Estim.</p>
+                        <p className="text-xs font-bold text-amber-700 leading-tight">{fmtNum(d.estimation)}</p>
+                        <p className="text-[9px] text-amber-500 font-semibold">{tauxEngagement}% eng.</p>
+                      </div>
+                    </div>
+
+                    {/* ── Engagement Progress ── */}
+                    <div className="space-y-2 mb-3">
+                      {/* Engagement CP */}
+                      <div>
+                        <div className="flex items-center justify-between text-[10px] mb-0.5">
+                          <span className="text-slate-500 font-medium flex items-center gap-1"><Wallet className="w-3 h-3 text-blue-400" /> Eng. CP</span>
+                          <span className="font-bold text-blue-700">{fmtNum(engCP)} <span className="text-slate-400 font-normal">/ {fmtNum(d.cp)}</span></span>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, tauxCP)}%`, backgroundColor: tauxCP >= 50 ? '#16a34a' : tauxCP >= 25 ? '#d97706' : '#dc2626' }} />
+                        </div>
+                      </div>
+                      {/* Engagement CE */}
+                      <div>
+                        <div className="flex items-center justify-between text-[10px] mb-0.5">
+                          <span className="text-slate-500 font-medium flex items-center gap-1"><Shield className="w-3 h-3 text-cyan-400" /> Eng. CE</span>
+                          <span className="font-bold text-cyan-700">{fmtNum(engCE)} <span className="text-slate-400 font-normal">/ {fmtNum(d.ce)}</span></span>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, tauxCE)}%`, backgroundColor: tauxCE >= 50 ? '#16a34a' : tauxCE >= 25 ? '#d97706' : '#dc2626' }} />
+                        </div>
+                      </div>
+                      {/* Engagement Total */}
+                      <div>
+                        <div className="flex items-center justify-between text-[10px] mb-0.5">
+                          <span className="text-slate-500 font-medium flex items-center gap-1"><DollarSign className="w-3 h-3 text-amber-400" /> Eng. Total</span>
+                          <span className="font-bold text-green-700">{fmtNum(engTotal)} <span className="text-slate-400 font-normal">/ {fmtNum(d.estimation)}</span></span>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, tauxEngagement)}%`, backgroundColor: tauxEngagement >= 50 ? '#16a34a' : tauxEngagement >= 25 ? '#d97706' : '#dc2626' }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ── AO Status Badges Grid ── */}
+                    <div className="border-t border-slate-100 pt-2">
+                      <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-1.5">Détail statuts AO</p>
+                      <div className="grid grid-cols-4 gap-1">
+                        {aoStatusItems.map(item => (
+                          <div key={item.label} className={`rounded-md px-1.5 py-1 text-center ${item.count > 0 ? 'bg-slate-50' : 'bg-transparent'}`}>
+                            <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                              <span style={{ color: item.count > 0 ? item.color : '#cbd5e1' }}>{item.icon}</span>
+                            </div>
+                            <p className={`text-xs font-bold leading-none ${item.count > 0 ? 'text-slate-800' : 'text-slate-300'}`}>{item.count}</p>
+                            <p className="text-[8px] text-slate-400 leading-tight mt-0.5">{item.label}</p>
+                            {item.count > 0 && <p className="text-[8px] font-semibold leading-tight" style={{ color: item.color }}>{Math.round(item.count / total * 100)}%</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               );

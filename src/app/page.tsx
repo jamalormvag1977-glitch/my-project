@@ -4948,16 +4948,16 @@ export default function Dashboard() {
               textColor: 'text-amber-700',
               headerBg: 'bg-amber-500',
               items: filtered.filter(p => p.situationAvancement === 'Jugé' && (!p.montantEngagement || p.montantEngagement === 0)),
-              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Date Jugement', 'Ouverture Plis', 'CP', 'CE'] as const,
+              columns: ['N° AO', 'Entité', 'Objet', 'CP', 'CE', 'Estimation', 'Ouverture Plis', 'Date Jugement'] as const,
               getCellValue: (p: PPMProject, col: string) => {
                 if (col === 'N° AO') return p.numAO || '—';
-                if (col === 'Objet') return p.objet;
                 if (col === 'Entité') return p.entite;
-                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'Date Jugement') return isValidDate(p.dateJugement) ? p.dateJugement : '—';
-                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'Objet') return p.objet;
                 if (col === 'CP') return fmtNum(p.cp || 0);
                 if (col === 'CE') return fmtNum(p.ce || 0);
+                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
+                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'Date Jugement') return isValidDate(p.dateJugement) ? p.dateJugement : '—';
                 return '';
               },
             },
@@ -4971,15 +4971,16 @@ export default function Dashboard() {
               textColor: 'text-cyan-700',
               headerBg: 'bg-cyan-500',
               items: filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE'),
-              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
+              columns: ['N° AO', 'Entité', 'Objet', 'CP', 'CE', 'Estimation', 'Ouverture Plis', 'Date Jugement'] as const,
               getCellValue: (p: PPMProject, col: string) => {
                 if (col === 'N° AO') return p.numAO || '—';
-                if (col === 'Objet') return p.objet;
                 if (col === 'Entité') return p.entite;
-                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'Objet') return p.objet;
                 if (col === 'CP') return fmtNum(p.cp || 0);
                 if (col === 'CE') return fmtNum(p.ce || 0);
+                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
+                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'Date Jugement') return isValidDate(p.dateJugement) ? p.dateJugement : '—';
                 return '';
               },
             },
@@ -4993,15 +4994,16 @@ export default function Dashboard() {
               textColor: 'text-slate-700',
               headerBg: 'bg-slate-500',
               items: filtered.filter(p => p.situationAvancement === 'A programmer'),
-              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
+              columns: ['N° AO', 'Entité', 'Objet', 'CP', 'CE', 'Estimation', 'Ouverture Plis', 'Date Jugement'] as const,
               getCellValue: (p: PPMProject, col: string) => {
                 if (col === 'N° AO') return p.numAO || '—';
-                if (col === 'Objet') return p.objet;
                 if (col === 'Entité') return p.entite;
-                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'Objet') return p.objet;
                 if (col === 'CP') return fmtNum(p.cp || 0);
                 if (col === 'CE') return fmtNum(p.ce || 0);
+                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
+                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'Date Jugement') return isValidDate(p.dateJugement) ? p.dateJugement : '—';
                 return '';
               },
             },

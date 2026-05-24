@@ -1111,7 +1111,7 @@ export default function Dashboard() {
               {!sidebarCollapsed && (
               <div>
                 <p className="text-sm font-bold text-white tracking-tight">PPM 2026</p>
-                <p className="text-[9px] text-gray-500 uppercase tracking-wider">ORMVAG · v2.4</p>
+                <p className="text-[9px] text-gray-500 uppercase tracking-wider">ORMVAG</p>
               </div>
               )}
             </div>

@@ -947,6 +947,26 @@ export default function Dashboard() {
     filteredTypeBudget[p.typeBudget].engagement += p.montantEngagement || 0;
     filteredTypeBudget[p.typeBudget].count += 1;
   });
+  const filteredSourceBudget: Record<string, { cp: number; ce: number; estimation: number; engagement: number; count: number }> = {};
+  filtered.forEach(p => {
+    const src = p.sourceFinancement || 'Non spécifié';
+    if (!filteredSourceBudget[src]) filteredSourceBudget[src] = { cp: 0, ce: 0, estimation: 0, engagement: 0, count: 0 };
+    filteredSourceBudget[src].cp += p.cp || 0;
+    filteredSourceBudget[src].ce += p.ce || 0;
+    filteredSourceBudget[src].estimation += p.estimationAdmin || 0;
+    filteredSourceBudget[src].engagement += p.montantEngagement || 0;
+    filteredSourceBudget[src].count += 1;
+  });
+  const filteredProjetBudget: Record<string, { cp: number; ce: number; estimation: number; engagement: number; count: number }> = {};
+  filtered.forEach(p => {
+    const proj = p.projet || 'Non spécifié';
+    if (!filteredProjetBudget[proj]) filteredProjetBudget[proj] = { cp: 0, ce: 0, estimation: 0, engagement: 0, count: 0 };
+    filteredProjetBudget[proj].cp += p.cp || 0;
+    filteredProjetBudget[proj].ce += p.ce || 0;
+    filteredProjetBudget[proj].estimation += p.estimationAdmin || 0;
+    filteredProjetBudget[proj].engagement += p.montantEngagement || 0;
+    filteredProjetBudget[proj].count += 1;
+  });
   const filteredMonthlyTimeline: Record<string, { count: number; estimation: number; engagement: number }> = {};
   filtered.forEach(p => {
     if (isValidDate(p.dateOuverture)) {
@@ -4063,6 +4083,152 @@ export default function Dashboard() {
                       return (
                         <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                           <td className="px-3 py-2.5 font-semibold text-slate-700">{name}</td>
+                          <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
+                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
+                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtMDH(d.engagement)}</td>
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full" style={{ width: `${Math.min(100, rate)}%`, backgroundColor: rate >= 50 ? '#16a34a' : rate >= 25 ? '#d97706' : '#dc2626' }} />
+                              </div>
+                              <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-slate-50 font-semibold">
+                      <td className="px-3 py-2.5 text-slate-800">Total</td>
+                      <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${Math.min(100, filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0)}%`, backgroundColor: '#16a34a' }} />
+                          </div>
+                          <span className="font-bold w-8 text-right text-[10px]">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ── 6. Analyse par Source de Financement ── */}
+        <section className="animate-fade-in-up" style={{ animationDelay: '0.28s' }}>
+          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <Wallet className="w-4 h-4 text-emerald-500" />
+            6. Analyse par Source de Financement
+          </h2>
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardContent className="p-5">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                      <th className="px-3 py-2.5 text-left">Source de Financement</th>
+                      <th className="px-3 py-2.5 text-center">Nb AO</th>
+                      <th className="px-3 py-2.5 text-right">CP (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">CE (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Estimation (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Engagement (MDH)</th>
+                      <th className="px-3 py-2.5 text-center">Taux</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(filteredSourceBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
+                      const rate = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
+                      return (
+                        <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <Wallet className="w-3.5 h-3.5 text-emerald-400" />
+                              <span className="font-semibold text-slate-700">{name}</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                          <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
+                          <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
+                          <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
+                          <td className="px-3 py-2.5 text-right text-green-600 font-semibold">{fmtMDH(d.engagement)}</td>
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full" style={{ width: `${Math.min(100, rate)}%`, backgroundColor: rate >= 50 ? '#16a34a' : rate >= 25 ? '#d97706' : '#dc2626' }} />
+                              </div>
+                              <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-slate-50 font-semibold">
+                      <td className="px-3 py-2.5 text-slate-800">Total</td>
+                      <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                      <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
+                      <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
+                      <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>
+                      <td className="px-3 py-2.5 text-right text-green-700">{fmtMDH(filteredKpis.totalEngagement)}</td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${Math.min(100, filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0)}%`, backgroundColor: '#16a34a' }} />
+                          </div>
+                          <span className="font-bold w-8 text-right text-[10px]">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ── 7. Analyse par Projet ── */}
+        <section className="animate-fade-in-up" style={{ animationDelay: '0.31s' }}>
+          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-blue-500" />
+            7. Analyse par Projet
+          </h2>
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardContent className="p-5">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                      <th className="px-3 py-2.5 text-left">Projet</th>
+                      <th className="px-3 py-2.5 text-center">Nb AO</th>
+                      <th className="px-3 py-2.5 text-right">CP (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">CE (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Estimation (MDH)</th>
+                      <th className="px-3 py-2.5 text-right">Engagement (MDH)</th>
+                      <th className="px-3 py-2.5 text-center">Taux</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(filteredProjetBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
+                      const rate = d.estimation > 0 ? Math.round((d.engagement / d.estimation) * 100) : 0;
+                      return (
+                        <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                              <span className="font-semibold text-slate-700">{name}</span>
+                            </div>
+                          </td>
                           <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
                           <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
                           <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>

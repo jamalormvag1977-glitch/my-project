@@ -5238,7 +5238,7 @@ export default function Dashboard() {
                               <tr key={p.id || i} className="hover:bg-white/60 transition-colors">
                                 <td className="px-4 py-2 text-slate-400 font-mono">{i + 1}</td>
                                 {cat.columns.map(col => (
-                                  <td key={col} className={`px-4 py-2 ${col === 'Objet' ? 'font-medium text-slate-800 max-w-[300px] truncate' : col === 'Estimation' ? 'font-semibold text-blue-700' : 'text-slate-600'}`}>
+                                  <td key={col} className={`px-4 py-2 ${col === 'Objet' ? 'font-medium text-slate-800 max-w-[400px]' : col === 'Estimation' ? 'font-semibold text-blue-700 whitespace-nowrap' : 'text-slate-600 whitespace-nowrap'}`}>
                                     {cat.getCellValue(p, col)}
                                   </td>
                                 ))}

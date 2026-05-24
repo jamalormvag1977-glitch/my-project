@@ -2369,7 +2369,7 @@ export default function Dashboard() {
                           </span>
                           <span className="text-xs text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md">{p.entite}</span>
                         </div>
-                        <p className="text-sm font-semibold text-slate-800 truncate">{p.objet}</p>
+                        <p className="text-sm font-semibold text-slate-800">{p.objet}</p>
                         <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
                           {p.programme && <span className="flex items-center gap-1"><Tag className="w-3 h-3" />{p.programme}</span>}
                           {p.projet && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{p.projet}</span>}
@@ -2616,13 +2616,13 @@ export default function Dashboard() {
                           <Users className="w-3.5 h-3.5" /> Soumissionnaires ({soum.nb})
                         </h4>
                         {soum.nb > 0 ? (
-                          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                          <div className="space-y-1.5">
                             {soum.noms.map((nom, i) => (
                               <div key={i} className="flex items-center gap-2 text-xs py-1.5 px-2 bg-sky-50 rounded-lg">
                                 <div className="w-5 h-5 rounded-full bg-sky-200 text-sky-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
                                   {i + 1}
                                 </div>
-                                <span className="text-slate-700 font-medium truncate">{nom}</span>
+                                <span className="text-slate-700 font-medium">{nom}</span>
                               </div>
                             ))}
                           </div>

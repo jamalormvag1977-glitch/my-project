@@ -3997,10 +3997,11 @@ export default function Dashboard() {
             <DollarSign className="w-4 h-4 text-green-500" />
             2. Indicateurs Clés — Montants (MDH)
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
             {[
               { label: 'CP', value: filteredKpis.totalCP / 1_000_000, color: '#3b82f6', icon: '💰', rate: null },
               { label: 'CE', value: filteredKpis.totalCE / 1_000_000, color: '#06b6d4', icon: '🏦', rate: null },
+              { label: 'Total Crédits (CP+CE)', value: (filteredKpis.totalCP + filteredKpis.totalCE) / 1_000_000, color: '#0f766e', icon: '💵', rate: filteredKpis.totalCE > 0 ? Math.round((filteredKpis.totalCP / (filteredKpis.totalCP + filteredKpis.totalCE)) * 100) : 0, rateLabel: 'CP/Crédits' },
               { label: 'Estimation', value: filteredKpis.totalEstimation / 1_000_000, color: '#d97706', icon: '📊', rate: null },
               { label: 'Engagement CP', value: filteredKpis.totalEngagementCP / 1_000_000, color: '#7c3aed', icon: '📝', rate: filteredKpis.totalCP > 0 ? Math.round((filteredKpis.totalEngagementCP / filteredKpis.totalCP) * 100) : 0, rateLabel: 'Eng/CP' },
               { label: 'Engagement CE', value: filteredKpis.totalEngagementCE / 1_000_000, color: '#0891b2', icon: '📋', rate: filteredKpis.totalCE > 0 ? Math.round((filteredKpis.totalEngagementCE / filteredKpis.totalCE) * 100) : 0, rateLabel: 'Eng/CE' },

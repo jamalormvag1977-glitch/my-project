@@ -20,7 +20,8 @@ import {
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
   X, ClipboardList, History, Download, Printer, Send, Wallet, Shield, Eye, Users, UserCheck, UserX, LogOut,
-  Scale, Gavel, FileCheck, FileX, Ban, Megaphone, FileSignature, ListTodo
+  Scale, Gavel, FileCheck, FileX, Ban, Megaphone, FileSignature, ListTodo,
+  Timer, ArrowLeftRight
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -572,7 +573,7 @@ export default function Dashboard() {
   const [showUpload, setShowUpload] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const lastChecksumRef = useRef<string | null>(null);
-  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'soumissionnaires' | 'reports' | 'alerts' | 'dashboard'>('dashboard');
+  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'soumissionnaires' | 'reports' | 'alerts' | 'delais' | 'dashboard'>('dashboard');
   const [expandedAO, setExpandedAO] = useState<number | null>(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
@@ -1209,6 +1210,7 @@ export default function Dashboard() {
               { key: 'history' as const, label: 'Historique', icon: <History className="w-4.5 h-4.5" /> },
               { key: 'soumissionnaires' as const, label: 'Soumissionnaires', icon: <Users className="w-4.5 h-4.5" /> },
               { key: 'reports' as const, label: 'Rapports', icon: <FileText className="w-4.5 h-4.5" /> },
+              { key: 'delais' as const, label: 'Délais', icon: <Timer className="w-4.5 h-4.5" /> },
               { key: 'alerts' as const, label: 'Alertes', icon: <AlertTriangle className="w-4.5 h-4.5" /> },
             ].map(tab => (
               <button
@@ -3162,6 +3164,656 @@ export default function Dashboard() {
                 );
               })()}
 
+            </div>
+          </div>
+          );
+        })()}
+
+        {/* ── Full-Screen View: Délais ── */}
+        {sidebarTab === 'delais' && (() => {
+          // Compute delays between key dates
+          type DelayRecord = { id: number; objet: string; entite: string; statut: string; estimation: number; dateOuverture: string; dateJugement: string | null; dateEngagement: string | null; delaiOuvJuge: number | null; delaiOuvEng: number | null; delaiJugeEng: number | null; };
+          const delayData: DelayRecord[] = sidebarStatusFiltered.filter(p => isValidDate(p.dateOuverture)).map(p => {
+            const dOuv = new Date(p.dateOuverture);
+            let delaiOuvJuge: number | null = null;
+            let delaiOuvEng: number | null = null;
+            let delaiJugeEng: number | null = null;
+            if (isValidDate(p.dateJugement)) {
+              const dJuge = new Date(p.dateJugement);
+              delaiOuvJuge = Math.round((dJuge.getTime() - dOuv.getTime()) / (1000 * 60 * 60 * 24));
+            }
+            if (isValidDate(p.dateEngagement)) {
+              const dEng = new Date(p.dateEngagement);
+              delaiOuvEng = Math.round((dEng.getTime() - dOuv.getTime()) / (1000 * 60 * 60 * 24));
+            }
+            if (isValidDate(p.dateJugement) && isValidDate(p.dateEngagement)) {
+              const dJuge = new Date(p.dateJugement);
+              const dEng = new Date(p.dateEngagement);
+              delaiJugeEng = Math.round((dEng.getTime() - dJuge.getTime()) / (1000 * 60 * 60 * 24));
+            }
+            return { id: p.id, objet: p.objet, entite: p.entite, statut: p.situationAvancement, estimation: p.estimationAdmin || 0, dateOuverture: p.dateOuverture, dateJugement: p.dateJugement, dateEngagement: p.dateEngagement, delaiOuvJuge, delaiOuvEng, delaiJugeEng };
+          });
+
+          const withOuvJuge = delayData.filter(d => d.delaiOuvJuge !== null);
+          const withOuvEng = delayData.filter(d => d.delaiOuvEng !== null);
+          const withJugeEng = delayData.filter(d => d.delaiJugeEng !== null);
+
+          const avgOuvJuge = withOuvJuge.length > 0 ? Math.round(withOuvJuge.reduce((s, d) => s + (d.delaiOuvJuge || 0), 0) / withOuvJuge.length) : 0;
+          const avgOuvEng = withOuvEng.length > 0 ? Math.round(withOuvEng.reduce((s, d) => s + (d.delaiOuvEng || 0), 0) / withOuvEng.length) : 0;
+          const avgJugeEng = withJugeEng.length > 0 ? Math.round(withJugeEng.reduce((s, d) => s + (d.delaiJugeEng || 0), 0) / withJugeEng.length) : 0;
+
+          const minOuvJuge = withOuvJuge.length > 0 ? Math.min(...withOuvJuge.map(d => d.delaiOuvJuge || 0)) : 0;
+          const maxOuvJuge = withOuvJuge.length > 0 ? Math.max(...withOuvJuge.map(d => d.delaiOuvJuge || 0)) : 0;
+          const minOuvEng = withOuvEng.length > 0 ? Math.min(...withOuvEng.map(d => d.delaiOuvEng || 0)) : 0;
+          const maxOuvEng = withOuvEng.length > 0 ? Math.max(...withOuvEng.map(d => d.delaiOuvEng || 0)) : 0;
+          const minJugeEng = withJugeEng.length > 0 ? Math.min(...withJugeEng.map(d => d.delaiJugeEng || 0)) : 0;
+          const maxJugeEng = withJugeEng.length > 0 ? Math.max(...withJugeEng.map(d => d.delaiJugeEng || 0)) : 0;
+
+          // Distribution buckets
+          const bucketSize = 15;
+          const makeBuckets = (data: DelayRecord[], key: 'delaiOuvJuge' | 'delaiOuvEng' | 'delaiJugeEng') => {
+            if (data.length === 0) return [];
+            const vals = data.map(d => d[key] || 0);
+            const mn = Math.min(...vals);
+            const mx = Math.max(...vals);
+            const buckets: { label: string; count: number; min: number; max: number }[] = [];
+            for (let i = Math.floor(mn / bucketSize) * bucketSize; i <= mx; i += bucketSize) {
+              const label = `${i}-${i + bucketSize}j`;
+              const count = vals.filter(v => v >= i && v < i + bucketSize).length;
+              buckets.push({ label, count, min: i, max: i + bucketSize });
+            }
+            return buckets;
+          };
+
+          // Per-entity delays
+          const entityDelays: Record<string, { count: number; avgOuvJuge: number; avgOuvEng: number; avgJugeEng: number }> = {};
+          delayData.forEach(d => {
+            if (!entityDelays[d.entite]) entityDelays[d.entite] = { count: 0, avgOuvJuge: 0, avgOuvEng: 0, avgJugeEng: 0 };
+            entityDelays[d.entite].count += 1;
+          });
+          Object.keys(entityDelays).forEach(ent => {
+            const entData = delayData.filter(d => d.entite === ent);
+            const oj = entData.filter(d => d.delaiOuvJuge !== null);
+            const oe = entData.filter(d => d.delaiOuvEng !== null);
+            const je = entData.filter(d => d.delaiJugeEng !== null);
+            entityDelays[ent].avgOuvJuge = oj.length > 0 ? Math.round(oj.reduce((s, d) => s + (d.delaiOuvJuge || 0), 0) / oj.length) : 0;
+            entityDelays[ent].avgOuvEng = oe.length > 0 ? Math.round(oe.reduce((s, d) => s + (d.delaiOuvEng || 0), 0) / oe.length) : 0;
+            entityDelays[ent].avgJugeEng = je.length > 0 ? Math.round(je.reduce((s, d) => s + (d.delaiJugeEng || 0), 0) / je.length) : 0;
+          });
+
+          // Per-status delays
+          const statusDelays: Record<string, { count: number; avgOuvJuge: number; avgOuvEng: number; avgJugeEng: number }> = {};
+          delayData.forEach(d => {
+            if (!statusDelays[d.statut]) statusDelays[d.statut] = { count: 0, avgOuvJuge: 0, avgOuvEng: 0, avgJugeEng: 0 };
+            statusDelays[d.statut].count += 1;
+          });
+          Object.keys(statusDelays).forEach(st => {
+            const stData = delayData.filter(d => d.statut === st);
+            const oj = stData.filter(d => d.delaiOuvJuge !== null);
+            const oe = stData.filter(d => d.delaiOuvEng !== null);
+            const je = stData.filter(d => d.delaiJugeEng !== null);
+            statusDelays[st].avgOuvJuge = oj.length > 0 ? Math.round(oj.reduce((s, d) => s + (d.delaiOuvJuge || 0), 0) / oj.length) : 0;
+            statusDelays[st].avgOuvEng = oe.length > 0 ? Math.round(oe.reduce((s, d) => s + (d.delaiOuvEng || 0), 0) / oe.length) : 0;
+            statusDelays[st].avgJugeEng = je.length > 0 ? Math.round(je.reduce((s, d) => s + (d.delaiJugeEng || 0), 0) / je.length) : 0;
+          });
+
+          // AO still pending (ouvert, no jugement yet) — compute days since ouverture
+          const today = new Date();
+          const pendingSinceOuv = delayData.filter(d => d.delaiOuvJuge === null).map(d => ({
+            ...d,
+            joursEnAttente: Math.round((today.getTime() - new Date(d.dateOuverture).getTime()) / (1000 * 60 * 60 * 24)),
+          })).sort((a, b) => b.joursEnAttente - a.joursEnAttente);
+
+          // Slowest AO (top 10 by total delay ouv->eng)
+          const slowestAO = [...delayData].filter(d => d.delaiOuvEng !== null).sort((a, b) => (b.delaiOuvEng || 0) - (a.delaiOuvEng || 0)).slice(0, 10);
+
+          // Chart data for recharts
+          const bucketChartOJ = makeBuckets(withOuvJuge, 'delaiOuvJuge');
+          const bucketChartOE = makeBuckets(withOuvEng, 'delaiOuvEng');
+          const bucketChartJE = makeBuckets(withJugeEng, 'delaiJugeEng');
+
+          const statusColorMap: Record<string, string> = { 'Engagé': '#16a34a', 'Jugé': '#8b5cf6', 'En cours de jugement': '#f59e0b', 'Infructueux': '#dc2626', 'Annulé': '#991b1b', 'Publié sur PMP': '#7c3aed', 'DAO Envoyé au CE': '#0891b2', 'A programmer': '#6b7280' };
+
+          return (
+          <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">
+            {/* Top Bar */}
+            <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center">
+                      <Timer className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-800">Analyse des Délais</h2>
+                      <p className="text-[10px] text-slate-500">Délais entre Ouverture des Plis, Jugement et Engagement</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <Input placeholder="Rechercher AO..." className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-48" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Filter Bar */}
+              <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select value={filterEntity} onValueChange={setFilterEntity}>
+                    <SelectTrigger className="h-7 text-[10px] w-[130px] bg-white border-slate-200"><SelectValue placeholder="Entité" /></SelectTrigger>
+                    <SelectContent>{entities.map(e => <SelectItem key={e} value={e} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: entityColorMap[e]}} />{e}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes les entités</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Statut" /></SelectTrigger>
+                    <SelectContent>{statuses.map(s => <SelectItem key={s} value={s} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: statusColor[s]}} />{s}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous les statuts</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterNature} onValueChange={setFilterNature}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Nature" /></SelectTrigger>
+                    <SelectContent>{natures.map(n => <SelectItem key={n} value={n} className="text-[10px]">{n}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes natures</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
+                    <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterProgramme} onValueChange={setFilterProgramme}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Programme" /></SelectTrigger>
+                    <SelectContent>{programmes.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous programmes</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterProjet} onValueChange={setFilterProjet}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
+                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous AO</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterSource} onValueChange={setFilterSource}>
+                    <SelectTrigger className="h-7 text-[10px] w-[130px] bg-white border-slate-200"><SelectValue placeholder="Source" /></SelectTrigger>
+                    <SelectContent>{sources.map(s => <SelectItem key={s} value={s} className="text-[10px]">{s}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes sources</SelectItem></SelectContent>
+                  </Select>
+                  <span className="text-[10px] text-slate-400 ml-auto">{sidebarStatusFiltered.length} AO</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+              {/* KPI Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Ouv -> Jugé */}
+                <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #f59e0b' }}>
+                  <CardHeader className="pb-2 pt-4 px-5">
+                    <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center shadow-sm"><ArrowLeftRight className="w-4 h-4 text-white" /></span>
+                      Délai Ouverture → Jugement
+                      <Badge className="text-[9px] bg-amber-100 text-amber-700 border-amber-200 border ml-auto">{withOuvJuge.length} AO</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-5 pb-4">
+                    <div className="text-center mb-3">
+                      <p className="text-3xl font-bold text-amber-600">{avgOuvJuge} <span className="text-sm text-slate-500">jours</span></p>
+                      <p className="text-[10px] text-slate-400">Délai moyen</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-center">
+                      <div className="bg-amber-50 rounded-lg p-2">
+                        <p className="text-[9px] text-slate-500">Min</p>
+                        <p className="text-sm font-bold text-amber-700">{minOuvJuge}j</p>
+                      </div>
+                      <div className="bg-amber-50 rounded-lg p-2">
+                        <p className="text-[9px] text-slate-500">Max</p>
+                        <p className="text-sm font-bold text-amber-700">{maxOuvJuge}j</p>
+                      </div>
+                    </div>
+                    {/* Distribution */}
+                    {bucketChartOJ.length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-slate-100 space-y-1">
+                        <p className="text-[9px] text-slate-400 uppercase tracking-wider font-medium">Distribution</p>
+                        {bucketChartOJ.map(b => (
+                          <div key={b.label} className="flex items-center gap-2 text-[9px]">
+                            <span className="w-16 text-slate-500 text-right">{b.label}</span>
+                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-amber-400" style={{ width: `${withOuvJuge.length > 0 ? (b.count / withOuvJuge.length) * 100 : 0}%` }} />
+                            </div>
+                            <span className="w-6 text-slate-700 font-bold">{b.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Ouv -> Eng */}
+                <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #3b82f6' }}>
+                  <CardHeader className="pb-2 pt-4 px-5">
+                    <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center shadow-sm"><ArrowLeftRight className="w-4 h-4 text-white" /></span>
+                      Délai Ouverture → Engagement
+                      <Badge className="text-[9px] bg-blue-100 text-blue-700 border-blue-200 border ml-auto">{withOuvEng.length} AO</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-5 pb-4">
+                    <div className="text-center mb-3">
+                      <p className="text-3xl font-bold text-blue-600">{avgOuvEng} <span className="text-sm text-slate-500">jours</span></p>
+                      <p className="text-[10px] text-slate-400">Délai moyen</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-center">
+                      <div className="bg-blue-50 rounded-lg p-2">
+                        <p className="text-[9px] text-slate-500">Min</p>
+                        <p className="text-sm font-bold text-blue-700">{minOuvEng}j</p>
+                      </div>
+                      <div className="bg-blue-50 rounded-lg p-2">
+                        <p className="text-[9px] text-slate-500">Max</p>
+                        <p className="text-sm font-bold text-blue-700">{maxOuvEng}j</p>
+                      </div>
+                    </div>
+                    {/* Distribution */}
+                    {bucketChartOE.length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-slate-100 space-y-1">
+                        <p className="text-[9px] text-slate-400 uppercase tracking-wider font-medium">Distribution</p>
+                        {bucketChartOE.map(b => (
+                          <div key={b.label} className="flex items-center gap-2 text-[9px]">
+                            <span className="w-16 text-slate-500 text-right">{b.label}</span>
+                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-blue-400" style={{ width: `${withOuvEng.length > 0 ? (b.count / withOuvEng.length) * 100 : 0}%` }} />
+                            </div>
+                            <span className="w-6 text-slate-700 font-bold">{b.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Juge -> Eng */}
+                <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #16a34a' }}>
+                  <CardHeader className="pb-2 pt-4 px-5">
+                    <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-xl bg-green-500 flex items-center justify-center shadow-sm"><ArrowLeftRight className="w-4 h-4 text-white" /></span>
+                      Délai Jugement → Engagement
+                      <Badge className="text-[9px] bg-green-100 text-green-700 border-green-200 border ml-auto">{withJugeEng.length} AO</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-5 pb-4">
+                    <div className="text-center mb-3">
+                      <p className="text-3xl font-bold text-green-600">{avgJugeEng} <span className="text-sm text-slate-500">jours</span></p>
+                      <p className="text-[10px] text-slate-400">Délai moyen</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-center">
+                      <div className="bg-green-50 rounded-lg p-2">
+                        <p className="text-[9px] text-slate-500">Min</p>
+                        <p className="text-sm font-bold text-green-700">{minJugeEng}j</p>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-2">
+                        <p className="text-[9px] text-slate-500">Max</p>
+                        <p className="text-sm font-bold text-green-700">{maxJugeEng}j</p>
+                      </div>
+                    </div>
+                    {/* Distribution */}
+                    {bucketChartJE.length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-slate-100 space-y-1">
+                        <p className="text-[9px] text-slate-400 uppercase tracking-wider font-medium">Distribution</p>
+                        {bucketChartJE.map(b => (
+                          <div key={b.label} className="flex items-center gap-2 text-[9px]">
+                            <span className="w-16 text-slate-500 text-right">{b.label}</span>
+                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-green-400" style={{ width: `${withJugeEng.length > 0 ? (b.count / withJugeEng.length) * 100 : 0}%` }} />
+                            </div>
+                            <span className="w-6 text-slate-700 font-bold">{b.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Bar Charts for Distribution */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <Card className="border-0 shadow-md">
+                  <CardHeader className="pb-2 pt-4 px-5">
+                    <CardTitle className="text-xs font-semibold text-slate-700">Distribution Ouv. → Jugé (jours)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-2 pb-4">
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={bucketChartOJ} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                          <XAxis dataKey="label" tick={{ fontSize: 9 }} />
+                          <YAxis tick={{ fontSize: 9 }} allowDecimals={false} />
+                          <Tooltip contentStyle={{ fontSize: 10 }} />
+                          <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Nb AO" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-0 shadow-md">
+                  <CardHeader className="pb-2 pt-4 px-5">
+                    <CardTitle className="text-xs font-semibold text-slate-700">Distribution Ouv. → Engagé (jours)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-2 pb-4">
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={bucketChartOE} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                          <XAxis dataKey="label" tick={{ fontSize: 9 }} />
+                          <YAxis tick={{ fontSize: 9 }} allowDecimals={false} />
+                          <Tooltip contentStyle={{ fontSize: 10 }} />
+                          <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Nb AO" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-0 shadow-md">
+                  <CardHeader className="pb-2 pt-4 px-5">
+                    <CardTitle className="text-xs font-semibold text-slate-700">Distribution Jugé → Engagé (jours)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-2 pb-4">
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={bucketChartJE} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                          <XAxis dataKey="label" tick={{ fontSize: 9 }} />
+                          <YAxis tick={{ fontSize: 9 }} allowDecimals={false} />
+                          <Tooltip contentStyle={{ fontSize: 10 }} />
+                          <Bar dataKey="count" fill="#16a34a" radius={[4, 4, 0, 0]} name="Nb AO" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Per-Entity Delay Analysis */}
+              <Card className="border-0 shadow-md overflow-hidden">
+                <CardHeader className="pb-2 pt-4 px-5">
+                  <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-green-500" />
+                    Délais Moyens par Entité
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                          <th className="px-4 py-2.5 text-left">Entité</th>
+                          <th className="px-4 py-2.5 text-center">Nb AO</th>
+                          <th className="px-4 py-2.5 text-center">Avg Ouv.→Jugé (j)</th>
+                          <th className="px-4 py-2.5 text-center">Avg Ouv.→Eng. (j)</th>
+                          <th className="px-4 py-2.5 text-center">Avg Jugé→Eng. (j)</th>
+                          <th className="px-4 py-2.5 text-left">Comparaison</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(entityDelays).sort(([, a], [, b]) => b.avgOuvEng - a.avgOuvEng).map(([name, d]) => {
+                          const maxAvg = Math.max(d.avgOuvJuge, d.avgOuvEng, d.avgJugeEng, 1);
+                          return (
+                            <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: entityColorMap[name] || '#3b82f6' }} />
+                                  <span className="font-semibold text-slate-700">{name}</span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                              <td className="px-4 py-2.5 text-center">
+                                {d.avgOuvJuge > 0 ? (
+                                  <span className="font-bold text-amber-600">{d.avgOuvJuge}j</span>
+                                ) : <span className="text-slate-300">—</span>}
+                              </td>
+                              <td className="px-4 py-2.5 text-center">
+                                {d.avgOuvEng > 0 ? (
+                                  <span className="font-bold text-blue-600">{d.avgOuvEng}j</span>
+                                ) : <span className="text-slate-300">—</span>}
+                              </td>
+                              <td className="px-4 py-2.5 text-center">
+                                {d.avgJugeEng > 0 ? (
+                                  <span className="font-bold text-green-600">{d.avgJugeEng}j</span>
+                                ) : <span className="text-slate-300">—</span>}
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <div className="flex gap-1 items-center">
+                                  {d.avgOuvJuge > 0 && (
+                                    <div className="h-2 rounded-full bg-amber-400" style={{ width: `${Math.min(100, (d.avgOuvJuge / maxAvg) * 60)}px` }} title={`Ouv→Jugé: ${d.avgOuvJuge}j`} />
+                                  )}
+                                  {d.avgOuvEng > 0 && (
+                                    <div className="h-2 rounded-full bg-blue-400" style={{ width: `${Math.min(100, (d.avgOuvEng / maxAvg) * 60)}px` }} title={`Ouv→Eng: ${d.avgOuvEng}j`} />
+                                  )}
+                                  {d.avgJugeEng > 0 && (
+                                    <div className="h-2 rounded-full bg-green-400" style={{ width: `${Math.min(100, (d.avgJugeEng / maxAvg) * 60)}px` }} title={`Jugé→Eng: ${d.avgJugeEng}j`} />
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Per-Status Delay Analysis */}
+              <Card className="border-0 shadow-md overflow-hidden">
+                <CardHeader className="pb-2 pt-4 px-5">
+                  <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <ClipboardList className="w-4 h-4 text-violet-500" />
+                    Délais Moyens par Statut
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                          <th className="px-4 py-2.5 text-left">Statut</th>
+                          <th className="px-4 py-2.5 text-center">Nb AO</th>
+                          <th className="px-4 py-2.5 text-center">Avg Ouv.→Jugé (j)</th>
+                          <th className="px-4 py-2.5 text-center">Avg Ouv.→Eng. (j)</th>
+                          <th className="px-4 py-2.5 text-center">Avg Jugé→Eng. (j)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(statusDelays).sort(([, a], [, b]) => b.count - a.count).map(([name, d]) => (
+                          <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                            <td className="px-4 py-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: statusColorMap[name] || '#6b7280' }} />
+                                <span className="font-semibold text-slate-700">{name}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                            <td className="px-4 py-2.5 text-center">
+                              {d.avgOuvJuge > 0 ? <span className="font-bold text-amber-600">{d.avgOuvJuge}j</span> : <span className="text-slate-300">—</span>}
+                            </td>
+                            <td className="px-4 py-2.5 text-center">
+                              {d.avgOuvEng > 0 ? <span className="font-bold text-blue-600">{d.avgOuvEng}j</span> : <span className="text-slate-300">—</span>}
+                            </td>
+                            <td className="px-4 py-2.5 text-center">
+                              {d.avgJugeEng > 0 ? <span className="font-bold text-green-600">{d.avgJugeEng}j</span> : <span className="text-slate-300">—</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Top 10 Slowest AO */}
+              <Card className="border-0 shadow-md overflow-hidden">
+                <CardHeader className="pb-2 pt-4 px-5">
+                  <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <TrendingDown className="w-4 h-4 text-red-500" />
+                    Top 10 AO les plus lents (Ouv. → Engagement)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                          <th className="px-3 py-2.5 text-center">#</th>
+                          <th className="px-3 py-2.5 text-left">Objet</th>
+                          <th className="px-3 py-2.5 text-left">Entité</th>
+                          <th className="px-3 py-2.5 text-center">Statut</th>
+                          <th className="px-3 py-2.5 text-center">Ouv. Plis</th>
+                          <th className="px-3 py-2.5 text-center">Jugement</th>
+                          <th className="px-3 py-2.5 text-center">Engagement</th>
+                          <th className="px-3 py-2.5 text-center">Ouv→Jugé</th>
+                          <th className="px-3 py-2.5 text-center">Jugé→Eng</th>
+                          <th className="px-3 py-2.5 text-center font-bold">Ouv→Eng</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {slowestAO.map((d, i) => (
+                          <tr key={d.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                            <td className="px-3 py-2 text-center">
+                              <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-bold ${i < 3 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>{i + 1}</span>
+                            </td>
+                            <td className="px-3 py-2 text-slate-700 max-w-[250px] truncate" title={d.objet}>{d.objet}</td>
+                            <td className="px-3 py-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entityColorMap[d.entite] || '#3b82f6' }} />
+                                <span className="text-slate-600">{d.entite}</span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              <Badge className="text-[9px] border-0" style={{ backgroundColor: `${statusColorMap[d.statut] || '#6b7280'}20`, color: statusColorMap[d.statut] || '#6b7280' }}>{d.statut}</Badge>
+                            </td>
+                            <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{d.dateOuverture}</td>
+                            <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{d.dateJugement || '—'}</td>
+                            <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{d.dateEngagement || '—'}</td>
+                            <td className="px-3 py-2 text-center">
+                              {d.delaiOuvJuge !== null ? (
+                                <span className={`font-bold ${d.delaiOuvJuge > avgOuvJuge ? 'text-red-600' : 'text-amber-600'}`}>{d.delaiOuvJuge}j</span>
+                              ) : <span className="text-slate-300">—</span>}
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              {d.delaiJugeEng !== null ? (
+                                <span className={`font-bold ${d.delaiJugeEng > avgJugeEng ? 'text-red-600' : 'text-green-600'}`}>{d.delaiJugeEng}j</span>
+                              ) : <span className="text-slate-300">—</span>}
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              <span className={`font-bold ${d.delaiOuvEng !== null && d.delaiOuvEng > avgOuvEng ? 'text-red-600' : 'text-blue-600'}`}>{d.delaiOuvEng}j</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* AO en attente (no jugement yet) */}
+              {pendingSinceOuv.length > 0 && (
+              <Card className="border-0 shadow-md overflow-hidden">
+                <CardHeader className="pb-2 pt-4 px-5">
+                  <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-500" />
+                    AO en attente de Jugement
+                    <Badge className="text-[9px] bg-amber-100 text-amber-700 border-amber-200 border ml-auto">{pendingSinceOuv.length} AO</Badge>
+                  </CardTitle>
+                  <p className="text-[10px] text-slate-400">AO avec date d&apos;ouverture mais sans jugement — jours écoulés depuis l&apos;ouverture</p>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                          <th className="px-3 py-2.5 text-left">Objet</th>
+                          <th className="px-3 py-2.5 text-left">Entité</th>
+                          <th className="px-3 py-2.5 text-center">Statut</th>
+                          <th className="px-3 py-2.5 text-center">Date Ouverture</th>
+                          <th className="px-3 py-2.5 text-center font-bold">Jours en attente</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pendingSinceOuv.slice(0, 20).map(d => (
+                          <tr key={d.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                            <td className="px-3 py-2 text-slate-700 max-w-[300px] truncate" title={d.objet}>{d.objet}</td>
+                            <td className="px-3 py-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entityColorMap[d.entite] || '#3b82f6' }} />
+                                <span className="text-slate-600">{d.entite}</span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              <Badge className="text-[9px] border-0" style={{ backgroundColor: `${statusColorMap[d.statut] || '#6b7280'}20`, color: statusColorMap[d.statut] || '#6b7280' }}>{d.statut}</Badge>
+                            </td>
+                            <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{d.dateOuverture}</td>
+                            <td className="px-3 py-2 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, (d.joursEnAttente / Math.max(...pendingSinceOuv.map(p => p.joursEnAttente), 1)) * 100)}%`, backgroundColor: d.joursEnAttente > 60 ? '#dc2626' : d.joursEnAttente > 30 ? '#f59e0b' : '#16a34a' }} />
+                                </div>
+                                <span className={`font-bold ${d.joursEnAttente > 60 ? 'text-red-600' : d.joursEnAttente > 30 ? 'text-amber-600' : 'text-green-600'}`}>{d.joursEnAttente}j</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+              )}
+
+              {/* Full Detail Table */}
+              <Card className="border-0 shadow-md overflow-hidden">
+                <CardHeader className="pb-2 pt-4 px-5">
+                  <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-blue-500" />
+                    Détail des Délais par AO
+                    <Badge className="text-[9px] bg-blue-100 text-blue-700 border-blue-200 border ml-auto">{delayData.length} AO</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                          <th className="px-3 py-2.5 text-left">Objet</th>
+                          <th className="px-3 py-2.5 text-left">Entité</th>
+                          <th className="px-3 py-2.5 text-center">Statut</th>
+                          <th className="px-3 py-2.5 text-center">Ouv. Plis</th>
+                          <th className="px-3 py-2.5 text-center">Jugement</th>
+                          <th className="px-3 py-2.5 text-center">Engagement</th>
+                          <th className="px-3 py-2.5 text-center text-amber-600">Ouv→Jugé</th>
+                          <th className="px-3 py-2.5 text-center text-blue-600">Ouv→Eng</th>
+                          <th className="px-3 py-2.5 text-center text-green-600">Jugé→Eng</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {delayData.sort((a, b) => (b.delaiOuvEng || 0) - (a.delaiOuvEng || 0)).map(d => (
+                          <tr key={d.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                            <td className="px-3 py-2 text-slate-700 max-w-[250px] truncate" title={d.objet}>{d.objet}</td>
+                            <td className="px-3 py-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entityColorMap[d.entite] || '#3b82f6' }} />
+                                <span className="text-slate-600">{d.entite}</span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              <Badge className="text-[9px] border-0" style={{ backgroundColor: `${statusColorMap[d.statut] || '#6b7280'}20`, color: statusColorMap[d.statut] || '#6b7280' }}>{d.statut}</Badge>
+                            </td>
+                            <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{d.dateOuverture}</td>
+                            <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{d.dateJugement || '—'}</td>
+                            <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{d.dateEngagement || '—'}</td>
+                            <td className="px-3 py-2 text-center">
+                              {d.delaiOuvJuge !== null ? <span className="font-bold text-amber-600">{d.delaiOuvJuge}j</span> : <span className="text-slate-300">—</span>}
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              {d.delaiOuvEng !== null ? <span className="font-bold text-blue-600">{d.delaiOuvEng}j</span> : <span className="text-slate-300">—</span>}
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              {d.delaiJugeEng !== null ? <span className="font-bold text-green-600">{d.delaiJugeEng}j</span> : <span className="text-slate-300">—</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
           );

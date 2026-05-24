@@ -1734,6 +1734,8 @@ export default function Dashboard() {
                             <th className="px-4 py-3 text-center">Taux</th>
                             <th className="px-4 py-3 text-left">Date Jugement</th>
                             <th className="px-4 py-3 text-left">Attributaire</th>
+                            <th className="px-4 py-3 text-left">N° Marché</th>
+                            <th className="px-4 py-3 text-center">Statut</th>
                             <th className="px-4 py-3 text-center">Détail</th>
                           </tr>
                         </thead>
@@ -1823,6 +1825,29 @@ export default function Dashboard() {
                                       <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
                                       <span className="font-semibold text-green-700" style={{ whiteSpace: 'normal', lineHeight: '1.3' }}>{ppmMatch.attributaire}</span>
                                     </div>
+                                  ) : (
+                                    <span className="text-slate-300">—</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3">
+                                  {ppmMatch?.numMarche ? (
+                                    <Badge className="bg-cyan-100 text-cyan-700 border-0 text-[10px] font-mono">{ppmMatch.numMarche}</Badge>
+                                  ) : (
+                                    <span className="text-slate-300">—</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  {ppmMatch?.situationAvancement ? (
+                                    <Badge
+                                      className="border-0 text-[10px]"
+                                      style={{
+                                        backgroundColor: (statusColor[ppmMatch.situationAvancement] || '#6b7280') + '18',
+                                        color: statusColor[ppmMatch.situationAvancement] || '#6b7280',
+                                      }}
+                                    >
+                                      {statusIcon[ppmMatch.situationAvancement]}
+                                      <span className="ml-1">{ppmMatch.situationAvancement}</span>
+                                    </Badge>
                                   ) : (
                                     <span className="text-slate-300">—</span>
                                   )}
@@ -4241,6 +4266,17 @@ export default function Dashboard() {
                     {ppmP.attributaire && (
                       <Badge className="bg-green-400/30 text-white border-0 text-xs">
                         <CheckCircle2 className="w-3 h-3 mr-1" /> {ppmP.attributaire}
+                      </Badge>
+                    )}
+                    {ppmP.numMarche && (
+                      <Badge className="bg-white/20 text-white border-0 text-xs font-mono">
+                        <FileText className="w-3 h-3 mr-1" /> {ppmP.numMarche}
+                      </Badge>
+                    )}
+                    {ppmP.situationAvancement && (
+                      <Badge className="bg-white/20 text-white border-0 text-xs">
+                        {statusIcon[ppmP.situationAvancement]}
+                        <span className="ml-1">{ppmP.situationAvancement}</span>
                       </Badge>
                     )}
                   </>

@@ -3099,91 +3099,129 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Distribution Table + Chart */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Status Distribution Table */}
-                    <div className="lg:col-span-2 print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                      <div className="px-6 py-4 border-b border-slate-100">
-                        <h3 className="text-sm font-bold text-slate-800">Répartition par Statut — Nombres & Montants</h3>
+                  {/* Analyse par Entité */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-slate-500" />
+                        <h3 className="text-sm font-bold text-slate-800">Analyse par Entité — Nombres & Montants</h3>
                       </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-xs">
-                          <thead>
-                            <tr className="bg-slate-50 border-b border-slate-100">
-                              <th className="px-4 py-2.5 text-left font-semibold text-slate-600">Statut</th>
-                              <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Nb AO</th>
-                              <th className="px-4 py-2.5 text-center font-semibold text-slate-600">%</th>
-                              <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Estimation</th>
-                              <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Engagement</th>
-                              <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Taux Eng.</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {statuses.map(s => {
-                              const count = filteredStatusCount[s] || 0;
-                              const pct = filteredKpis.totalProjects > 0 ? (count / filteredKpis.totalProjects * 100).toFixed(1) : '0.0';
-                              const est = filteredStatusBudget[s]?.estimation || 0;
-                              const eng = filteredStatusBudget[s]?.engagement || 0;
-                              const taux = est > 0 ? Math.round(eng / est * 100) : 0;
-                              return (
-                                <tr key={s} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                  <td className="px-4 py-2.5">
-                                    <div className="flex items-center gap-2">
-                                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: statusColor[s] }} />
-                                      <span className="font-medium text-slate-700">{s}</span>
+                      <span className="text-[10px] text-slate-400">{entities.length} entités</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100">
+                            <th className="px-4 py-2.5 text-left font-semibold text-slate-600">Entité</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Nb AO</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Engagés</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Jugés</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Ouverts</th>
+                            <th className="px-4 py-2.5 text-right font-semibold text-slate-600">CP</th>
+                            <th className="px-4 py-2.5 text-right font-semibold text-slate-600">CE</th>
+                            <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Estimation</th>
+                            <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Engagement</th>
+                            <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Taux Eng.</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {entities.map(entity => {
+                            const eProjects = filtered.filter(p => p.entite === entity);
+                            const eCount = eProjects.length;
+                            const eEngages = eProjects.filter(p => p.situationAvancement === 'Engagé').length;
+                            const eJuges = eProjects.filter(p => p.situationAvancement === 'Jugé').length;
+                            const eOuverts = eProjects.filter(p => p.situationAvancement === 'Ouvert').length;
+                            const eCP = eProjects.reduce((s,p) => s + (p.cp||0), 0);
+                            const eCE = eProjects.reduce((s,p) => s + (p.ce||0), 0);
+                            const eEstim = eProjects.reduce((s,p) => s + (p.estimationAdmin||0), 0);
+                            const eEng = eProjects.reduce((s,p) => s + (p.montantEngagement||0), 0);
+                            const eTaux = eEstim > 0 ? Math.round(eEng / eEstim * 100) : 0;
+                            const eEngCP = eProjects.reduce((s,p) => s + (p.engagementCP||0), 0);
+                            const eEngCE = eProjects.reduce((s,p) => s + (p.engagementCE||0), 0);
+                            return (
+                              <tr key={entity} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                <td className="px-4 py-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entityColorMap[entity] }} />
+                                    <span className="font-medium text-slate-700">{entity}</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-2.5 text-center font-semibold text-slate-800">{eCount}</td>
+                                <td className="px-4 py-2.5 text-center">
+                                  <span className={`inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold ${eEngages > 0 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'}`}>{eEngages}</span>
+                                </td>
+                                <td className="px-4 py-2.5 text-center">
+                                  <span className={`inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold ${eJuges > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-400'}`}>{eJuges}</span>
+                                </td>
+                                <td className="px-4 py-2.5 text-center">
+                                  <span className={`inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold ${eOuverts > 0 ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-100 text-slate-400'}`}>{eOuverts}</span>
+                                </td>
+                                <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtNum(eCP)}</td>
+                                <td className="px-4 py-2.5 text-right font-medium text-cyan-600">{fmtNum(eCE)}</td>
+                                <td className="px-4 py-2.5 text-right font-medium text-amber-600">{fmtNum(eEstim)}</td>
+                                <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtNum(eEng)}</td>
+                                <td className="px-4 py-2.5 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <div className="w-14 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                      <div className="h-full rounded-full" style={{ width: `${Math.min(100, eTaux)}%`, backgroundColor: eTaux >= 50 ? '#16a34a' : eTaux >= 25 ? '#d97706' : '#dc2626' }} />
                                     </div>
-                                  </td>
-                                  <td className="px-4 py-2.5 text-center font-semibold text-slate-800">{count}</td>
-                                  <td className="px-4 py-2.5 text-center text-slate-500">{pct}%</td>
-                                  <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtNum(est)}</td>
-                                  <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtNum(eng)}</td>
-                                  <td className="px-4 py-2.5 text-right">
-                                    {est > 0 ? (
-                                      <div className="flex items-center justify-end gap-1.5">
-                                        <div className="w-12 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                          <div className="h-full rounded-full" style={{ width: `${Math.min(100, taux)}%`, backgroundColor: taux >= 50 ? '#16a34a' : taux >= 25 ? '#d97706' : '#dc2626' }} />
-                                        </div>
-                                        <span className="font-bold" style={{ color: taux >= 50 ? '#16a34a' : taux >= 25 ? '#d97706' : '#dc2626' }}>{taux}%</span>
-                                      </div>
-                                    ) : <span className="text-slate-300">—</span>}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                          <tfoot>
-                            <tr className="bg-slate-50 font-semibold">
-                              <td className="px-4 py-2.5 text-slate-800">Total</td>
-                              <td className="px-4 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
-                              <td className="px-4 py-2.5 text-center text-slate-800">100%</td>
-                              <td className="px-4 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalEstimation)}</td>
-                              <td className="px-4 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
-                              <td className="px-4 py-2.5 text-right">
-                                <span className="font-bold" style={{ color: filteredKpis.totalEstimation > 0 ? (Math.round(filteredKpis.totalEngagement/filteredKpis.totalEstimation*100) >= 50 ? '#16a34a' : Math.round(filteredKpis.totalEngagement/filteredKpis.totalEstimation*100) >= 25 ? '#d97706' : '#dc2626') : '#6b7280' }}>
-                                  {filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement/filteredKpis.totalEstimation*100) : 0}%
-                                </span>
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      </div>
+                                    <span className="font-bold text-[10px] w-8 text-right" style={{ color: eTaux >= 50 ? '#16a34a' : eTaux >= 25 ? '#d97706' : '#dc2626' }}>{eTaux}%</span>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="bg-slate-50 font-semibold">
+                            <td className="px-4 py-2.5 text-slate-800">Total</td>
+                            <td className="px-4 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                            <td className="px-4 py-2.5 text-center">
+                              <span className="inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">{filtered.filter(p => p.situationAvancement === 'Engagé').length}</span>
+                            </td>
+                            <td className="px-4 py-2.5 text-center">
+                              <span className="inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">{filtered.filter(p => p.situationAvancement === 'Jugé').length}</span>
+                            </td>
+                            <td className="px-4 py-2.5 text-center">
+                              <span className="inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-100 text-cyan-700">{filtered.filter(p => p.situationAvancement === 'Ouvert').length}</span>
+                            </td>
+                            <td className="px-4 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalCP)}</td>
+                            <td className="px-4 py-2.5 text-right text-cyan-700">{fmtNum(filteredKpis.totalCE)}</td>
+                            <td className="px-4 py-2.5 text-right text-amber-700">{fmtNum(filteredKpis.totalEstimation)}</td>
+                            <td className="px-4 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
+                            <td className="px-4 py-2.5 text-right">
+                              {(() => {
+                                const globalTaux = filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0;
+                                return (
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <div className="w-14 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                      <div className="h-full rounded-full" style={{ width: `${Math.min(100, globalTaux)}%`, backgroundColor: globalTaux >= 50 ? '#16a34a' : globalTaux >= 25 ? '#d97706' : '#dc2626' }} />
+                                    </div>
+                                    <span className="font-bold text-[10px] w-8 text-right" style={{ color: globalTaux >= 50 ? '#16a34a' : globalTaux >= 25 ? '#d97706' : '#dc2626' }}>{globalTaux}%</span>
+                                  </div>
+                                );
+                              })()}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
                     </div>
+                  </div>
 
-                    {/* Mini Pie Chart */}
-                    <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                      <h3 className="text-sm font-bold text-slate-800 mb-3">Distribution des Statuts</h3>
-                      <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                          <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value" nameKey="name">
-                            {statusData.map((entry, i) => (
-                              <Cell key={i} fill={statusColor[entry.name] || CHART_COLORS[i % CHART_COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(v: number) => [`${v} AO`, '']} contentStyle={{ fontSize: 11, borderRadius: 10 }} />
-                          <Legend wrapperStyle={{ fontSize: 10 }} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
+                  {/* Bar Chart par Entité */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                    <h3 className="text-sm font-bold text-slate-800 mb-3">Estimation vs Engagement par Entité (MDH)</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={entityData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="name" tick={{ fontSize: 9 }} angle={-25} textAnchor="end" height={60} />
+                        <YAxis tick={{ fontSize: 9 }} tickFormatter={(v: number) => `${(v/1e6).toFixed(0)}`} />
+                        <Tooltip formatter={(v: number) => [`${(v/1e6).toFixed(2)} MDH`, '']} contentStyle={{ fontSize: 11, borderRadius: 10 }} />
+                        <Legend wrapperStyle={{ fontSize: 10 }} />
+                        <Bar dataKey="estimation" name="Estimation" fill="#f59e0b" radius={[3,3,0,0]} />
+                        <Bar dataKey="engagement" name="Engagement" fill="#16a34a" radius={[3,3,0,0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
 
                   {/* Auto-generated Summary */}

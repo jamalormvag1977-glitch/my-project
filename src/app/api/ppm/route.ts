@@ -413,7 +413,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
     const userRole = (session.user as any)?.role;
-    if (userRole !== 'admin' && userRole !== 'user') {
+    if (userRole !== 'admin') {
       return NextResponse.json({ error: 'Accès réservé aux administrateurs' }, { status: 403 });
     }
 

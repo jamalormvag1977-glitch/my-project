@@ -1287,7 +1287,7 @@ export default function Dashboard() {
                   <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
                   Actualiser
                 </Button>
-                {isAuthenticated && (
+                {isAdmin && (
                 <Button variant="outline" size="sm" onClick={() => setShowUpload(!showUpload)} className="text-[10px] h-7 gap-1 rounded-full px-3 border-blue-200 text-blue-600 hover:bg-blue-50">
                   <Upload className="w-3 h-3" />
                   Charger PPM
@@ -1798,7 +1798,7 @@ export default function Dashboard() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  {isAuthenticated && (
+                  {isAdmin && (
                   <Button
                     variant="outline"
                     size="sm"

@@ -3825,32 +3825,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* ── Rate Cards (Pipeline) ── */}
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 animate-fade-in-up" style={{ animationDelay: '0.16s' }}>
-          {rateCards.map(rc => (
-            <Card key={rc.label} className="border-0 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden bg-white"
-              style={{ borderTop: `3px solid ${rc.color}` }}>
-              <CardContent className="p-3 text-center space-y-2">
-                <div className="w-8 h-8 mx-auto rounded-lg flex items-center justify-center text-white shadow-sm"
-                  style={{ backgroundColor: rc.color }}>
-                  {rc.icon}
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-slate-800">{rc.rate}%</p>
-                  <p className="text-[9px] text-slate-500 uppercase tracking-wider font-medium">{rc.label}</p>
-                  <p className="text-[10px] text-slate-400">{rc.count} / {filteredKpis.totalProjects}</p>
-                </div>
-                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full animate-progress-fill transition-all duration-700"
-                    style={{ width: `${Math.min(100, rc.rate)}%`, backgroundColor: rc.color }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </section>
-
         {/* ── Alertes Summary ── */}
         {(() => {
           const alertCategories = [

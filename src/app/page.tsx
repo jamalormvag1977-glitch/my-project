@@ -1732,6 +1732,8 @@ export default function Dashboard() {
                             <th className="px-4 py-3 text-center">Admis</th>
                             <th className="px-4 py-3 text-center">Ecartés</th>
                             <th className="px-4 py-3 text-center">Taux</th>
+                            <th className="px-4 py-3 text-left">Date Jugement</th>
+                            <th className="px-4 py-3 text-left">Attributaire</th>
                             <th className="px-4 py-3 text-center">Détail</th>
                           </tr>
                         </thead>
@@ -1743,6 +1745,8 @@ export default function Dashboard() {
                             const taux = sp.nbSoumissionnairesUniques > 0 ? Math.round(admis / sp.nbSoumissionnairesUniques * 100) : 0;
                             // Séances uniques
                             const seances = [...new Set(sp.soumissionnaires.map(s => s.seance))].filter(Boolean);
+                            // Find matching PPM project for dateJugement & attributaire
+                            const ppmMatch = data?.projects.find(p => String(p.numAO) === sp.numAO && p.entite === sp.entite);
                             return (
                               <tr key={key} className="border-b border-slate-50 hover:bg-indigo-50/30 transition-colors">
                                 <td className="px-4 py-3">
@@ -1754,7 +1758,7 @@ export default function Dashboard() {
                                     <span className="font-semibold text-slate-700">{sp.entite}</span>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-slate-600" style={{ maxWidth: '300px', whiteSpace: 'normal', lineHeight: '1.4' }}>{sp.objetAO}</td>
+                                <td className="px-4 py-3 text-slate-600" style={{ maxWidth: '280px', whiteSpace: 'normal', lineHeight: '1.4' }}>{sp.objetAO}</td>
                                 <td className="px-4 py-3">
                                   <div className="space-y-0.5">
                                     {seances.slice(0, 3).map((seance, i) => (
@@ -1802,6 +1806,26 @@ export default function Dashboard() {
                                     </div>
                                     <span className={`text-[10px] font-bold ${taux >= 70 ? 'text-green-700' : taux >= 40 ? 'text-amber-700' : 'text-red-700'}`}>{taux}%</span>
                                   </div>
+                                </td>
+                                <td className="px-4 py-3">
+                                  {ppmMatch?.dateJugement ? (
+                                    <div className="flex items-center gap-1.5">
+                                      <CalendarDays className="w-3.5 h-3.5 text-blue-400" />
+                                      <span className="text-slate-700 font-medium">{new Date(ppmMatch.dateJugement).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-slate-300">—</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3">
+                                  {ppmMatch?.attributaire ? (
+                                    <div className="flex items-center gap-1.5">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                                      <span className="font-semibold text-green-700" style={{ whiteSpace: 'normal', lineHeight: '1.3' }}>{ppmMatch.attributaire}</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-slate-300">—</span>
+                                  )}
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   <button
@@ -4205,6 +4229,23 @@ export default function Dashboard() {
               <Badge className="bg-white/20 text-white border-0 text-xs">
                 <FileText className="w-3 h-3 mr-1" /> {selectedSoumProjet.numAOComplet}
               </Badge>
+              {(() => {
+                const ppmP = data?.projects.find(p => String(p.numAO) === selectedSoumProjet.numAO && p.entite === selectedSoumProjet.entite);
+                return ppmP ? (
+                  <>
+                    {ppmP.dateJugement && (
+                      <Badge className="bg-white/20 text-white border-0 text-xs">
+                        <CalendarDays className="w-3 h-3 mr-1" /> Jugé le {new Date(ppmP.dateJugement).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </Badge>
+                    )}
+                    {ppmP.attributaire && (
+                      <Badge className="bg-green-400/30 text-white border-0 text-xs">
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> {ppmP.attributaire}
+                      </Badge>
+                    )}
+                  </>
+                ) : null;
+              })()}
             </div>
           </div>
 

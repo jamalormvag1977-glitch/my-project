@@ -1681,11 +1681,12 @@ export default function Dashboard() {
                             <th className="px-4 py-3 text-left">N° AO</th>
                             <th className="px-4 py-3 text-left">Entité</th>
                             <th className="px-4 py-3 text-left">Objet</th>
+                            <th className="px-4 py-3 text-left">Séance</th>
                             <th className="px-4 py-3 text-center">Nb Soum.</th>
                             <th className="px-4 py-3 text-center">Admis</th>
                             <th className="px-4 py-3 text-center">Ecartés</th>
-                            <th className="px-4 py-3 text-center">Taux Admission</th>
-                            <th className="px-4 py-3 text-center">Détails</th>
+                            <th className="px-4 py-3 text-center">Taux</th>
+                            <th className="px-4 py-3 text-center">Détail</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1695,6 +1696,8 @@ export default function Dashboard() {
                             const admis = sp.soumissionnaires.filter(s => s.nom && s.decisionCommission === 'Admis').length;
                             const ecarts = sp.soumissionnaires.filter(s => s.nom && s.decisionCommission && s.decisionCommission !== 'Admis' && s.decisionCommission !== '').length;
                             const taux = sp.nbSoumissionnairesUniques > 0 ? Math.round(admis / sp.nbSoumissionnairesUniques * 100) : 0;
+                            // Séances uniques
+                            const seances = [...new Set(sp.soumissionnaires.map(s => s.seance))].filter(Boolean);
                             return (
                               <tr key={key} className="border-b border-slate-50 hover:bg-indigo-50/30 transition-colors">
                                 <td className="px-4 py-3">
@@ -1706,7 +1709,20 @@ export default function Dashboard() {
                                     <span className="font-semibold text-slate-700">{sp.entite}</span>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-slate-600 max-w-[350px] truncate">{sp.objetAO}</td>
+                                <td className="px-4 py-3 text-slate-600" style={{ maxWidth: '300px', whiteSpace: 'normal', lineHeight: '1.4' }}>{sp.objetAO}</td>
+                                <td className="px-4 py-3">
+                                  <div className="space-y-0.5">
+                                    {seances.slice(0, 3).map((seance, i) => (
+                                      <div key={i} className="flex items-center gap-1 text-[10px]">
+                                        <CalendarDays className="w-3 h-3 text-indigo-400" />
+                                        <span className="text-slate-600">{seance}</span>
+                                      </div>
+                                    ))}
+                                    {seances.length > 3 && (
+                                      <span className="text-[9px] text-indigo-400">+{seances.length - 3} autres</span>
+                                    )}
+                                  </div>
+                                </td>
                                 <td className="px-4 py-3 text-center">
                                   <span className="inline-flex items-center gap-1 font-bold text-indigo-700">
                                     <Users className="w-3 h-3" />
@@ -1733,7 +1749,7 @@ export default function Dashboard() {
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   <div className="flex items-center justify-center gap-2">
-                                    <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="w-14 h-2 bg-slate-100 rounded-full overflow-hidden">
                                       <div
                                         className={`h-full rounded-full transition-all duration-500 ${taux >= 70 ? 'bg-green-500' : taux >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
                                         style={{ width: `${taux}%` }}
@@ -1743,14 +1759,13 @@ export default function Dashboard() {
                                   </div>
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 text-[10px] text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 gap-1"
+                                  <button
+                                    className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-indigo-600 hover:text-indigo-800 transition-all duration-200 hover:shadow-md hover:scale-110 active:scale-95"
+                                    title="Voir le détail complet"
                                     onClick={() => { setSelectedSoumProjet(sp); setShowSoumModal(true); }}
                                   >
-                                    <Eye className="w-3 h-3" /> Voir
-                                  </Button>
+                                    <ArrowUpRight className="w-4 h-4" />
+                                  </button>
                                 </td>
                               </tr>
                             );
@@ -4114,112 +4129,184 @@ export default function Dashboard() {
         )}
         </main>
 
-      {/* ── Soumissionnaire Detail Modal (global) ── */}
+      {/* ── Soumissionnaire Detail Full-Screen View ── */}
       {showSoumModal && selectedSoumProjet && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in-up" style={{ animationDuration: '0.2s' }} onClick={() => setShowSoumModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden mx-4" onClick={e => e.stopPropagation()}>
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-4 text-white">
-              <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-slate-50 animate-fade-in-up" style={{ animationDuration: '0.2s' }}>
+          {/* Full-Page Header */}
+          <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-5 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+                  <Users className="w-6 h-6" />
+                </div>
                 <div>
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <Users className="w-5 h-5" />
+                  <h3 className="text-xl font-bold flex items-center gap-2">
                     Soumissionnaires — {selectedSoumProjet.numAOComplet}
                   </h3>
-                  <p className="text-xs text-indigo-200 mt-1 max-w-[600px] truncate">{selectedSoumProjet.objetAO}</p>
+                  <p className="text-sm text-indigo-200 mt-1">{selectedSoumProjet.objetAO}</p>
                 </div>
-                <button onClick={() => setShowSoumModal(false)} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-                  <X className="w-4 h-4" />
-                </button>
               </div>
-              <div className="flex items-center gap-4 mt-3">
-                <Badge className="bg-white/20 text-white border-0 text-xs">
-                  <Users className="w-3 h-3 mr-1" /> {selectedSoumProjet.nbSoumissionnairesUniques} soumissionnaire(s)
-                </Badge>
-                <Badge className="bg-white/20 text-white border-0 text-xs">
-                  <Building2 className="w-3 h-3 mr-1" /> {selectedSoumProjet.entite}
-                </Badge>
-              </div>
+              <button onClick={() => setShowSoumModal(false)} className="h-9 px-4 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center gap-2 transition-colors text-sm font-medium">
+                <X className="w-4 h-4" /> Fermer
+              </button>
             </div>
-            {/* Modal Body */}
-            <div className="overflow-y-auto max-h-[65vh] p-6">
-              {/* Unique soumissionnaires summary */}
-              {(() => {
-                const uniqueNoms = [...new Set(selectedSoumProjet.soumissionnaires.filter(s => s.nom).map(s => s.nom!))];
-                return uniqueNoms.length > 0 ? (
-                  <div className="mb-5">
-                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Soumissionnaires identifiés</h4>
+            <div className="flex items-center gap-4 mt-3">
+              <Badge className="bg-white/20 text-white border-0 text-xs">
+                <Users className="w-3 h-3 mr-1" /> {selectedSoumProjet.nbSoumissionnairesUniques} soumissionnaire(s)
+              </Badge>
+              <Badge className="bg-white/20 text-white border-0 text-xs">
+                <Building2 className="w-3 h-3 mr-1" /> {selectedSoumProjet.entite}
+              </Badge>
+              <Badge className="bg-white/20 text-white border-0 text-xs">
+                <FileText className="w-3 h-3 mr-1" /> {selectedSoumProjet.numAOComplet}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Full-Page Body */}
+          <div className="overflow-y-auto p-6 space-y-6" style={{ height: 'calc(100vh - 120px)' }}>
+            {/* KPI summary for this project */}
+            {(() => {
+              const admis = selectedSoumProjet.soumissionnaires.filter(s => s.nom && s.decisionCommission === 'Admis').length;
+              const ecarts = selectedSoumProjet.soumissionnaires.filter(s => s.nom && s.decisionCommission && s.decisionCommission !== 'Admis' && s.decisionCommission !== '').length;
+              const enAttente = selectedSoumProjet.nbSoumissionnairesUniques - admis - ecarts;
+              const tauxAdm = selectedSoumProjet.nbSoumissionnairesUniques > 0 ? Math.round(admis / selectedSoumProjet.nbSoumissionnairesUniques * 100) : 0;
+              // Séances uniques
+              const seancesUniques = [...new Set(selectedSoumProjet.soumissionnaires.map(s => s.seance))].filter(Boolean);
+              return (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #6366f1' }}>
+                    <CardContent className="p-4 text-center">
+                      <Users className="w-5 h-5 text-indigo-500 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-indigo-700">{selectedSoumProjet.nbSoumissionnairesUniques}</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Soumissionnaires</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #16a34a' }}>
+                    <CardContent className="p-4 text-center">
+                      <UserCheck className="w-5 h-5 text-green-500 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-green-700">{admis}</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Admis ({tauxAdm}%)</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #dc2626' }}>
+                    <CardContent className="p-4 text-center">
+                      <UserX className="w-5 h-5 text-red-500 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-red-700">{ecarts}</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Ecartés</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #d97706' }}>
+                    <CardContent className="p-4 text-center">
+                      <Clock className="w-5 h-5 text-amber-500 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-amber-700">{enAttente > 0 ? enAttente : '—'}</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">En attente</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #7c3aed' }}>
+                    <CardContent className="p-4 text-center">
+                      <ClipboardList className="w-5 h-5 text-violet-500 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-violet-700">{seancesUniques.length}</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Séances</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })()}
+
+            {/* Unique soumissionnaires summary */}
+            {(() => {
+              const uniqueNoms = [...new Set(selectedSoumProjet.soumissionnaires.filter(s => s.nom).map(s => s.nom!))];
+              return uniqueNoms.length > 0 ? (
+                <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #6366f1' }}>
+                  <CardHeader className="pb-2 pt-4 px-5">
+                    <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-indigo-500" />
+                      Soumissionnaires identifiés
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-5 pb-4">
                     <div className="flex flex-wrap gap-2">
                       {uniqueNoms.map(nom => {
                         const entries = selectedSoumProjet.soumissionnaires.filter(s => s.nom === nom);
                         const isAdmis = entries.some(e => e.decisionCommission === 'Admis');
                         const isEcarte = entries.some(e => e.decisionCommission && e.decisionCommission !== 'Admis' && e.decisionCommission !== '' && !e.decisionCommission.includes('reportée'));
+                        const nbSeances = entries.length;
                         return (
-                          <div key={nom} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200
+                          <div key={nom} className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200
                             ${isAdmis ? 'bg-green-50 border-green-200 text-green-700' : isEcarte ? 'bg-red-50 border-red-200 text-red-700' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
-                            {isAdmis ? <UserCheck className="w-3 h-3" /> : isEcarte ? <UserX className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                            {nom}
+                            {isAdmis ? <UserCheck className="w-4 h-4" /> : isEcarte ? <UserX className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                            <span>{nom}</span>
+                            <span className="text-[10px] opacity-70">({nbSeances} séance{nbSeances > 1 ? 's' : ''})</span>
                           </div>
                         );
                       })}
                     </div>
-                  </div>
-                ) : null;
-              })()}
+                  </CardContent>
+                </Card>
+              ) : null;
+            })()}
 
-              {/* Detailed sessions table */}
-              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Déroulement des séances</h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
-                      <th className="px-3 py-2.5 text-left">Semaine</th>
-                      <th className="px-3 py-2.5 text-left">Séance</th>
-                      <th className="px-3 py-2.5 text-left">Objet</th>
-                      <th className="px-3 py-2.5 text-left">Président</th>
-                      <th className="px-3 py-2.5 text-left">Soumissionnaire</th>
-                      <th className="px-3 py-2.5 text-left">Décision</th>
-                      <th className="px-3 py-2.5 text-right">Offre financière</th>
-                      <th className="px-3 py-2.5 text-left">Décision OF</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedSoumProjet.soumissionnaires.map((s, idx) => (
-                      <tr key={idx} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${!s.nom ? 'opacity-50' : ''}`}>
-                        <td className="px-3 py-2 text-slate-500 max-w-[120px] truncate">{s.semaine}</td>
-                        <td className="px-3 py-2 text-slate-500 max-w-[120px] truncate">{s.seance}</td>
-                        <td className="px-3 py-2">
-                          <Badge variant="outline" className="text-[9px] h-5 bg-slate-50">{s.objetSeance}</Badge>
-                        </td>
-                        <td className="px-3 py-2 text-slate-600">{s.president}</td>
-                        <td className="px-3 py-2 font-semibold text-slate-800">{s.nom || '—'}</td>
-                        <td className="px-3 py-2">
-                          {s.decisionCommission === 'Admis' ? (
-                            <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">Admis</Badge>
-                          ) : s.decisionCommission && s.decisionCommission.includes('Ecarté') ? (
-                            <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">Ecarté</Badge>
-                          ) : s.decisionCommission && s.decisionCommission.includes('reportée') ? (
-                            <Badge className="bg-amber-100 text-amber-700 border-0 text-[10px]">Reportée</Badge>
-                          ) : (
-                            <span className="text-slate-400 text-[10px]">{s.decisionCommission || '—'}</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-right font-mono text-slate-700">{s.offreFinanciere || '—'}</td>
-                        <td className="px-3 py-2 text-slate-500 max-w-[150px] truncate text-[10px]">{s.decisionCommissionOF || '—'}</td>
+            {/* Detailed sessions table - grouped by Séance */}
+            <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #6366f1' }}>
+              <CardHeader className="pb-2 pt-4 px-5">
+                <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4 text-indigo-500" />
+                  Déroulement des séances
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gradient-to-r from-indigo-50 to-violet-50 border-b border-indigo-100 text-xs text-indigo-700 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">Séance</th>
+                        <th className="px-5 py-3.5 text-left">Objet de la séance</th>
+                        <th className="px-5 py-3.5 text-left">Président</th>
+                        <th className="px-5 py-3.5 text-left">Soumissionnaire</th>
+                        <th className="px-5 py-3.5 text-left">Décision Commission</th>
+                        <th className="px-5 py-3.5 text-right">Offre financière</th>
+                        <th className="px-5 py-3.5 text-left">Décision Offre Financière</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            {/* Modal Footer */}
-            <div className="border-t border-slate-100 px-6 py-3 flex items-center justify-between bg-slate-50/50">
-              <p className="text-[10px] text-slate-400">
-                Source : {soumissionnaireData?.fileName || 'soumissionnaires.xlsx'} — Mis à jour : {soumissionnaireData?.lastUpdated ? new Date(soumissionnaireData.lastUpdated).toLocaleString('fr-FR') : '—'}
-              </p>
-              <Button variant="outline" size="sm" onClick={() => setShowSoumModal(false)} className="text-xs h-7">
-                Fermer
-              </Button>
+                    </thead>
+                    <tbody>
+                      {selectedSoumProjet.soumissionnaires.map((s, idx) => (
+                        <tr key={idx} className={`border-b border-slate-100 hover:bg-indigo-50/30 transition-colors ${!s.nom ? 'opacity-50' : ''}`}>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2">
+                              <CalendarDays className="w-4 h-4 text-indigo-400" />
+                              <span className="font-semibold text-slate-700">{s.seance}</span>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <Badge variant="outline" className="text-xs h-6 bg-white border-indigo-200 text-indigo-700 font-medium">{s.objetSeance}</Badge>
+                          </td>
+                          <td className="px-5 py-3 text-slate-700 font-medium">{s.president}</td>
+                          <td className="px-5 py-3 font-bold text-slate-900">{s.nom || '—'}</td>
+                          <td className="px-5 py-3">
+                            {s.decisionCommission === 'Admis' ? (
+                              <Badge className="bg-green-100 text-green-700 border-0 text-xs gap-1"><UserCheck className="w-3 h-3" /> Admis</Badge>
+                            ) : s.decisionCommission && s.decisionCommission.includes('Ecarté') ? (
+                              <Badge className="bg-red-100 text-red-700 border-0 text-xs gap-1"><UserX className="w-3 h-3" /> Ecarté</Badge>
+                            ) : s.decisionCommission && s.decisionCommission.includes('reportée') ? (
+                              <Badge className="bg-amber-100 text-amber-700 border-0 text-xs gap-1"><Clock className="w-3 h-3" /> Reportée</Badge>
+                            ) : (
+                              <span className="text-slate-500 text-xs">{s.decisionCommission || '—'}</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3 text-right font-mono font-semibold text-slate-800">{s.offreFinanciere || '—'}</td>
+                          <td className="px-5 py-3 text-slate-700">{s.decisionCommissionOF || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Source info */}
+            <div className="text-center text-xs text-slate-400 py-3">
+              Source : {soumissionnaireData?.fileName || 'soumissionnaires.xlsx'} — Mis à jour : {soumissionnaireData?.lastUpdated ? new Date(soumissionnaireData.lastUpdated).toLocaleString('fr-FR') : '—'}
             </div>
           </div>
         </div>

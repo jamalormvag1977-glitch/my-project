@@ -21,7 +21,7 @@ import {
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
   X, ClipboardList, History, Download, Printer, Send, Wallet, Shield, Eye, Users, UserCheck, UserX, LogOut,
   Scale, Gavel, FileCheck, FileX, Ban, Megaphone, FileSignature, ListTodo,
-  Timer, ArrowLeftRight, FileSearch, MapPin, Tag, Banknote, Percent
+  Timer, ArrowLeftRight, FileSearch, MapPin, Tag, Banknote, Percent, Hash, FolderOpen
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -2935,58 +2935,142 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* KPI Cards */}
+                    {/* KPI Cards - Row 1: Key Numbers */}
                     <div className="p-6">
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-4 border border-blue-100">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center"><FileText className="w-4 h-4 text-blue-600" /></div>
-                            <span className="text-[10px] font-medium text-blue-600 uppercase tracking-wide">Total AO</span>
-                          </div>
-                          <p className="text-2xl font-bold text-slate-900">{filteredKpis.totalProjects}</p>
-                          <p className="text-[10px] text-slate-500 mt-1">{filtered.length} AO dans le PPM</p>
-                        </div>
-                        <div className="bg-gradient-to-br from-violet-50 to-violet-100/50 rounded-xl p-4 border border-violet-100">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center"><DollarSign className="w-4 h-4 text-violet-600" /></div>
-                            <span className="text-[10px] font-medium text-violet-600 uppercase tracking-wide">Budget Total</span>
-                          </div>
-                          <p className="text-2xl font-bold text-slate-900">{fmtMDH(filteredKpis.totalBudget)}</p>
-                          <p className="text-[10px] text-slate-500 mt-1">CP: {fmtMDH(filteredKpis.totalCP)} · CE: {fmtMDH(filteredKpis.totalCE)}</p>
-                        </div>
-                        <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-xl p-4 border border-amber-100">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center"><TrendingUp className="w-4 h-4 text-amber-600" /></div>
-                            <span className="text-[10px] font-medium text-amber-600 uppercase tracking-wide">Estimation</span>
-                          </div>
-                          <p className="text-2xl font-bold text-slate-900">{fmtMDH(filteredKpis.totalEstimation)}</p>
-                          <p className="text-[10px] text-slate-500 mt-1">Estimation administrative</p>
-                        </div>
-                        <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-4 border border-green-100">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-green-600" /></div>
-                            <span className="text-[10px] font-medium text-green-600 uppercase tracking-wide">Engagements</span>
-                          </div>
-                          <p className="text-2xl font-bold text-slate-900">{fmtMDH(filteredKpis.totalEngagement)}</p>
-                          <p className="text-[10px] text-slate-500 mt-1">Eng. CP: {fmtMDH(filtered.reduce((s,p) => s + (p.engagementCP||0), 0))} · CE: {fmtMDH(filtered.reduce((s,p) => s + (p.engagementCE||0), 0))}</p>
-                        </div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <Hash className="w-4 h-4 text-slate-500" />
+                        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide">Indicateurs Clés — Nombres</h3>
+                      </div>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                        {(() => {
+                          const engages = filtered.filter(p => p.situationAvancement === 'Engagé');
+                          const juges = filtered.filter(p => p.situationAvancement === 'Jugé');
+                          const ouverts = filtered.filter(p => p.situationAvancement === 'Ouvert');
+                          const enCoursJ = filtered.filter(p => p.situationAvancement === 'En cours de jugement');
+                          const infructueux = filtered.filter(p => p.situationAvancement === 'Infructueux');
+                          const annules = filtered.filter(p => p.situationAvancement === 'Annulé');
+                          const publies = filtered.filter(p => p.situationAvancement === 'Publié sur PMP');
+                          const daoCE = filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE');
+                          const aProg = filtered.filter(p => p.situationAvancement === 'A programmer');
+                          const avecJugement = filtered.filter(p => p.dateJugement);
+                          const avecEngagement = filtered.filter(p => p.dateEngagement && p.montantEngagement > 0);
+                          const avecAttributaire = filtered.filter(p => p.attributaire);
+                          const avecMarche = filtered.filter(p => p.numMarche);
+                          const totalSoums = soumissionnaireData?.totalSoumissionnaires ?? 0;
+                          const kpis = [
+                            { label: 'Total AO', value: filteredKpis.totalProjects, sub: `${entities.length} entités`, bg: 'from-blue-50 to-blue-100/50', border: 'border-blue-100', iconBg: 'bg-blue-500/10', iconColor: 'text-blue-600', icon: <FileText className="w-4 h-4" /> },
+                            { label: 'Engagés', value: engages.length, sub: filteredKpis.totalProjects > 0 ? `${Math.round(engages.length/filteredKpis.totalProjects*100)}% du total` : '—', bg: 'from-green-50 to-green-100/50', border: 'border-green-100', iconBg: 'bg-green-500/10', iconColor: 'text-green-600', icon: <CheckCircle2 className="w-4 h-4" /> },
+                            { label: 'Jugés', value: juges.length, sub: `${avecAttributaire.length} avec attributaire`, bg: 'from-indigo-50 to-indigo-100/50', border: 'border-indigo-100', iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-600', icon: <Gavel className="w-4 h-4" /> },
+                            { label: 'Ouverts', value: ouverts.length, sub: filteredKpis.totalProjects > 0 ? `${Math.round(ouverts.length/filteredKpis.totalProjects*100)}% du total` : '—', bg: 'from-cyan-50 to-cyan-100/50', border: 'border-cyan-100', iconBg: 'bg-cyan-500/10', iconColor: 'text-cyan-600', icon: <FolderOpen className="w-4 h-4" /> },
+                            { label: 'En cours Jugement', value: enCoursJ.length, sub: `${avecJugement.length} jugés au total`, bg: 'from-amber-50 to-amber-100/50', border: 'border-amber-100', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-600', icon: <Clock className="w-4 h-4" /> },
+                            { label: 'Infructueux', value: infructueux.length, sub: filteredKpis.totalProjects > 0 ? `${Math.round(infructueux.length/filteredKpis.totalProjects*100)}% du total` : '—', bg: 'from-red-50 to-red-100/50', border: 'border-red-100', iconBg: 'bg-red-500/10', iconColor: 'text-red-600', icon: <XCircle className="w-4 h-4" /> },
+                            { label: 'Annulés', value: annules.length, sub: infructueux.length + annules.length > 0 ? `${infructueux.length + annules.length} échoués` : 'Aucun', bg: 'from-rose-50 to-rose-100/50', border: 'border-rose-100', iconBg: 'bg-rose-500/10', iconColor: 'text-rose-600', icon: <Ban className="w-4 h-4" /> },
+                            { label: 'Publié PPM', value: publies.length, sub: `${daoCE.length} DAO au CE`, bg: 'from-violet-50 to-violet-100/50', border: 'border-violet-100', iconBg: 'bg-violet-500/10', iconColor: 'text-violet-600', icon: <Activity className="w-4 h-4" /> },
+                            { label: 'Marchés Conclus', value: avecMarche.length, sub: `${avecEngagement.length} engagés au total`, bg: 'from-teal-50 to-teal-100/50', border: 'border-teal-100', iconBg: 'bg-teal-500/10', iconColor: 'text-teal-600', icon: <FileSignature className="w-4 h-4" /> },
+                            { label: 'Soumissionnaires', value: totalSoums > 0 ? totalSoums : '—', sub: totalSoums > 0 ? `${(totalSoums / filteredKpis.totalProjects).toFixed(1)} moy/AO` : 'Non chargé', bg: 'from-sky-50 to-sky-100/50', border: 'border-sky-100', iconBg: 'bg-sky-500/10', iconColor: 'text-sky-600', icon: <Users className="w-4 h-4" /> },
+                          ];
+                          return kpis.map((k, i) => (
+                            <div key={i} className={`bg-gradient-to-br ${k.bg} rounded-xl p-3.5 border ${k.border}`}>
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <div className={`w-7 h-7 rounded-lg ${k.iconBg} flex items-center justify-center ${k.iconColor}`}>{k.icon}</div>
+                                <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wide">{k.label}</span>
+                              </div>
+                              <p className="text-xl font-bold text-slate-900">{k.value}</p>
+                              <p className="text-[9px] text-slate-400 mt-0.5">{k.sub}</p>
+                            </div>
+                          ));
+                        })()}
                       </div>
 
-                      {/* Engagement Rate */}
-                      <div className="mt-6 bg-slate-50 rounded-xl p-4 border border-slate-100">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-slate-700">Taux d&apos;engagement global</span>
-                          <span className={`text-sm font-bold ${engRate >= 50 ? 'text-green-600' : engRate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{engRate}%</span>
-                        </div>
-                        <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, engRate)}%`, backgroundColor: engRate >= 50 ? '#16a34a' : engRate >= 25 ? '#d97706' : '#dc2626' }} />
-                        </div>
-                        <div className="flex justify-between text-[9px] text-slate-400 mt-1">
-                          <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
-                        </div>
+                      {/* KPI Cards - Row 2: Key Amounts */}
+                      <div className="flex items-center gap-2 mb-4 mt-6">
+                        <Banknote className="w-4 h-4 text-slate-500" />
+                        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide">Indicateurs Clés — Montants (MDH)</h3>
                       </div>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                        {(() => {
+                          const engages = filtered.filter(p => p.situationAvancement === 'Engagé');
+                          const juges = filtered.filter(p => p.situationAvancement === 'Jugé');
+                          const ouverts = filtered.filter(p => p.situationAvancement === 'Ouvert');
+                          const engCP = filtered.reduce((s,p) => s + (p.engagementCP||0), 0);
+                          const engCE = filtered.reduce((s,p) => s + (p.engagementCE||0), 0);
+                          const estEngages = engages.reduce((s,p) => s + (p.estimationAdmin||0), 0);
+                          const engEngages = engages.reduce((s,p) => s + (p.montantEngagement||0), 0);
+                          const estJuges = juges.reduce((s,p) => s + (p.estimationAdmin||0), 0);
+                          const estOuverts = ouverts.reduce((s,p) => s + (p.estimationAdmin||0), 0);
+                          const resteAEngager = filteredKpis.totalEstimation - filteredKpis.totalEngagement;
+                          const montantKpis = [
+                            { label: 'Budget Total (CP+CE)', value: fmtMDH(filteredKpis.totalBudget), sub: `CP: ${fmtMDH(filteredKpis.totalCP)} · CE: ${fmtMDH(filteredKpis.totalCE)}`, bg: 'from-violet-50 to-violet-100/50', border: 'border-violet-100', iconBg: 'bg-violet-500/10', iconColor: 'text-violet-600', icon: <Wallet className="w-4 h-4" /> },
+                            { label: 'Estimation Admin.', value: fmtMDH(filteredKpis.totalEstimation), sub: `${filteredKpis.totalProjects} AO`, bg: 'from-amber-50 to-amber-100/50', border: 'border-amber-100', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-600', icon: <TrendingUp className="w-4 h-4" /> },
+                            { label: 'Montant Extrait', value: fmtMDH(filteredKpis.totalMontantExtrait), sub: 'Total montants extraits', bg: 'from-orange-50 to-orange-100/50', border: 'border-orange-100', iconBg: 'bg-orange-500/10', iconColor: 'text-orange-600', icon: <FileCheck className="w-4 h-4" /> },
+                            { label: 'Engagements Total', value: fmtMDH(filteredKpis.totalEngagement), sub: `CP: ${fmtMDH(engCP)} · CE: ${fmtMDH(engCE)}`, bg: 'from-green-50 to-green-100/50', border: 'border-green-100', iconBg: 'bg-green-500/10', iconColor: 'text-green-600', icon: <DollarSign className="w-4 h-4" /> },
+                            { label: 'Eng. CP', value: fmtMDH(engCP), sub: filteredKpis.totalCP > 0 ? `Taux: ${Math.round(engCP/filteredKpis.totalCP*100)}% du CP` : '—', bg: 'from-blue-50 to-blue-100/50', border: 'border-blue-100', iconBg: 'bg-blue-500/10', iconColor: 'text-blue-600', icon: <Percent className="w-4 h-4" /> },
+                            { label: 'Eng. CE', value: fmtMDH(engCE), sub: filteredKpis.totalCE > 0 ? `Taux: ${Math.round(engCE/filteredKpis.totalCE*100)}% du CE` : '—', bg: 'from-cyan-50 to-cyan-100/50', border: 'border-cyan-100', iconBg: 'bg-cyan-500/10', iconColor: 'text-cyan-600', icon: <Percent className="w-4 h-4" /> },
+                            { label: 'Estim. Engagés', value: fmtMDH(estEngages), sub: `Engagé: ${fmtMDH(engEngages)}`, bg: 'from-emerald-50 to-emerald-100/50', border: 'border-emerald-100', iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-600', icon: <CheckCircle2 className="w-4 h-4" /> },
+                            { label: 'Estim. Jugés', value: fmtMDH(estJuges), sub: `${juges.length} AO jugés`, bg: 'from-indigo-50 to-indigo-100/50', border: 'border-indigo-100', iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-600', icon: <Gavel className="w-4 h-4" /> },
+                            { label: 'Estim. Ouverts', value: fmtMDH(estOuverts), sub: `${ouverts.length} AO ouverts`, bg: 'from-sky-50 to-sky-100/50', border: 'border-sky-100', iconBg: 'bg-sky-500/10', iconColor: 'text-sky-600', icon: <FolderOpen className="w-4 h-4" /> },
+                            { label: 'Reste à Engager', value: fmtMDH(resteAEngager), sub: filteredKpis.totalEstimation > 0 ? `${Math.round(resteAEngager/filteredKpis.totalEstimation*100)}% de l\'estim.` : '—', bg: 'from-rose-50 to-rose-100/50', border: 'border-rose-100', iconBg: 'bg-rose-500/10', iconColor: 'text-rose-600', icon: <ArrowLeftRight className="w-4 h-4" /> },
+                          ];
+                          return montantKpis.map((k, i) => (
+                            <div key={i} className={`bg-gradient-to-br ${k.bg} rounded-xl p-3.5 border ${k.border}`}>
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <div className={`w-7 h-7 rounded-lg ${k.iconBg} flex items-center justify-center ${k.iconColor}`}>{k.icon}</div>
+                                <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wide">{k.label}</span>
+                              </div>
+                              <p className="text-lg font-bold text-slate-900">{k.value}</p>
+                              <p className="text-[9px] text-slate-400 mt-0.5">{k.sub}</p>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+
+                      {/* Taux & Ratios Progress Bars */}
+                      <div className="flex items-center gap-2 mb-4 mt-6">
+                        <Percent className="w-4 h-4 text-slate-500" />
+                        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide">Taux & Ratios</h3>
+                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {(() => {
+                          const engCP = filtered.reduce((s,p) => s + (p.engagementCP||0), 0);
+                          const engCE = filtered.reduce((s,p) => s + (p.engagementCE||0), 0);
+                          const tauxEngGlobal = filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0;
+                          const tauxEngCP = filteredKpis.totalCP > 0 ? Math.round(engCP / filteredKpis.totalCP * 100) : 0;
+                          const tauxEngCE = filteredKpis.totalCE > 0 ? Math.round(engCE / filteredKpis.totalCE * 100) : 0;
+                          const tauxJugement = filteredKpis.totalProjects > 0 ? Math.round(filtered.filter(p => p.dateJugement).length / filteredKpis.totalProjects * 100) : 0;
+                          const tauxAttributaire = filteredKpis.totalProjects > 0 ? Math.round(filtered.filter(p => p.attributaire).length / filteredKpis.totalProjects * 100) : 0;
+                          const tauxMarche = filteredKpis.totalProjects > 0 ? Math.round(filtered.filter(p => p.numMarche).length / filteredKpis.totalProjects * 100) : 0;
+                          const tauxEchec = filteredKpis.totalProjects > 0 ? Math.round(((filteredStatusCount['Infructueux']||0) + (filteredStatusCount['Annulé']||0)) / filteredKpis.totalProjects * 100) : 0;
+                          const rates = [
+                            { label: 'Taux d\'engagement global', value: tauxEngGlobal, color: tauxEngGlobal >= 50 ? '#16a34a' : tauxEngGlobal >= 25 ? '#d97706' : '#dc2626', detail: `${fmtMDH(filteredKpis.totalEngagement)} / ${fmtMDH(filteredKpis.totalEstimation)}` },
+                            { label: 'Taux engagement CP', value: tauxEngCP, color: tauxEngCP >= 50 ? '#16a34a' : tauxEngCP >= 25 ? '#d97706' : '#dc2626', detail: `${fmtMDH(engCP)} / ${fmtMDH(filteredKpis.totalCP)}` },
+                            { label: 'Taux engagement CE', value: tauxEngCE, color: tauxEngCE >= 50 ? '#16a34a' : tauxEngCE >= 25 ? '#d97706' : '#dc2626', detail: `${fmtMDH(engCE)} / ${fmtMDH(filteredKpis.totalCE)}` },
+                            { label: 'Taux de jugement', value: tauxJugement, color: tauxJugement >= 50 ? '#16a34a' : tauxJugement >= 25 ? '#d97706' : '#dc2626', detail: `${filtered.filter(p => p.dateJugement).length} / ${filteredKpis.totalProjects} AO` },
+                            { label: 'Taux d\'attributaire', value: tauxAttributaire, color: tauxAttributaire >= 50 ? '#16a34a' : tauxAttributaire >= 25 ? '#d97706' : '#dc2626', detail: `${filtered.filter(p => p.attributaire).length} / ${filteredKpis.totalProjects} AO` },
+                            { label: 'Taux de marchés conclus', value: tauxMarche, color: tauxMarche >= 50 ? '#16a34a' : tauxMarche >= 25 ? '#d97706' : '#dc2626', detail: `${filtered.filter(p => p.numMarche).length} / ${filteredKpis.totalProjects} AO` },
+                            { label: 'Taux d\'échec (Infr.+Ann.)', value: tauxEchec, color: tauxEchec <= 10 ? '#16a34a' : tauxEchec <= 25 ? '#d97706' : '#dc2626', detail: `${(filteredStatusCount['Infructueux']||0) + (filteredStatusCount['Annulé']||0)} / ${filteredKpis.totalProjects} AO` },
+                            { label: 'Taux AO restants (non lancés)', value: filteredKpis.totalProjects > 0 ? Math.round(((filteredStatusCount['Publié sur PMP']||0) + (filteredStatusCount['DAO Envoyé au CE']||0) + (filteredStatusCount['A programmer']||0)) / filteredKpis.totalProjects * 100) : 0, color: '#6366f1', detail: `${(filteredStatusCount['Publié sur PMP']||0) + (filteredStatusCount['DAO Envoyé au CE']||0) + (filteredStatusCount['A programmer']||0)} AO restants` },
+                          ];
+                          return rates.map((r, i) => (
+                            <div key={i} className="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-[10px] font-semibold text-slate-700">{r.label}</span>
+                                <span className="text-xs font-bold" style={{ color: r.color }}>{r.value}%</span>
+                              </div>
+                              <div className="h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, r.value)}%`, backgroundColor: r.color }} />
+                              </div>
+                              <p className="text-[9px] text-slate-400 mt-1">{r.detail}</p>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+
                       {/* Délais & Soumissionnaires Summary */}
-                      <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="flex items-center gap-2 mb-4 mt-6">
+                        <Timer className="w-4 h-4 text-slate-500" />
+                        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide">Délais Moyens & Soumissionnaires</h3>
+                      </div>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {(() => {
                           const validOJ = filtered.filter(p => p.dateOuverture && p.dateJugement && new Date(p.dateOuverture) < new Date(p.dateJugement));
                           const validJE = filtered.filter(p => p.dateJugement && p.dateEngagement && new Date(p.dateJugement) < new Date(p.dateEngagement));
@@ -2996,16 +3080,17 @@ export default function Dashboard() {
                           const avgOE = validOE.length > 0 ? Math.round(validOE.reduce((s,p) => s + (new Date(p.dateEngagement!).getTime() - new Date(p.dateOuverture!).getTime()) / 86400000, 0) / validOE.length) : 0;
                           const totalSoums = soumissionnaireData?.totalSoumissionnaires ?? 0;
                           return [
-                            { label: 'Délai moyen Ouv.→Jugé', value: avgOJ > 0 ? `${avgOJ} jours` : '—', bg: 'bg-blue-50', border: 'border-blue-100', iconBg: 'bg-blue-100', iconColor: 'text-blue-600', icon: <Scale className="w-3.5 h-3.5" /> },
-                            { label: 'Délai moyen Jugé→Eng.', value: avgJE > 0 ? `${avgJE} jours` : '—', bg: 'bg-amber-50', border: 'border-amber-100', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', icon: <Gavel className="w-3.5 h-3.5" /> },
-                            { label: 'Délai moyen Ouv.→Eng.', value: avgOE > 0 ? `${avgOE} jours` : '—', bg: 'bg-indigo-50', border: 'border-indigo-100', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', icon: <Clock className="w-3.5 h-3.5" /> },
-                            { label: 'Total Soumissionnaires', value: totalSoums > 0 ? `${totalSoums}` : '—', bg: 'bg-sky-50', border: 'border-sky-100', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', icon: <Users className="w-3.5 h-3.5" /> },
+                            { label: 'Délai moyen Ouv.→Jugé', value: avgOJ > 0 ? `${avgOJ} j` : '—', sub: `${validOJ.length} AO exploitables`, bg: 'bg-blue-50', border: 'border-blue-100', iconBg: 'bg-blue-100', iconColor: 'text-blue-600', icon: <Scale className="w-3.5 h-3.5" /> },
+                            { label: 'Délai moyen Jugé→Eng.', value: avgJE > 0 ? `${avgJE} j` : '—', sub: `${validJE.length} AO exploitables`, bg: 'bg-amber-50', border: 'border-amber-100', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', icon: <Gavel className="w-3.5 h-3.5" /> },
+                            { label: 'Délai moyen Ouv.→Eng.', value: avgOE > 0 ? `${avgOE} j` : '—', sub: `${validOE.length} AO exploitables`, bg: 'bg-indigo-50', border: 'border-indigo-100', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', icon: <Clock className="w-3.5 h-3.5" /> },
+                            { label: 'Total Soumissionnaires', value: totalSoums > 0 ? `${totalSoums}` : '—', sub: totalSoums > 0 ? `${(totalSoums / filteredKpis.totalProjects).toFixed(1)} moy/AO` : 'Non chargé', bg: 'bg-sky-50', border: 'border-sky-100', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', icon: <Users className="w-3.5 h-3.5" /> },
                           ].map((k, i) => (
                             <div key={i} className={`${k.bg} rounded-lg p-3 border ${k.border} flex items-center gap-3`}>
                               <div className={`w-8 h-8 rounded-lg ${k.iconBg} flex items-center justify-center ${k.iconColor}`}>{k.icon}</div>
                               <div>
                                 <div className="text-[9px] text-slate-500 uppercase">{k.label}</div>
                                 <div className="text-sm font-bold text-slate-800">{k.value}</div>
+                                <div className="text-[8px] text-slate-400">{k.sub}</div>
                               </div>
                             </div>
                           ));
@@ -3019,23 +3104,27 @@ export default function Dashboard() {
                     {/* Status Distribution Table */}
                     <div className="lg:col-span-2 print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                       <div className="px-6 py-4 border-b border-slate-100">
-                        <h3 className="text-sm font-bold text-slate-800">Répartition par Statut</h3>
+                        <h3 className="text-sm font-bold text-slate-800">Répartition par Statut — Nombres & Montants</h3>
                       </div>
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
                             <tr className="bg-slate-50 border-b border-slate-100">
                               <th className="px-4 py-2.5 text-left font-semibold text-slate-600">Statut</th>
-                              <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Nb Projets</th>
+                              <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Nb AO</th>
                               <th className="px-4 py-2.5 text-center font-semibold text-slate-600">%</th>
                               <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Estimation</th>
                               <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Engagement</th>
+                              <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Taux Eng.</th>
                             </tr>
                           </thead>
                           <tbody>
                             {statuses.map(s => {
                               const count = filteredStatusCount[s] || 0;
                               const pct = filteredKpis.totalProjects > 0 ? (count / filteredKpis.totalProjects * 100).toFixed(1) : '0.0';
+                              const est = filteredStatusBudget[s]?.estimation || 0;
+                              const eng = filteredStatusBudget[s]?.engagement || 0;
+                              const taux = est > 0 ? Math.round(eng / est * 100) : 0;
                               return (
                                 <tr key={s} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                                   <td className="px-4 py-2.5">
@@ -3046,8 +3135,18 @@ export default function Dashboard() {
                                   </td>
                                   <td className="px-4 py-2.5 text-center font-semibold text-slate-800">{count}</td>
                                   <td className="px-4 py-2.5 text-center text-slate-500">{pct}%</td>
-                                  <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtNum(filteredStatusBudget[s]?.estimation || 0)}</td>
-                                  <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtNum(filteredStatusBudget[s]?.engagement || 0)}</td>
+                                  <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtNum(est)}</td>
+                                  <td className="px-4 py-2.5 text-right font-medium text-green-600">{fmtNum(eng)}</td>
+                                  <td className="px-4 py-2.5 text-right">
+                                    {est > 0 ? (
+                                      <div className="flex items-center justify-end gap-1.5">
+                                        <div className="w-12 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                          <div className="h-full rounded-full" style={{ width: `${Math.min(100, taux)}%`, backgroundColor: taux >= 50 ? '#16a34a' : taux >= 25 ? '#d97706' : '#dc2626' }} />
+                                        </div>
+                                        <span className="font-bold" style={{ color: taux >= 50 ? '#16a34a' : taux >= 25 ? '#d97706' : '#dc2626' }}>{taux}%</span>
+                                      </div>
+                                    ) : <span className="text-slate-300">—</span>}
+                                  </td>
                                 </tr>
                               );
                             })}
@@ -3059,6 +3158,11 @@ export default function Dashboard() {
                               <td className="px-4 py-2.5 text-center text-slate-800">100%</td>
                               <td className="px-4 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalEstimation)}</td>
                               <td className="px-4 py-2.5 text-right text-green-700">{fmtNum(filteredKpis.totalEngagement)}</td>
+                              <td className="px-4 py-2.5 text-right">
+                                <span className="font-bold" style={{ color: filteredKpis.totalEstimation > 0 ? (Math.round(filteredKpis.totalEngagement/filteredKpis.totalEstimation*100) >= 50 ? '#16a34a' : Math.round(filteredKpis.totalEngagement/filteredKpis.totalEstimation*100) >= 25 ? '#d97706' : '#dc2626') : '#6b7280' }}>
+                                  {filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement/filteredKpis.totalEstimation*100) : 0}%
+                                </span>
+                              </td>
                             </tr>
                           </tfoot>
                         </table>
@@ -3088,21 +3192,53 @@ export default function Dashboard() {
                       <FileText className="w-4 h-4 text-slate-500" />
                       <h3 className="text-sm font-bold text-slate-800">Synthèse Automatique</h3>
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Le PPM 2026 de l&apos;ORMVAG comprend <strong>{filteredKpis.totalProjects} AO</strong> pour un budget total de <strong>{fmtMDH(filteredKpis.totalBudget)}</strong>.
-                      L&apos;estimation administrative s&apos;élève à <strong>{fmtMDH(filteredKpis.totalEstimation)}</strong> et les engagements atteignent <strong>{fmtMDH(filteredKpis.totalEngagement)}</strong>,
-                      soit un taux d&apos;engagement de <strong>{engRate}%</strong>.
-                      {filteredStatusCount['Engagé'] > 0 && ` ${filteredStatusCount['Engagé']} AO sont engagés.`}
-                      {filteredStatusCount['Ouvert'] > 0 && ` ${filteredStatusCount['Ouvert']} AO restent ouverts.`}
-                      {filteredStatusCount['Jugé'] > 0 && ` ${filteredStatusCount['Jugé']} AO ont été jugés.`}
-                      {totalAlertCount > 0 && ` ${totalAlertCount} point(s) d'attention nécessitent un suivi.`}
-                      {engRate >= 50
-                        ? ' Le taux d\'engagement est satisfaisant, supérieur à 50%.'
-                        : engRate >= 25
-                        ? ' Le taux d\'engagement est moyen, des actions d\'accélération sont recommandées.'
-                        : ' Le taux d\'engagement est faible, des mesures correctives urgentes sont nécessaires.'
-                      }
-                    </p>
+                    {(() => {
+                      const engages = filtered.filter(p => p.situationAvancement === 'Engagé');
+                      const juges = filtered.filter(p => p.situationAvancement === 'Jugé');
+                      const ouverts = filtered.filter(p => p.situationAvancement === 'Ouvert');
+                      const enCoursJ = filtered.filter(p => p.situationAvancement === 'En cours de jugement');
+                      const infructueux = filtered.filter(p => p.situationAvancement === 'Infructueux');
+                      const annules = filtered.filter(p => p.situationAvancement === 'Annulé');
+                      const engCP = filtered.reduce((s,p) => s + (p.engagementCP||0), 0);
+                      const engCE = filtered.reduce((s,p) => s + (p.engagementCE||0), 0);
+                      const tauxEngGlobal = filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0;
+                      const tauxEngCP = filteredKpis.totalCP > 0 ? Math.round(engCP / filteredKpis.totalCP * 100) : 0;
+                      const tauxEngCE = filteredKpis.totalCE > 0 ? Math.round(engCE / filteredKpis.totalCE * 100) : 0;
+                      const resteAEngager = filteredKpis.totalEstimation - filteredKpis.totalEngagement;
+                      return (
+                        <div className="space-y-3 text-xs text-slate-600 leading-relaxed">
+                          <p>
+                            Le PPM 2026 de l&apos;ORMVAG comprend <strong>{filteredKpis.totalProjects} AO</strong> répartis sur <strong>{entities.length} entités</strong>,
+                            pour un budget total de <strong>{fmtMDH(filteredKpis.totalBudget)}</strong> (CP: {fmtMDH(filteredKpis.totalCP)} + CE: {fmtMDH(filteredKpis.totalCE)}).
+                            L&apos;estimation administrative globale s&apos;élève à <strong>{fmtMDH(filteredKpis.totalEstimation)}</strong>.
+                          </p>
+                          <p>
+                            <strong>Par statut :</strong> {engages.length} AO engagés ({fmtMDH(engages.reduce((s,p)=>s+(p.montantEngagement||0),0))}),
+                            {juges.length} jugés ({fmtMDH(juges.reduce((s,p)=>s+(p.estimationAdmin||0),0))}),
+                            {ouverts.length} ouverts ({fmtMDH(ouverts.reduce((s,p)=>s+(p.estimationAdmin||0),0))}),
+                            {enCoursJ.length} en cours de jugement,
+                            {infructueux.length} infructueux et {annules.length} annulés.
+                          </p>
+                          <p>
+                            <strong>Engagements :</strong> Le montant total des engagements atteint <strong>{fmtMDH(filteredKpis.totalEngagement)}</strong>,
+                            soit un taux d&apos;engagement global de <strong>{tauxEngGlobal}%</strong> (Eng. CP: {fmtMDH(engCP)} soit {tauxEngCP}% du CP — Eng. CE: {fmtMDH(engCE)} soit {tauxEngCE}% du CE).
+                            Le reste à engager est de <strong>{fmtMDH(resteAEngager)}</strong> ({filteredKpis.totalEstimation > 0 ? Math.round(resteAEngager/filteredKpis.totalEstimation*100) : 0}% de l&apos;estimation).
+                          </p>
+                          <p>
+                            <strong>Avancement :</strong> {filtered.filter(p => p.dateJugement).length} AO ont fait l&apos;objet d&apos;un jugement,
+                            {filtered.filter(p => p.attributaire).length} ont un attributaire désigné,
+                            {filtered.filter(p => p.numMarche).length} ont un marché conséquent.
+                            {totalAlertCount > 0 && ` ${totalAlertCount} point(s) d'attention nécessitent un suivi.`}
+                            {tauxEngGlobal >= 50
+                              ? ' Le taux d\'engagement est satisfaisant, supérieur à 50%.'
+                              : tauxEngGlobal >= 25
+                              ? ' Le taux d\'engagement est moyen, des actions d\'accélération sont recommandées.'
+                              : ' Le taux d\'engagement est faible, des mesures correctives urgentes sont nécessaires.'
+                            }
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {actionBar}

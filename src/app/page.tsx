@@ -3825,60 +3825,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* ── Alertes Summary ── */}
-        {(() => {
-          const alertCategories = [
-            { key: 'ouvert-sans-date', label: 'Ouvert sans date d\'ouverture des plis', color: '#3b82f6', icon: <CalendarDays className="w-3.5 h-3.5" />, items: filtered.filter(p => (p.situationAvancement === 'Ouvert' || (PIPELINE_STATUS_MAP['Ouvert'] !== '__computed__' && p.situationAvancement === PIPELINE_STATUS_MAP['Ouvert'])) && !isValidDate(p.dateOuverture)) },
-            { key: 'juge-sans-engagement', label: 'Jugé sans engagement', color: '#d97706', icon: <DollarSign className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'Jugé' && (!p.montantEngagement || p.montantEngagement === 0)) },
-            { key: 'juge-sans-date', label: 'Jugé sans date de jugement', color: '#2563eb', icon: <Clock className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'Jugé' && !isValidDate(p.dateJugement)) },
-            { key: 'infructueux-sans-date', label: 'Infructueux sans date de jugement', color: '#dc2626', icon: <XCircle className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'Infructueux' && !isValidDate(p.dateJugement)) },
-            { key: 'annule-sans-date', label: 'Annulé sans date de jugement', color: '#991b1b', icon: <XCircle className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'Annulé' && !isValidDate(p.dateJugement)) },
-            { key: 'dao-sans-date', label: 'DAO Envoyé au CE sans date', color: '#0891b2', icon: <Send className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE' && !isValidDate(p.dateJugement) && !isValidDate(p.dateOuverture)) },
-            { key: 'publie-sans-date', label: 'Publié PPM sans date d\'ouverture', color: '#7c3aed', icon: <Activity className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'Publié sur PMP' && !isValidDate(p.dateOuverture)) },
-            { key: 'a-programmer', label: 'À programmer', color: '#6b7280', icon: <AlertCircle className="w-3.5 h-3.5" />, items: filtered.filter(p => p.situationAvancement === 'A programmer') },
-          ];
-
-          const activeAlerts = alertCategories.filter(a => a.items.length > 0);
-          const totalAlertCount = activeAlerts.reduce((s, a) => s + a.items.length, 0);
-
-          return (
-            <Card className="border-0 shadow-md animate-fade-in-up" style={{ animationDelay: '0.19s', borderTop: '4px solid #f59e0b' }}>
-              <CardHeader className="pb-2 pt-5 px-5">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
-                      <AlertTriangle className="w-4 h-4 text-amber-500" />
-                    </span>
-                    Alertes Information
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">
-                      {totalAlertCount} alerte{totalAlertCount > 1 ? 's' : ''}
-                    </Badge>
-                    <Button variant="ghost" size="sm" onClick={() => setSidebarTab('alerts')} className="h-6 text-[10px] text-amber-600 hover:text-amber-800 hover:bg-amber-50 gap-1 px-2">
-                      Voir tout <ArrowUpRight className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-[10px] text-slate-400 mt-0.5">{activeAlerts.length} catégorie{activeAlerts.length > 1 ? 's' : ''} d&apos;alertes nécessitent votre attention</p>
-              </CardHeader>
-              <CardContent className="px-5 pb-5">
-                <div className="flex flex-wrap gap-2">
-                  {alertCategories.map(cat => (
-                    <button key={cat.key} onClick={() => setSidebarTab('alerts')} className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium border transition-all duration-200 hover:shadow-sm ${cat.items.length > 0 ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
-                      <span style={{ color: cat.color }}>{cat.icon}</span>
-                      <span className="max-w-[140px] truncate">{cat.label}</span>
-                      <Badge className="text-[8px] h-4 min-w-[18px] flex items-center justify-center border-0 text-white" style={{ backgroundColor: cat.items.length > 0 ? cat.color : '#cbd5e1' }}>
-                        {cat.items.length}
-                      </Badge>
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })()}
-
         {/* ── 3. État d'avancement par entité ── */}
         <section className="animate-fade-in-up" style={{ animationDelay: '0.19s' }}>
           <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">

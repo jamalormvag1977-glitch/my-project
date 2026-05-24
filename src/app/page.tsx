@@ -4953,12 +4953,15 @@ export default function Dashboard() {
               textColor: 'text-blue-700',
               headerBg: 'bg-blue-500',
               items: filtered.filter(p => (p.situationAvancement === 'Ouvert' || (PIPELINE_STATUS_MAP['Ouvert'] !== '__computed__' && p.situationAvancement === PIPELINE_STATUS_MAP['Ouvert'])) && !isValidDate(p.dateOuverture)),
-              columns: ['Objet', 'Entité', 'Estimation', 'N° AO'] as const,
+              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
               getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'N° AO') return p.numAO || '—';
                 if (col === 'Objet') return p.objet;
                 if (col === 'Entité') return p.entite;
                 if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'N° AO') return p.numAO || '—';
+                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'CP') return fmtNum(p.cp || 0);
+                if (col === 'CE') return fmtNum(p.ce || 0);
                 return '';
               },
             },
@@ -4972,12 +4975,16 @@ export default function Dashboard() {
               textColor: 'text-amber-700',
               headerBg: 'bg-amber-500',
               items: filtered.filter(p => p.situationAvancement === 'Jugé' && (!p.montantEngagement || p.montantEngagement === 0)),
-              columns: ['Objet', 'Entité', 'Estimation', 'Date Jugement'] as const,
+              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Date Jugement', 'Ouverture Plis', 'CP', 'CE'] as const,
               getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'N° AO') return p.numAO || '—';
                 if (col === 'Objet') return p.objet;
                 if (col === 'Entité') return p.entite;
                 if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
                 if (col === 'Date Jugement') return isValidDate(p.dateJugement) ? p.dateJugement : '—';
+                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'CP') return fmtNum(p.cp || 0);
+                if (col === 'CE') return fmtNum(p.ce || 0);
                 return '';
               },
             },
@@ -4991,12 +4998,15 @@ export default function Dashboard() {
               textColor: 'text-indigo-700',
               headerBg: 'bg-indigo-500',
               items: filtered.filter(p => p.situationAvancement === 'Jugé' && !isValidDate(p.dateJugement)),
-              columns: ['Objet', 'Entité', 'Estimation', 'Ouverture Plis'] as const,
+              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
               getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'N° AO') return p.numAO || '—';
                 if (col === 'Objet') return p.objet;
                 if (col === 'Entité') return p.entite;
                 if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
                 if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'CP') return fmtNum(p.cp || 0);
+                if (col === 'CE') return fmtNum(p.ce || 0);
                 return '';
               },
             },
@@ -5010,12 +5020,15 @@ export default function Dashboard() {
               textColor: 'text-red-700',
               headerBg: 'bg-red-500',
               items: filtered.filter(p => p.situationAvancement === 'Infructueux' && !isValidDate(p.dateJugement)),
-              columns: ['Objet', 'Entité', 'Estimation', 'Ouverture Plis'] as const,
+              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
               getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'N° AO') return p.numAO || '—';
                 if (col === 'Objet') return p.objet;
                 if (col === 'Entité') return p.entite;
                 if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
                 if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'CP') return fmtNum(p.cp || 0);
+                if (col === 'CE') return fmtNum(p.ce || 0);
                 return '';
               },
             },
@@ -5029,12 +5042,15 @@ export default function Dashboard() {
               textColor: 'text-rose-700',
               headerBg: 'bg-rose-600',
               items: filtered.filter(p => p.situationAvancement === 'Annulé' && !isValidDate(p.dateJugement)),
-              columns: ['Objet', 'Entité', 'Estimation', 'Ouverture Plis'] as const,
+              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
               getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'N° AO') return p.numAO || '—';
                 if (col === 'Objet') return p.objet;
                 if (col === 'Entité') return p.entite;
                 if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
                 if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'CP') return fmtNum(p.cp || 0);
+                if (col === 'CE') return fmtNum(p.ce || 0);
                 return '';
               },
             },
@@ -5048,12 +5064,15 @@ export default function Dashboard() {
               textColor: 'text-cyan-700',
               headerBg: 'bg-cyan-500',
               items: filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE' && !isValidDate(p.dateJugement) && !isValidDate(p.dateOuverture)),
-              columns: ['Objet', 'Entité', 'Estimation', 'N° AO'] as const,
+              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
               getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'N° AO') return p.numAO || '—';
                 if (col === 'Objet') return p.objet;
                 if (col === 'Entité') return p.entite;
                 if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'N° AO') return p.numAO || '—';
+                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'CP') return fmtNum(p.cp || 0);
+                if (col === 'CE') return fmtNum(p.ce || 0);
                 return '';
               },
             },
@@ -5067,12 +5086,15 @@ export default function Dashboard() {
               textColor: 'text-violet-700',
               headerBg: 'bg-violet-500',
               items: filtered.filter(p => p.situationAvancement === 'Publié sur PMP' && !isValidDate(p.dateOuverture)),
-              columns: ['Objet', 'Entité', 'Estimation', 'N° AO'] as const,
+              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
               getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'N° AO') return p.numAO || '—';
                 if (col === 'Objet') return p.objet;
                 if (col === 'Entité') return p.entite;
                 if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'N° AO') return p.numAO || '—';
+                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'CP') return fmtNum(p.cp || 0);
+                if (col === 'CE') return fmtNum(p.ce || 0);
                 return '';
               },
             },
@@ -5086,12 +5108,15 @@ export default function Dashboard() {
               textColor: 'text-slate-700',
               headerBg: 'bg-slate-500',
               items: filtered.filter(p => p.situationAvancement === 'A programmer'),
-              columns: ['Objet', 'Entité', 'Estimation', 'CP'] as const,
+              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
               getCellValue: (p: PPMProject, col: string) => {
+                if (col === 'N° AO') return p.numAO || '—';
                 if (col === 'Objet') return p.objet;
                 if (col === 'Entité') return p.entite;
                 if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'CP') return fmtM(p.cp || 0);
+                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
+                if (col === 'CP') return fmtNum(p.cp || 0);
+                if (col === 'CE') return fmtNum(p.ce || 0);
                 return '';
               },
             },
@@ -5225,18 +5250,16 @@ export default function Dashboard() {
                         <table className="w-full text-[11px]">
                           <thead>
                             <tr className="bg-slate-50/80">
-                              <th className="px-4 py-2 text-left font-semibold text-slate-600 w-10">#</th>
                               {cat.columns.map(col => (
-                                <th key={col} className="px-4 py-2 text-left font-semibold text-slate-600">{col}</th>
+                                <th key={col} className={`px-4 py-2 text-left font-semibold text-slate-600 ${col === 'Objet' ? 'min-w-[200px]' : ''}`}>{col}</th>
                               ))}
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100/50">
                             {cat.items.map((p, i) => (
                               <tr key={p.id || i} className="hover:bg-white/60 transition-colors">
-                                <td className="px-4 py-2 text-slate-400 font-mono">{i + 1}</td>
                                 {cat.columns.map(col => (
-                                  <td key={col} className={`px-4 py-2 ${col === 'Objet' ? 'font-medium text-slate-800 max-w-[400px]' : col === 'Estimation' ? 'font-semibold text-blue-700 whitespace-nowrap' : 'text-slate-600 whitespace-nowrap'}`}>
+                                  <td key={col} className={`px-4 py-2 ${col === 'Objet' ? 'font-medium text-slate-800 max-w-[400px]' : col === 'N° AO' ? 'font-mono text-slate-600 whitespace-nowrap' : col === 'Estimation' ? 'font-semibold text-blue-700 whitespace-nowrap' : (col === 'CP' || col === 'CE') ? 'font-medium text-slate-700 whitespace-nowrap' : 'text-slate-600 whitespace-nowrap'}`}>
                                     {cat.getCellValue(p, col)}
                                   </td>
                                 ))}

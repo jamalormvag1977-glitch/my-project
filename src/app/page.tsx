@@ -19,7 +19,8 @@ import {
   BarChart3, PieChart as PieChartIcon, Activity, Building2,
   CalendarDays, ArrowUpRight, ArrowDownRight, Upload, FileSpreadsheet,
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
-  X, ClipboardList, History, Download, Printer, Send, Wallet, Shield, Eye, Users, UserCheck, UserX, LogOut
+  X, ClipboardList, History, Download, Printer, Send, Wallet, Shield, Eye, Users, UserCheck, UserX, LogOut,
+  Scale, Gavel, FileCheck, FileX, Ban, Megaphone, FileSignature, ListTodo
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -3740,7 +3741,7 @@ export default function Dashboard() {
             <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #3b82f6' }}>
               <CardHeader className="pb-2 pt-4 px-5">
                 <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <span className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center"><Activity className="w-4 h-4 text-blue-500" /></span>
+                  <span className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center shadow-sm"><Scale className="w-4.5 h-4.5 text-white" /></span>
                   AO Ouvert
                   <Badge className="text-[9px] bg-blue-100 text-blue-700 border-blue-200 border ml-auto">{aoOuvertCount} marchés</Badge>
                 </CardTitle>
@@ -3749,15 +3750,18 @@ export default function Dashboard() {
               <CardContent className="px-5 pb-4">
                 <div className="grid grid-cols-5 gap-3">
                   {[
-                    { label: 'En cours jugement', count: filteredStatusCount['En cours de jugement'] || 0, color: '#f59e0b' },
-                    { label: 'Jugé', count: filteredStatusCount['Jugé'] || 0, color: '#8b5cf6' },
-                    { label: 'Engagé', count: filteredStatusCount['Engagé'] || 0, color: '#16a34a' },
-                    { label: 'Infructueux', count: filteredStatusCount['Infructueux'] || 0, color: '#dc2626' },
-                    { label: 'Annulé', count: filteredStatusCount['Annulé'] || 0, color: '#991b1b' },
+                    { label: 'En cours jugement', count: filteredStatusCount['En cours de jugement'] || 0, color: '#f59e0b', icon: <Gavel className="w-3.5 h-3.5" /> },
+                    { label: 'Jugé', count: filteredStatusCount['Jugé'] || 0, color: '#8b5cf6', icon: <FileCheck className="w-3.5 h-3.5" /> },
+                    { label: 'Engagé', count: filteredStatusCount['Engagé'] || 0, color: '#16a34a', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+                    { label: 'Infructueux', count: filteredStatusCount['Infructueux'] || 0, color: '#dc2626', icon: <FileX className="w-3.5 h-3.5" /> },
+                    { label: 'Annulé', count: filteredStatusCount['Annulé'] || 0, color: '#991b1b', icon: <Ban className="w-3.5 h-3.5" /> },
                   ].map(item => (
-                    <div key={item.label} className="text-center">
-                      <div className="w-8 h-8 mx-auto rounded-lg flex items-center justify-center text-white shadow-sm text-xs font-bold" style={{ backgroundColor: item.color }}>{item.count}</div>
-                      <p className="text-[9px] text-slate-500 mt-1">{item.label}</p>
+                    <div key={item.label} className="text-center group">
+                      <div className="w-10 h-10 mx-auto rounded-xl flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-all duration-200 group-hover:scale-110" style={{ backgroundColor: item.color }}>
+                        {item.icon}
+                      </div>
+                      <p className="text-lg font-bold mt-1.5" style={{ color: item.color }}>{item.count}</p>
+                      <p className="text-[8px] text-slate-500 uppercase tracking-wider font-medium">{item.label}</p>
                     </div>
                   ))}
                 </div>
@@ -3772,7 +3776,7 @@ export default function Dashboard() {
             <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #f59e0b' }}>
               <CardHeader className="pb-2 pt-4 px-5">
                 <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <span className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center"><Clock className="w-4 h-4 text-amber-500" /></span>
+                  <span className="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center shadow-sm"><Clock className="w-4.5 h-4.5 text-white" /></span>
                   AO Restants
                   <Badge className="text-[9px] bg-amber-100 text-amber-700 border-amber-200 border ml-auto">{aoRestantsCount} marchés</Badge>
                 </CardTitle>
@@ -3781,13 +3785,16 @@ export default function Dashboard() {
               <CardContent className="px-5 pb-4">
                 <div className="grid grid-cols-3 gap-4">
                   {[
-                    { label: 'Publié PPM', count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed' },
-                    { label: 'DAO au CE', count: filteredStatusCount['DAO Envoyé au CE'] || 0, color: '#0891b2' },
-                    { label: 'À programmer', count: filteredStatusCount['A programmer'] || 0, color: '#6b7280' },
+                    { label: 'Publié PPM', count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed', icon: <Megaphone className="w-4 h-4" /> },
+                    { label: 'DAO au CE', count: filteredStatusCount['DAO Envoyé au CE'] || 0, color: '#0891b2', icon: <FileSignature className="w-4 h-4" /> },
+                    { label: 'À programmer', count: filteredStatusCount['A programmer'] || 0, color: '#6b7280', icon: <ListTodo className="w-4 h-4" /> },
                   ].map(item => (
-                    <div key={item.label} className="text-center">
-                      <div className="w-10 h-10 mx-auto rounded-lg flex items-center justify-center text-white shadow-sm text-sm font-bold" style={{ backgroundColor: item.color }}>{item.count}</div>
-                      <p className="text-[9px] text-slate-500 mt-1">{item.label}</p>
+                    <div key={item.label} className="text-center group">
+                      <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-all duration-200 group-hover:scale-110" style={{ backgroundColor: item.color }}>
+                        {item.icon}
+                      </div>
+                      <p className="text-xl font-bold mt-1.5" style={{ color: item.color }}>{item.count}</p>
+                      <p className="text-[8px] text-slate-500 uppercase tracking-wider font-medium">{item.label}</p>
                     </div>
                   ))}
                 </div>

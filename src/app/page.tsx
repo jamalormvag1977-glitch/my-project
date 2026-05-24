@@ -2735,13 +2735,8 @@ export default function Dashboard() {
         {sidebarTab === 'reports' && (() => {
           /* ── Alert categories for report ── */
           const alertCats = [
-            { key: 'ouvert-sans-date', label: 'Ouvert sans date', color: '#3b82f6', count: filtered.filter(p => (p.situationAvancement === 'Ouvert' || (PIPELINE_STATUS_MAP['Ouvert'] !== '__computed__' && p.situationAvancement === PIPELINE_STATUS_MAP['Ouvert'])) && !isValidDate(p.dateOuverture)).length },
             { key: 'juge-sans-engagement', label: 'Jugé sans engagement', color: '#d97706', count: filtered.filter(p => p.situationAvancement === 'Jugé' && (!p.montantEngagement || p.montantEngagement === 0)).length },
-            { key: 'juge-sans-date', label: 'Jugé sans date', color: '#2563eb', count: filtered.filter(p => p.situationAvancement === 'Jugé' && !isValidDate(p.dateJugement)).length },
-            { key: 'infructueux-sans-date', label: 'Infructueux sans date', color: '#dc2626', count: filtered.filter(p => p.situationAvancement === 'Infructueux' && !isValidDate(p.dateJugement)).length },
-            { key: 'annule-sans-date', label: 'Annulé sans date', color: '#991b1b', count: filtered.filter(p => p.situationAvancement === 'Annulé' && !isValidDate(p.dateJugement)).length },
-            { key: 'dao-sans-date', label: 'DAO CE sans date', color: '#0891b2', count: filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE' && !isValidDate(p.dateJugement) && !isValidDate(p.dateOuverture)).length },
-            { key: 'publie-sans-date', label: 'Publié sur PMP sans date', color: '#7c3aed', count: filtered.filter(p => p.situationAvancement === 'Publié sur PMP' && !isValidDate(p.dateOuverture)).length },
+            { key: 'dao-non-publie', label: 'DAO CE non publié PMP', color: '#0891b2', count: filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE').length },
             { key: 'a-programmer', label: 'À programmer', color: '#6b7280', count: filtered.filter(p => p.situationAvancement === 'A programmer').length },
           ];
           const totalAlertCount = alertCats.reduce((s, a) => s + a.count, 0);
@@ -4944,28 +4939,6 @@ export default function Dashboard() {
         {sidebarTab === 'alerts' && (() => {
           const alertCategories = [
             {
-              key: 'ouvert-sans-date',
-              label: 'Ouvert sans date d\'ouverture des plis',
-              icon: <CalendarDays className="w-4 h-4" />,
-              color: '#3b82f6',
-              bg: 'bg-blue-50',
-              border: 'border-blue-200',
-              textColor: 'text-blue-700',
-              headerBg: 'bg-blue-500',
-              items: filtered.filter(p => (p.situationAvancement === 'Ouvert' || (PIPELINE_STATUS_MAP['Ouvert'] !== '__computed__' && p.situationAvancement === PIPELINE_STATUS_MAP['Ouvert'])) && !isValidDate(p.dateOuverture)),
-              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
-              getCellValue: (p: PPMProject, col: string) => {
-                if (col === 'N° AO') return p.numAO || '—';
-                if (col === 'Objet') return p.objet;
-                if (col === 'Entité') return p.entite;
-                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
-                if (col === 'CP') return fmtNum(p.cp || 0);
-                if (col === 'CE') return fmtNum(p.ce || 0);
-                return '';
-              },
-            },
-            {
               key: 'juge-sans-engagement',
               label: 'Jugé sans engagement',
               icon: <DollarSign className="w-4 h-4" />,
@@ -4989,103 +4962,15 @@ export default function Dashboard() {
               },
             },
             {
-              key: 'juge-sans-date',
-              label: 'Jugé sans date de jugement',
-              icon: <Clock className="w-4 h-4" />,
-              color: '#2563eb',
-              bg: 'bg-indigo-50',
-              border: 'border-indigo-200',
-              textColor: 'text-indigo-700',
-              headerBg: 'bg-indigo-500',
-              items: filtered.filter(p => p.situationAvancement === 'Jugé' && !isValidDate(p.dateJugement)),
-              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
-              getCellValue: (p: PPMProject, col: string) => {
-                if (col === 'N° AO') return p.numAO || '—';
-                if (col === 'Objet') return p.objet;
-                if (col === 'Entité') return p.entite;
-                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
-                if (col === 'CP') return fmtNum(p.cp || 0);
-                if (col === 'CE') return fmtNum(p.ce || 0);
-                return '';
-              },
-            },
-            {
-              key: 'infructueux-sans-date',
-              label: 'Infructueux sans date de jugement',
-              icon: <XCircle className="w-4 h-4" />,
-              color: '#dc2626',
-              bg: 'bg-red-50',
-              border: 'border-red-200',
-              textColor: 'text-red-700',
-              headerBg: 'bg-red-500',
-              items: filtered.filter(p => p.situationAvancement === 'Infructueux' && !isValidDate(p.dateJugement)),
-              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
-              getCellValue: (p: PPMProject, col: string) => {
-                if (col === 'N° AO') return p.numAO || '—';
-                if (col === 'Objet') return p.objet;
-                if (col === 'Entité') return p.entite;
-                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
-                if (col === 'CP') return fmtNum(p.cp || 0);
-                if (col === 'CE') return fmtNum(p.ce || 0);
-                return '';
-              },
-            },
-            {
-              key: 'annule-sans-date',
-              label: 'Annulé sans date de jugement',
-              icon: <XCircle className="w-4 h-4" />,
-              color: '#991b1b',
-              bg: 'bg-rose-50',
-              border: 'border-rose-200',
-              textColor: 'text-rose-700',
-              headerBg: 'bg-rose-600',
-              items: filtered.filter(p => p.situationAvancement === 'Annulé' && !isValidDate(p.dateJugement)),
-              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
-              getCellValue: (p: PPMProject, col: string) => {
-                if (col === 'N° AO') return p.numAO || '—';
-                if (col === 'Objet') return p.objet;
-                if (col === 'Entité') return p.entite;
-                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
-                if (col === 'CP') return fmtNum(p.cp || 0);
-                if (col === 'CE') return fmtNum(p.ce || 0);
-                return '';
-              },
-            },
-            {
-              key: 'dao-sans-date',
-              label: 'DAO Envoyé au CE sans date',
+              key: 'dao-non-publie',
+              label: 'DAO envoyé au CE et non encore publié au PMP',
               icon: <Send className="w-4 h-4" />,
               color: '#0891b2',
               bg: 'bg-cyan-50',
               border: 'border-cyan-200',
               textColor: 'text-cyan-700',
               headerBg: 'bg-cyan-500',
-              items: filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE' && !isValidDate(p.dateJugement) && !isValidDate(p.dateOuverture)),
-              columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
-              getCellValue: (p: PPMProject, col: string) => {
-                if (col === 'N° AO') return p.numAO || '—';
-                if (col === 'Objet') return p.objet;
-                if (col === 'Entité') return p.entite;
-                if (col === 'Estimation') return fmtMDH(p.estimationAdmin || 0);
-                if (col === 'Ouverture Plis') return isValidDate(p.dateOuverture) ? p.dateOuverture : '—';
-                if (col === 'CP') return fmtNum(p.cp || 0);
-                if (col === 'CE') return fmtNum(p.ce || 0);
-                return '';
-              },
-            },
-            {
-              key: 'publie-sans-date',
-              label: 'Publié sur PMP sans date d\'ouverture',
-              icon: <Activity className="w-4 h-4" />,
-              color: '#7c3aed',
-              bg: 'bg-violet-50',
-              border: 'border-violet-200',
-              textColor: 'text-violet-700',
-              headerBg: 'bg-violet-500',
-              items: filtered.filter(p => p.situationAvancement === 'Publié sur PMP' && !isValidDate(p.dateOuverture)),
+              items: filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE'),
               columns: ['N° AO', 'Objet', 'Entité', 'Estimation', 'Ouverture Plis', 'CP', 'CE'] as const,
               getCellValue: (p: PPMProject, col: string) => {
                 if (col === 'N° AO') return p.numAO || '—';

@@ -21,7 +21,7 @@ import {
   CloudUpload, AlertTriangle, CheckCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
   X, ClipboardList, History, Download, Printer, Send, Wallet, Shield, Eye, Users, UserCheck, UserX, LogOut,
   Scale, Gavel, FileCheck, FileX, Ban, Megaphone, FileSignature, ListTodo,
-  Timer, ArrowLeftRight
+  Timer, ArrowLeftRight, FileSearch, MapPin, Tag, Banknote, Percent
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────── */
@@ -574,7 +574,7 @@ export default function Dashboard() {
   const [showUpload, setShowUpload] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const lastChecksumRef = useRef<string | null>(null);
-  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'soumissionnaires' | 'reports' | 'alerts' | 'delais' | 'dashboard'>('dashboard');
+  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'soumissionnaires' | 'fiches' | 'reports' | 'alerts' | 'delais' | 'dashboard'>('dashboard');
   const [expandedAO, setExpandedAO] = useState<number | null>(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
@@ -588,6 +588,10 @@ export default function Dashboard() {
   const [showSoumUpload, setShowSoumUpload] = useState(false);
   const [soumUploading, setSoumUploading] = useState(false);
   const [soumUploadResult, setSoumUploadResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [ficheSearch, setFicheSearch] = useState('');
+  const [ficheStatusFilter, setFicheStatusFilter] = useState('all');
+  const [ficheEntityFilter, setFicheEntityFilter] = useState('all');
+  const [expandedFiche, setExpandedFiche] = useState<number | null>(null);
 
   /* ── Pipeline Order & Status Mapping ── */
   const PIPELINE_ORDER = ['Ouvert','En cours de jugement','Jugé','Engagé','Infructueux','Annulé','Publié PPM','DAO Envoyé au CE','A programmer'] as const;
@@ -1210,6 +1214,7 @@ export default function Dashboard() {
               { key: 'step' as const, label: 'Par Étape', icon: <ClipboardList className="w-4.5 h-4.5" /> },
               { key: 'history' as const, label: 'Historique', icon: <History className="w-4.5 h-4.5" /> },
               { key: 'soumissionnaires' as const, label: 'Soumissionnaires', icon: <Users className="w-4.5 h-4.5" /> },
+              { key: 'fiches' as const, label: 'Fiches AO', icon: <FileSearch className="w-4.5 h-4.5" /> },
               { key: 'reports' as const, label: 'Rapports', icon: <FileText className="w-4.5 h-4.5" /> },
               { key: 'delais' as const, label: 'Délais', icon: <Timer className="w-4.5 h-4.5" /> },
               { key: 'alerts' as const, label: 'Alertes', icon: <AlertTriangle className="w-4.5 h-4.5" /> },
@@ -2181,6 +2186,513 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* ── Full-Screen View 5: Fiches AO ── */}
+        {sidebarTab === 'fiches' && (() => {
+          /* ── Helpers for Fiches ── */
+          const isValidDate = (d: string | null) => d && d !== 'null' && !isNaN(new Date(d).getTime());
+          const fmtDate = (d: string | null) => isValidDate(d) ? new Date(d!).toLocaleDateString('fr-FR') : '—';
+          const fmtNum = (v: number | null | undefined) => v != null ? v.toLocaleString('fr-FR') : '—';
+          const fmtPct = (v: number | null | undefined) => v != null && v > 0 ? `${v.toFixed(1)}%` : '—';
+          const fmtMDH = (v: number | null | undefined) => v != null ? `${(v / 1_000_000).toFixed(2)} MDH` : '—';
+
+          /* Get soumissionnaire info for a project */
+          const getSoumissionnaires = (p: PPMProject) => {
+            if (!soumissionnaireData?.projets) return { nb: 0, noms: [] as string[] };
+            const numAO = String(p.numAO ?? p.id);
+            const entite = p.entite;
+            // Try multiple key formats
+            const candidates = [
+              `${numAO}/${entite}`,
+              `${p.id}/${entite}`,
+            ];
+            for (const key of candidates) {
+              const found = soumissionnaireData.projets[key];
+              if (found) {
+                const uniqueNoms = [...new Set(found.soumissionnaires.filter(s => s.nom).map(s => s.nom!))];
+                return { nb: found.nbSoumissionnairesUniques || uniqueNoms.length, noms: uniqueNoms };
+              }
+            }
+            return { nb: 0, noms: [] as string[] };
+          };
+
+          /* Compute days between two dates */
+          const daysBetween = (a: string | null, b: string | null) => {
+            if (!isValidDate(a) || !isValidDate(b)) return null;
+            return Math.round((new Date(b!).getTime() - new Date(a!).getTime()) / 86400000);
+          };
+
+          /* Status color and icon */
+          const getStatusStyle = (s: string) => {
+            const map: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
+              'Publié sur PMP': { bg: 'bg-blue-50', text: 'text-blue-700', icon: <Megaphone className="w-3.5 h-3.5" /> },
+              'A programmer': { bg: 'bg-gray-50', text: 'text-gray-600', icon: <Clock className="w-3.5 h-3.5" /> },
+              'Ouvert': { bg: 'bg-sky-50', text: 'text-sky-700', icon: <FileSpreadsheet className="w-3.5 h-3.5" /> },
+              'Jugé': { bg: 'bg-amber-50', text: 'text-amber-700', icon: <Gavel className="w-3.5 h-3.5" /> },
+              'Infructueux': { bg: 'bg-red-50', text: 'text-red-700', icon: <XCircle className="w-3.5 h-3.5" /> },
+              'Annulé': { bg: 'bg-red-100', text: 'text-red-800', icon: <Ban className="w-3.5 h-3.5" /> },
+              'Engagé': { bg: 'bg-green-50', text: 'text-green-700', icon: <CheckCircle className="w-3.5 h-3.5" /> },
+              'DAO Envoyé au CE': { bg: 'bg-purple-50', text: 'text-purple-700', icon: <Scale className="w-3.5 h-3.5" /> },
+            };
+            return map[s] || { bg: 'bg-gray-50', text: 'text-gray-600', icon: <AlertCircle className="w-3.5 h-3.5" /> };
+          };
+
+          /* Taux calculés */
+          const tauxEngagement = (p: PPMProject) => {
+            if (p.estimationAdmin && p.estimationAdmin > 0 && p.montantEngagement && p.montantEngagement > 0) {
+              return Math.round(p.montantEngagement / p.estimationAdmin * 100 * 10) / 10;
+            }
+            return null;
+          };
+          const tauxExtraction = (p: PPMProject) => {
+            if (p.estimationAdmin && p.estimationAdmin > 0 && p.montantExtrait && p.montantExtrait > 0) {
+              return Math.round(p.montantExtrait / p.estimationAdmin * 100 * 10) / 10;
+            }
+            return null;
+          };
+          const tauxEngagementBudget = (p: PPMProject) => {
+            const budget = p.cp + p.ce;
+            if (budget > 0 && p.montantEngagement && p.montantEngagement > 0) {
+              return Math.round(p.montantEngagement / budget * 100 * 10) / 10;
+            }
+            return null;
+          };
+          const tauxEngagementCP = (p: PPMProject) => {
+            if (p.cp > 0 && p.engagementCP && p.engagementCP > 0) {
+              return Math.round(p.engagementCP / p.cp * 100 * 10) / 10;
+            }
+            return null;
+          };
+          const tauxEngagementCE = (p: PPMProject) => {
+            if (p.ce > 0 && p.engagementCE && p.engagementCE > 0) {
+              return Math.round(p.engagementCE / p.ce * 100 * 10) / 10;
+            }
+            return null;
+          };
+
+          /* Fiches filters — state is in parent component */
+          const fichesFiltered = filtered.filter(p => {
+            const matchSearch = !ficheSearch || 
+              String(p.numAO ?? '').toLowerCase().includes(ficheSearch.toLowerCase()) ||
+              p.objet.toLowerCase().includes(ficheSearch.toLowerCase()) ||
+              p.entite.toLowerCase().includes(ficheSearch.toLowerCase()) ||
+              (p.attributaire ?? '').toLowerCase().includes(ficheSearch.toLowerCase());
+            const matchStatus = ficheStatusFilter === 'all' || p.situationAvancement === ficheStatusFilter;
+            const matchEntity = ficheEntityFilter === 'all' || p.entite === ficheEntityFilter;
+            return matchSearch && matchStatus && matchEntity;
+          });
+
+          const uniqueStatuses = [...new Set(filtered.map(p => p.situationAvancement))].sort();
+          const uniqueEntities = [...new Set(filtered.map(p => p.entite))].sort();
+
+          return (
+          <div className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-violet-50/20">
+            {/* Header */}
+            <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                    <FileSearch className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-800">Fiches Appels d&apos;Offres</h2>
+                    <p className="text-xs text-slate-500">{fichesFiltered.length} AO • Fiche synthétique du lancement à l&apos;engagement</p>
+                  </div>
+                </div>
+                {/* Search & Filters */}
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Rechercher AO, objet, attributaire..."
+                      value={ficheSearch}
+                      onChange={e => setFicheSearch(e.target.value)}
+                      className="pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 bg-white w-64"
+                    />
+                  </div>
+                  <select value={ficheStatusFilter} onChange={e => setFicheStatusFilter(e.target.value)}
+                    className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-300">
+                    <option value="all">Tous statuts</option>
+                    {uniqueStatuses.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  <select value={ficheEntityFilter} onChange={e => setFicheEntityFilter(e.target.value)}
+                    className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-300">
+                    <option value="all">Toutes entités</option>
+                    {uniqueEntities.map(e => <option key={e} value={e}>{e}</option>)}
+                  </select>
+                  <Button variant="outline" size="sm" onClick={() => { setFicheSearch(''); setFicheStatusFilter('all'); setFicheEntityFilter('all'); }}
+                    className="text-xs h-8 rounded-lg">
+                    <X className="w-3 h-3 mr-1" />Réinitialiser
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Fiches Grid */}
+            <div className="p-6 space-y-4">
+              {fichesFiltered.length === 0 && (
+                <div className="text-center py-20 text-slate-400">
+                  <FileSearch className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">Aucune fiche AO trouvée</p>
+                </div>
+              )}
+              {fichesFiltered.map(p => {
+                const soum = getSoumissionnaires(p);
+                const st = getStatusStyle(p.situationAvancement);
+                const tEng = tauxEngagement(p);
+                const tExt = tauxExtraction(p);
+                const tEngBudg = tauxEngagementBudget(p);
+                const tEngCP = tauxEngagementCP(p);
+                const tEngCE = tauxEngagementCE(p);
+                const dOuvJug = daysBetween(p.dateOuverture, p.dateJugement);
+                const dJugEng = daysBetween(p.dateJugement, p.dateEngagement);
+                const dOuvEng = daysBetween(p.dateOuverture, p.dateEngagement);
+                const isExpanded = expandedFiche === p.id;
+
+                return (
+                <div key={p.id} className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                  {/* Card Header */}
+                  <div className="px-5 py-4 flex items-center justify-between cursor-pointer" onClick={() => setExpandedFiche(isExpanded ? null : p.id)}>
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      {/* AO Number Badge */}
+                      <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
+                        <span className="text-white font-bold text-lg">{p.id}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-mono text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                            {p.numAO ? `AO N° ${p.numAO}` : `AO N° ${p.id}`}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md font-medium ${st.bg} ${st.text}`}>
+                            {st.icon} {p.situationAvancement}
+                          </span>
+                          <span className="text-xs text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md">{p.entite}</span>
+                        </div>
+                        <p className="text-sm font-semibold text-slate-800 truncate">{p.objet}</p>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
+                          {p.programme && <span className="flex items-center gap-1"><Tag className="w-3 h-3" />{p.programme}</span>}
+                          {p.projet && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{p.projet}</span>}
+                          <span className="flex items-center gap-1"><Banknote className="w-3 h-3" />{fmtMDH(p.cp + p.ce)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Quick KPIs */}
+                      <div className="hidden md:flex items-center gap-4 mr-4">
+                        <div className="text-center">
+                          <div className="text-[10px] text-slate-400 uppercase tracking-wider">Estimation</div>
+                          <div className="text-sm font-bold text-slate-700">{fmtMDH(p.estimationAdmin)}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[10px] text-slate-400 uppercase tracking-wider">Engagement</div>
+                          <div className="text-sm font-bold text-green-600">{fmtMDH(p.montantEngagement)}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[10px] text-slate-400 uppercase tracking-wider">Taux Eng.</div>
+                          <div className={`text-sm font-bold ${tEng != null ? (tEng > 100 ? 'text-red-600' : 'text-green-600') : 'text-slate-400'}`}>
+                            {fmtPct(tEng)}
+                          </div>
+                        </div>
+                      </div>
+                      {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                    </div>
+                  </div>
+
+                  {/* Expanded Detail */}
+                  {isExpanded && (
+                  <div className="border-t border-slate-100">
+                    {/* Timeline visuelle */}
+                    <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-indigo-50/30">
+                      <div className="flex items-center justify-between relative">
+                        <div className="absolute top-4 left-0 right-0 h-0.5 bg-slate-200" />
+                        {/* Étape 1: Ouverture */}
+                        <div className="relative flex flex-col items-center z-10">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isValidDate(p.dateOuverture) ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30' : 'bg-slate-200 text-slate-400'}`}>
+                            1
+                          </div>
+                          <div className="mt-2 text-center">
+                            <div className="text-[10px] font-semibold text-slate-600 uppercase">Ouverture</div>
+                            <div className="text-xs text-slate-800 font-medium">{fmtDate(p.dateOuverture)}</div>
+                            {dOuvJug != null && <div className="text-[10px] text-indigo-500 font-medium">{dOuvJug}j → Jugé</div>}
+                          </div>
+                        </div>
+                        {/* Étape 2: Jugement */}
+                        <div className="relative flex flex-col items-center z-10">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isValidDate(p.dateJugement) ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30' : 'bg-slate-200 text-slate-400'}`}>
+                            2
+                          </div>
+                          <div className="mt-2 text-center">
+                            <div className="text-[10px] font-semibold text-slate-600 uppercase">Jugement</div>
+                            <div className="text-xs text-slate-800 font-medium">{fmtDate(p.dateJugement)}</div>
+                            {dJugEng != null && <div className="text-[10px] text-indigo-500 font-medium">{dJugEng}j → Engagé</div>}
+                          </div>
+                        </div>
+                        {/* Étape 3: Engagement */}
+                        <div className="relative flex flex-col items-center z-10">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isValidDate(p.dateEngagement) ? 'bg-green-500 text-white shadow-md shadow-green-500/30' : 'bg-slate-200 text-slate-400'}`}>
+                            3
+                          </div>
+                          <div className="mt-2 text-center">
+                            <div className="text-[10px] font-semibold text-slate-600 uppercase">Engagement</div>
+                            <div className="text-xs text-slate-800 font-medium">{fmtDate(p.dateEngagement)}</div>
+                            {dOuvEng != null && <div className="text-[10px] text-indigo-500 font-medium">Total: {dOuvEng}j</div>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Détails en grille */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0">
+                      {/* Col 1: Informations Générales */}
+                      <div className="p-5 border-r border-b border-slate-100">
+                        <h4 className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <FileSpreadsheet className="w-3.5 h-3.5" /> Informations Générales
+                        </h4>
+                        <div className="space-y-2.5">
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">N° AO</span>
+                            <span className="text-xs font-semibold text-slate-800">{p.numAO ?? p.id}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Type Budget</span>
+                            <span className="text-xs font-medium text-slate-700">{p.typeBudget || '—'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Nature Budget</span>
+                            <span className="text-xs font-medium text-slate-700">{p.natureBudget || '—'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Source Financement</span>
+                            <span className="text-xs font-medium text-slate-700">{p.sourceFinancement || '—'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Programme</span>
+                            <span className="text-xs font-medium text-slate-700">{p.programme || '—'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Projet</span>
+                            <span className="text-xs font-medium text-slate-700">{p.projet || '—'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Entité</span>
+                            <span className="text-xs font-semibold text-indigo-700">{p.entite}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Délais d&apos;exécution</span>
+                            <span className="text-xs font-medium text-slate-700">{p.delaisExecution || '—'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Col 2: Budget & Estimation */}
+                      <div className="p-5 border-r border-b border-slate-100">
+                        <h4 className="text-xs font-bold text-green-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <DollarSign className="w-3.5 h-3.5" /> Budget & Montants
+                        </h4>
+                        <div className="space-y-2.5">
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">CP (Crédits de Paiement)</span>
+                            <span className="text-xs font-semibold text-slate-800">{fmtMDH(p.cp)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">CE (Crédits d&apos;Engagement)</span>
+                            <span className="text-xs font-semibold text-slate-800">{fmtMDH(p.ce)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Budget Total</span>
+                            <span className="text-xs font-bold text-slate-900">{fmtMDH(p.cp + p.ce)}</span>
+                          </div>
+                          <div className="h-px bg-slate-100 my-1" />
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Estimation Administrative</span>
+                            <span className="text-xs font-semibold text-blue-700">{fmtMDH(p.estimationAdmin)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Montant Extrait</span>
+                            <span className="text-xs font-semibold text-amber-700">{fmtMDH(p.montantExtrait)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Montant Engagement</span>
+                            <span className="text-xs font-bold text-green-700">{fmtMDH(p.montantEngagement)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Engagement CP</span>
+                            <span className="text-xs font-medium text-slate-700">{fmtMDH(p.engagementCP)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Engagement CE</span>
+                            <span className="text-xs font-medium text-slate-700">{fmtMDH(p.engagementCE)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Col 3: Taux & Ratios */}
+                      <div className="p-5 border-b border-slate-100">
+                        <h4 className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <Percent className="w-3.5 h-3.5" /> Taux & Ratios
+                        </h4>
+                        <div className="space-y-3">
+                          <div>
+                            <div className="flex justify-between mb-1">
+                              <span className="text-xs text-slate-500">Taux Engagement / Estimation</span>
+                              <span className={`text-xs font-bold ${tEng != null ? (tEng > 100 ? 'text-red-600' : 'text-green-600') : 'text-slate-400'}`}>{fmtPct(tEng)}</span>
+                            </div>
+                            {tEng != null && (
+                              <div className="w-full bg-slate-100 rounded-full h-1.5">
+                                <div className={`h-1.5 rounded-full ${tEng > 100 ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${Math.min(tEng, 100)}%` }} />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex justify-between mb-1">
+                              <span className="text-xs text-slate-500">Taux Extraction / Estimation</span>
+                              <span className={`text-xs font-bold ${tExt != null ? 'text-amber-600' : 'text-slate-400'}`}>{fmtPct(tExt)}</span>
+                            </div>
+                            {tExt != null && (
+                              <div className="w-full bg-slate-100 rounded-full h-1.5">
+                                <div className="h-1.5 rounded-full bg-amber-500" style={{ width: `${Math.min(tExt, 100)}%` }} />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex justify-between mb-1">
+                              <span className="text-xs text-slate-500">Engagement / Budget Total</span>
+                              <span className={`text-xs font-bold ${tEngBudg != null ? 'text-blue-600' : 'text-slate-400'}`}>{fmtPct(tEngBudg)}</span>
+                            </div>
+                            {tEngBudg != null && (
+                              <div className="w-full bg-slate-100 rounded-full h-1.5">
+                                <div className="h-1.5 rounded-full bg-blue-500" style={{ width: `${Math.min(tEngBudg, 100)}%` }} />
+                              </div>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 pt-1">
+                            <div className="bg-slate-50 rounded-lg p-2 text-center">
+                              <div className="text-[10px] text-slate-400">Eng. CP / CP</div>
+                              <div className={`text-sm font-bold ${tEngCP != null ? 'text-indigo-600' : 'text-slate-400'}`}>{fmtPct(tEngCP)}</div>
+                            </div>
+                            <div className="bg-slate-50 rounded-lg p-2 text-center">
+                              <div className="text-[10px] text-slate-400">Eng. CE / CE</div>
+                              <div className={`text-sm font-bold ${tEngCE != null ? 'text-indigo-600' : 'text-slate-400'}`}>{fmtPct(tEngCE)}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Row 2: Jugement & Soumissionnaires & Marché */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+                      {/* Jugement & Attributaire */}
+                      <div className="p-5 border-r border-b border-slate-100">
+                        <h4 className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <Gavel className="w-3.5 h-3.5" /> Jugement & Attributaire
+                        </h4>
+                        <div className="space-y-2.5">
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Date Ouverture Plis</span>
+                            <span className="text-xs font-semibold text-slate-800">{fmtDate(p.dateOuverture)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Date Jugement</span>
+                            <span className="text-xs font-semibold text-slate-800">{fmtDate(p.dateJugement)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Délai Ouv. → Jugé</span>
+                            <span className="text-xs font-bold text-indigo-600">{dOuvJug != null ? `${dOuvJug} jours` : '—'}</span>
+                          </div>
+                          <div className="h-px bg-slate-100 my-1" />
+                          <div>
+                            <span className="text-xs text-slate-500">Attributaire</span>
+                            <div className="mt-1 text-sm font-semibold text-slate-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                              {p.attributaire || <span className="text-slate-400 italic">Non attribué</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Soumissionnaires */}
+                      <div className="p-5 border-r border-b border-slate-100">
+                        <h4 className="text-xs font-bold text-sky-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5" /> Soumissionnaires ({soum.nb})
+                        </h4>
+                        {soum.nb > 0 ? (
+                          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                            {soum.noms.map((nom, i) => (
+                              <div key={i} className="flex items-center gap-2 text-xs py-1.5 px-2 bg-sky-50 rounded-lg">
+                                <div className="w-5 h-5 rounded-full bg-sky-200 text-sky-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                                  {i + 1}
+                                </div>
+                                <span className="text-slate-700 font-medium truncate">{nom}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 text-slate-400 text-xs">
+                            <Users className="w-8 h-8 mx-auto mb-1 opacity-30" />
+                            Aucun soumissionnaire enregistré
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Marché & Engagement */}
+                      <div className="p-5 border-b border-slate-100">
+                        <h4 className="text-xs font-bold text-green-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <FileSignature className="w-3.5 h-3.5" /> Marché & Engagement
+                        </h4>
+                        <div className="space-y-2.5">
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">N° Marché</span>
+                            <span className="text-xs font-semibold text-slate-800">{p.numMarche || '—'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Date Engagement</span>
+                            <span className="text-xs font-semibold text-slate-800">{fmtDate(p.dateEngagement)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Délai Jugé → Engagé</span>
+                            <span className="text-xs font-bold text-indigo-600">{dJugEng != null ? `${dJugEng} jours` : '—'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Délai Ouv. → Engagé</span>
+                            <span className="text-xs font-bold text-indigo-600">{dOuvEng != null ? `${dOuvEng} jours` : '—'}</span>
+                          </div>
+                          <div className="h-px bg-slate-100 my-1" />
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Montant Engagement</span>
+                            <span className="text-xs font-bold text-green-700">{fmtMDH(p.montantEngagement)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Engagement CP</span>
+                            <span className="text-xs font-medium text-slate-700">{fmtMDH(p.engagementCP)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs text-slate-500">Engagement CE</span>
+                            <span className="text-xs font-medium text-slate-700">{fmtMDH(p.engagementCE)}</span>
+                          </div>
+                          {p.delaisExecution && (
+                            <div className="flex justify-between">
+                              <span className="text-xs text-slate-500">Délais d&apos;exécution</span>
+                              <span className="text-xs font-medium text-slate-700">{p.delaisExecution}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Objet complet */}
+                    <div className="px-5 py-3 bg-slate-50/50">
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wider">Objet complet</span>
+                      <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">{p.objet}</p>
+                    </div>
+                  </div>
+                  )}
+                </div>
+                );
+              })}
+            </div>
+          </div>
+          );
+        })()}
 
         {/* ── Full-Screen View 5: Rapports ── */}
         {sidebarTab === 'reports' && (() => {

@@ -3906,6 +3906,91 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
+
+          {/* ── Analyse par Entité — Vue Progression ── */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.entries(filteredEntityBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
+              const accentColor = entityColorMap[name] || '#3b82f6';
+              const engCP = filtered.filter(p => p.entite === name).reduce((s, p) => s + (p.engagementCP || 0), 0);
+              const engCE = filtered.filter(p => p.entite === name).reduce((s, p) => s + (p.engagementCE || 0), 0);
+              const engTotal = d.engagement;
+              const tauxEngagement = d.estimation > 0 ? Math.round((engTotal / d.estimation) * 100) : 0;
+              const tauxCP = d.cp > 0 ? Math.round((engCP / d.cp) * 100) : 0;
+              const tauxCE = d.ce > 0 ? Math.round((engCE / d.ce) * 100) : 0;
+              const nbAOPct = filteredKpis.totalProjects > 0 ? Math.round((d.count / filteredKpis.totalProjects) * 100) : 0;
+              const cpPct = filteredKpis.totalCP > 0 ? Math.round((d.cp / filteredKpis.totalCP) * 100) : 0;
+              const cePct = filteredKpis.totalCE > 0 ? Math.round((d.ce / filteredKpis.totalCE) * 100) : 0;
+              const estPct = filteredKpis.totalEstimation > 0 ? Math.round((d.estimation / filteredKpis.totalEstimation) * 100) : 0;
+              return (
+                <Card key={name} className="border-0 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden" style={{ borderTop: `3px solid ${accentColor}` }}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
+                        <span className="font-bold text-slate-800 text-sm">{name}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono">{d.count} AO</span>
+                    </div>
+
+                    {/* Nombre AO */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-slate-500 uppercase tracking-wider font-medium">Nombre AO</span>
+                        <span className="font-bold text-slate-700">{d.count} <span className="text-slate-400">({nbAOPct}%)</span></span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, nbAOPct)}%`, backgroundColor: accentColor }} />
+                      </div>
+                    </div>
+
+                    {/* CP */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-slate-500 uppercase tracking-wider font-medium">CP</span>
+                        <span className="font-bold text-blue-600">{fmtMDH(d.cp)} <span className="text-slate-400">({cpPct}%)</span></span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, cpPct)}%`, backgroundColor: '#3b82f6' }} />
+                      </div>
+                    </div>
+
+                    {/* CE */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-slate-500 uppercase tracking-wider font-medium">CE</span>
+                        <span className="font-bold text-cyan-600">{fmtMDH(d.ce)} <span className="text-slate-400">({cePct}%)</span></span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, cePct)}%`, backgroundColor: '#06b6d4' }} />
+                      </div>
+                    </div>
+
+                    {/* Estimation */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-slate-500 uppercase tracking-wider font-medium">Estimation</span>
+                        <span className="font-bold text-amber-600">{fmtMDH(d.estimation)} <span className="text-slate-400">({estPct}%)</span></span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, estPct)}%`, backgroundColor: '#d97706' }} />
+                      </div>
+                    </div>
+
+                    {/* Engagement */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-slate-500 uppercase tracking-wider font-medium">Engagement</span>
+                        <span className="font-bold text-green-600">{fmtMDH(engTotal)} <span className="text-slate-400">({tauxEngagement}%)</span></span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, tauxEngagement)}%`, backgroundColor: tauxEngagement >= 50 ? '#16a34a' : tauxEngagement >= 25 ? '#d97706' : '#dc2626' }} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </section>
 
         {/* ── 4. État d'avancement par type ── */}

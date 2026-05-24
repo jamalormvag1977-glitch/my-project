@@ -948,12 +948,22 @@ export default function Dashboard() {
     totalMontantExtrait: filtered.reduce((s, p) => s + (p.montantExtrait || 0), 0),
   };
   // AO Ouvert group: En cours de jugement, Jugé, Engagé, Infructueux, Annulé
-  const aoOuvertCount = filtered.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).length;
-  const aoOuvertEstimation = filtered.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).reduce((s, p) => s + (p.estimationAdmin || 0), 0);
-  const aoOuvertEngagement = filtered.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).reduce((s, p) => s + (p.montantEngagement || 0), 0);
+  const aoOuvertFilter = (p: Project) => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement);
+  const aoOuvertCount = filtered.filter(aoOuvertFilter).length;
+  const aoOuvertEstimation = filtered.filter(aoOuvertFilter).reduce((s, p) => s + (p.estimationAdmin || 0), 0);
+  const aoOuvertEngagement = filtered.filter(aoOuvertFilter).reduce((s, p) => s + (p.montantEngagement || 0), 0);
+  const aoOuvertCP = filtered.filter(aoOuvertFilter).reduce((s, p) => s + (p.cp || 0), 0);
+  const aoOuvertCE = filtered.filter(aoOuvertFilter).reduce((s, p) => s + (p.ce || 0), 0);
+  const aoOuvertEngCP = filtered.filter(aoOuvertFilter).reduce((s, p) => s + (p.engagementCP || 0), 0);
+  const aoOuvertEngCE = filtered.filter(aoOuvertFilter).reduce((s, p) => s + (p.engagementCE || 0), 0);
   // AO Restants group: Publié PPM, DAO Envoyé au CE, À programmer
-  const aoRestantsCount = filtered.filter(p => ['Publié sur PMP','DAO Envoyé au CE','A programmer'].includes(p.situationAvancement)).length;
-  const aoRestantsEstimation = filtered.filter(p => ['Publié sur PMP','DAO Envoyé au CE','A programmer'].includes(p.situationAvancement)).reduce((s, p) => s + (p.estimationAdmin || 0), 0);
+  const aoRestantsFilter = (p: Project) => ['Publié sur PMP','DAO Envoyé au CE','A programmer'].includes(p.situationAvancement);
+  const aoRestantsCount = filtered.filter(aoRestantsFilter).length;
+  const aoRestantsEstimation = filtered.filter(aoRestantsFilter).reduce((s, p) => s + (p.estimationAdmin || 0), 0);
+  const aoRestantsCP = filtered.filter(aoRestantsFilter).reduce((s, p) => s + (p.cp || 0), 0);
+  const aoRestantsCE = filtered.filter(aoRestantsFilter).reduce((s, p) => s + (p.ce || 0), 0);
+  const aoRestantsEngCP = filtered.filter(aoRestantsFilter).reduce((s, p) => s + (p.engagementCP || 0), 0);
+  const aoRestantsEngCE = filtered.filter(aoRestantsFilter).reduce((s, p) => s + (p.engagementCE || 0), 0);
   // Programme budget aggregation
   const filteredProgrammeBudget: Record<string, { cp: number; ce: number; estimation: number; engagement: number; count: number }> = {};
   filtered.forEach(p => {
@@ -3802,7 +3812,7 @@ export default function Dashboard() {
                 <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                   <span className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center shadow-sm"><Scale className="w-4.5 h-4.5 text-white" /></span>
                   AO Ouvert
-                  <Badge className="text-[9px] bg-blue-100 text-blue-700 border-blue-200 border ml-auto">{aoOuvertCount} AO</Badge>
+                  <Badge className="text-[9px] bg-blue-100 text-blue-700 border-blue-200 border ml-auto">{aoOuvertCount} AO ({filtered.length > 0 ? Math.round((aoOuvertCount / filtered.length) * 100) : 0}%)</Badge>
                 </CardTitle>
                 <p className="text-[10px] text-slate-400">En cours de jugement, Jugé, Engagé, Infructueux, Annulé</p>
               </CardHeader>
@@ -3814,20 +3824,78 @@ export default function Dashboard() {
                     { label: 'Engagé', count: filteredStatusCount['Engagé'] || 0, color: '#16a34a', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
                     { label: 'Infructueux', count: filteredStatusCount['Infructueux'] || 0, color: '#dc2626', icon: <FileX className="w-3.5 h-3.5" /> },
                     { label: 'Annulé', count: filteredStatusCount['Annulé'] || 0, color: '#991b1b', icon: <Ban className="w-3.5 h-3.5" /> },
-                  ].map(item => (
+                  ].map(item => {
+                    const taux = filtered.length > 0 ? Math.round((item.count / filtered.length) * 100) : 0;
+                    return (
                     <div key={item.label} className="text-center group">
                       <div className="w-10 h-10 mx-auto rounded-xl flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-all duration-200 group-hover:scale-110" style={{ backgroundColor: item.color }}>
                         {item.icon}
                       </div>
                       <p className="text-lg font-bold mt-1.5" style={{ color: item.color }}>{item.count}</p>
                       <p className="text-[8px] text-slate-500 uppercase tracking-wider font-medium">{item.label}</p>
+                      <div className="mt-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, taux)}%`, backgroundColor: item.color }} />
+                      </div>
+                      <p className="text-[8px] font-bold mt-0.5" style={{ color: item.color }}>{taux}%</p>
                     </div>
-                  ))}
+                  );})}
                 </div>
-                <div className="mt-3 pt-2 border-t border-slate-100 flex justify-between text-[10px]">
-                  <span className="text-slate-500">Total AO Ouvert: <strong className="text-blue-700">{aoOuvertCount}</strong></span>
-                  <span className="text-slate-500">Estim: <strong className="text-blue-600">{fmtMDH(aoOuvertEstimation)}</strong></span>
-                  <span className="text-slate-500">Engagé: <strong className="text-green-600">{fmtMDH(aoOuvertEngagement)}</strong></span>
+                {/* Stacked bar AO Ouvert */}
+                <div className="mt-3">
+                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden flex">
+                    {[
+                      { count: filteredStatusCount['En cours de jugement'] || 0, color: '#f59e0b' },
+                      { count: filteredStatusCount['Jugé'] || 0, color: '#8b5cf6' },
+                      { count: filteredStatusCount['Engagé'] || 0, color: '#16a34a' },
+                      { count: filteredStatusCount['Infructueux'] || 0, color: '#dc2626' },
+                      { count: filteredStatusCount['Annulé'] || 0, color: '#991b1b' },
+                    ].map((s, i) => (
+                      <div key={i} className="h-full transition-all duration-700" style={{ width: `${filtered.length > 0 ? (s.count / filtered.length) * 100 : 0}%`, backgroundColor: s.color }} />
+                    ))}
+                  </div>
+                </div>
+                {/* Financial KPIs */}
+                <div className="mt-3 pt-2 border-t border-slate-100 grid grid-cols-3 gap-2 text-[10px]">
+                  <div className="bg-blue-50 rounded-lg p-2 text-center">
+                    <p className="text-slate-500">CP</p>
+                    <p className="font-bold text-blue-700">{fmtMDH(aoOuvertCP)}</p>
+                  </div>
+                  <div className="bg-cyan-50 rounded-lg p-2 text-center">
+                    <p className="text-slate-500">CE</p>
+                    <p className="font-bold text-cyan-700">{fmtMDH(aoOuvertCE)}</p>
+                  </div>
+                  <div className="bg-amber-50 rounded-lg p-2 text-center">
+                    <p className="text-slate-500">Estim.</p>
+                    <p className="font-bold text-amber-700">{fmtMDH(aoOuvertEstimation)}</p>
+                  </div>
+                </div>
+                {/* Taux Eng. CP / CE */}
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="bg-violet-50 rounded-lg p-2 text-center space-y-1">
+                    <p className="text-[9px] text-slate-500 uppercase tracking-wider font-medium">Taux Eng. CP</p>
+                    <div className="h-2 bg-violet-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, aoOuvertCP > 0 ? Math.round((aoOuvertEngCP / aoOuvertCP) * 100) : 0)}%`, backgroundColor: '#7c3aed' }} />
+                    </div>
+                    <p className="text-sm font-bold text-violet-700">{aoOuvertCP > 0 ? Math.round((aoOuvertEngCP / aoOuvertCP) * 100) : 0}%</p>
+                    <p className="text-[8px] text-slate-400">{fmtMDH(aoOuvertEngCP)} / {fmtMDH(aoOuvertCP)}</p>
+                  </div>
+                  <div className="bg-teal-50 rounded-lg p-2 text-center space-y-1">
+                    <p className="text-[9px] text-slate-500 uppercase tracking-wider font-medium">Taux Eng. CE</p>
+                    <div className="h-2 bg-teal-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, aoOuvertCE > 0 ? Math.round((aoOuvertEngCE / aoOuvertCE) * 100) : 0)}%`, backgroundColor: '#0d9488' }} />
+                    </div>
+                    <p className="text-sm font-bold text-teal-700">{aoOuvertCE > 0 ? Math.round((aoOuvertEngCE / aoOuvertCE) * 100) : 0}%</p>
+                    <p className="text-[8px] text-slate-400">{fmtMDH(aoOuvertEngCE)} / {fmtMDH(aoOuvertCE)}</p>
+                  </div>
+                </div>
+                {/* Taux Engagement / Estimation */}
+                <div className="mt-2 bg-green-50 rounded-lg p-2 text-center space-y-1">
+                  <p className="text-[9px] text-slate-500 uppercase tracking-wider font-medium">Taux Engagement / Estimation</p>
+                  <div className="h-2 bg-green-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, aoOuvertEstimation > 0 ? Math.round((aoOuvertEngagement / aoOuvertEstimation) * 100) : 0)}%`, backgroundColor: '#16a34a' }} />
+                  </div>
+                  <p className="text-sm font-bold text-green-700">{aoOuvertEstimation > 0 ? Math.round((aoOuvertEngagement / aoOuvertEstimation) * 100) : 0}%</p>
+                  <p className="text-[8px] text-slate-400">{fmtMDH(aoOuvertEngagement)} / {fmtMDH(aoOuvertEstimation)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -3837,7 +3905,7 @@ export default function Dashboard() {
                 <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                   <span className="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center shadow-sm"><Clock className="w-4.5 h-4.5 text-white" /></span>
                   AO Restants
-                  <Badge className="text-[9px] bg-amber-100 text-amber-700 border-amber-200 border ml-auto">{aoRestantsCount} AO</Badge>
+                  <Badge className="text-[9px] bg-amber-100 text-amber-700 border-amber-200 border ml-auto">{aoRestantsCount} AO ({filtered.length > 0 ? Math.round((aoRestantsCount / filtered.length) * 100) : 0}%)</Badge>
                 </CardTitle>
                 <p className="text-[10px] text-slate-400">Publié Portail, Envoyé au CE, À programmer</p>
               </CardHeader>
@@ -3847,19 +3915,76 @@ export default function Dashboard() {
                     { label: 'Publié PPM', count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed', icon: <Megaphone className="w-4 h-4" /> },
                     { label: 'DAO au CE', count: filteredStatusCount['DAO Envoyé au CE'] || 0, color: '#0891b2', icon: <FileSignature className="w-4 h-4" /> },
                     { label: 'À programmer', count: filteredStatusCount['A programmer'] || 0, color: '#6b7280', icon: <ListTodo className="w-4 h-4" /> },
-                  ].map(item => (
+                  ].map(item => {
+                    const taux = filtered.length > 0 ? Math.round((item.count / filtered.length) * 100) : 0;
+                    return (
                     <div key={item.label} className="text-center group">
                       <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-all duration-200 group-hover:scale-110" style={{ backgroundColor: item.color }}>
                         {item.icon}
                       </div>
                       <p className="text-xl font-bold mt-1.5" style={{ color: item.color }}>{item.count}</p>
                       <p className="text-[8px] text-slate-500 uppercase tracking-wider font-medium">{item.label}</p>
+                      <div className="mt-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, taux)}%`, backgroundColor: item.color }} />
+                      </div>
+                      <p className="text-[8px] font-bold mt-0.5" style={{ color: item.color }}>{taux}%</p>
                     </div>
-                  ))}
+                  );})}
                 </div>
-                <div className="mt-3 pt-2 border-t border-slate-100 flex justify-between text-[10px]">
-                  <span className="text-slate-500">Total AO Restants: <strong className="text-amber-700">{aoRestantsCount}</strong></span>
-                  <span className="text-slate-500">Estim: <strong className="text-blue-600">{fmtMDH(aoRestantsEstimation)}</strong></span>
+                {/* Stacked bar AO Restants */}
+                <div className="mt-3">
+                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden flex">
+                    {[
+                      { count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed' },
+                      { count: filteredStatusCount['DAO Envoyé au CE'] || 0, color: '#0891b2' },
+                      { count: filteredStatusCount['A programmer'] || 0, color: '#6b7280' },
+                    ].map((s, i) => (
+                      <div key={i} className="h-full transition-all duration-700" style={{ width: `${filtered.length > 0 ? (s.count / filtered.length) * 100 : 0}%`, backgroundColor: s.color }} />
+                    ))}
+                  </div>
+                </div>
+                {/* Financial KPIs */}
+                <div className="mt-3 pt-2 border-t border-slate-100 grid grid-cols-3 gap-2 text-[10px]">
+                  <div className="bg-blue-50 rounded-lg p-2 text-center">
+                    <p className="text-slate-500">CP</p>
+                    <p className="font-bold text-blue-700">{fmtMDH(aoRestantsCP)}</p>
+                  </div>
+                  <div className="bg-cyan-50 rounded-lg p-2 text-center">
+                    <p className="text-slate-500">CE</p>
+                    <p className="font-bold text-cyan-700">{fmtMDH(aoRestantsCE)}</p>
+                  </div>
+                  <div className="bg-amber-50 rounded-lg p-2 text-center">
+                    <p className="text-slate-500">Estim.</p>
+                    <p className="font-bold text-amber-700">{fmtMDH(aoRestantsEstimation)}</p>
+                  </div>
+                </div>
+                {/* Taux Eng. CP / CE */}
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="bg-violet-50 rounded-lg p-2 text-center space-y-1">
+                    <p className="text-[9px] text-slate-500 uppercase tracking-wider font-medium">Taux Eng. CP</p>
+                    <div className="h-2 bg-violet-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, aoRestantsCP > 0 ? Math.round((aoRestantsEngCP / aoRestantsCP) * 100) : 0)}%`, backgroundColor: '#7c3aed' }} />
+                    </div>
+                    <p className="text-sm font-bold text-violet-700">{aoRestantsCP > 0 ? Math.round((aoRestantsEngCP / aoRestantsCP) * 100) : 0}%</p>
+                    <p className="text-[8px] text-slate-400">{fmtMDH(aoRestantsEngCP)} / {fmtMDH(aoRestantsCP)}</p>
+                  </div>
+                  <div className="bg-teal-50 rounded-lg p-2 text-center space-y-1">
+                    <p className="text-[9px] text-slate-500 uppercase tracking-wider font-medium">Taux Eng. CE</p>
+                    <div className="h-2 bg-teal-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, aoRestantsCE > 0 ? Math.round((aoRestantsEngCE / aoRestantsCE) * 100) : 0)}%`, backgroundColor: '#0d9488' }} />
+                    </div>
+                    <p className="text-sm font-bold text-teal-700">{aoRestantsCE > 0 ? Math.round((aoRestantsEngCE / aoRestantsCE) * 100) : 0}%</p>
+                    <p className="text-[8px] text-slate-400">{fmtMDH(aoRestantsEngCE)} / {fmtMDH(aoRestantsCE)}</p>
+                  </div>
+                </div>
+                {/* Taux Engagement / Estimation */}
+                <div className="mt-2 bg-green-50 rounded-lg p-2 text-center space-y-1">
+                  <p className="text-[9px] text-slate-500 uppercase tracking-wider font-medium">Taux Engagement / Estimation</p>
+                  <div className="h-2 bg-green-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, aoRestantsEstimation > 0 ? 0 : 0)}%`, backgroundColor: '#16a34a' }} />
+                  </div>
+                  <p className="text-sm font-bold text-green-700">0%</p>
+                  <p className="text-[8px] text-slate-400">0 MDH / {fmtMDH(aoRestantsEstimation)}</p>
                 </div>
               </CardContent>
             </Card>

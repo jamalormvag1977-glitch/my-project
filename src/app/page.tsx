@@ -168,8 +168,15 @@ const exAOTitle = (numAO: string | number | null): string | undefined => {
   return `AO n°${newAO} relancé suite au jugement de l'AO n°${refAO} (annulé ou infructueux)`;
 };
 
+// Helper: extract base AO number (strip "ex" suffix and anything after)
+const getBaseAONumber = (numAO: string): string => {
+  const exIndex = numAO.indexOf('ex');
+  if (exIndex === -1) return numAO.trim();
+  return numAO.substring(0, exIndex).trim();
+};
+
 // Helper: find PPM project matching a soumissionnaire project
-// Handles "ex" notation: soum numAO="25" can match PPM numAO="25 ex 2"
+// Handles "ex" notation: soum numAO="25" can match PPM numAO="25 ex 2" and vice versa
 const findPPMForSoum = (projects: PPMProject[] | undefined, numAO: string, entite: string): PPMProject | undefined => {
   if (!projects) return undefined;
   // 1. Exact match
@@ -181,7 +188,23 @@ const findPPMForSoum = (projects: PPMProject[] | undefined, numAO: string, entit
       const pNum = String(p.numAO);
       return pNum.startsWith(numAO + ' ex') && p.entite === entite;
     });
+    if (match) return match;
   }
+  // 3. If soum numAO has "ex", try matching PPM entries by base AO number
+  if (numAO.includes('ex')) {
+    const baseAO = getBaseAONumber(numAO);
+    match = projects.find(p => {
+      const pNum = String(p.numAO);
+      return (pNum === baseAO || pNum.startsWith(baseAO + ' ex')) && p.entite === entite;
+    });
+    if (match) return match;
+  }
+  // 4. Fallback: try matching by base AO number on both sides
+  const soumBase = getBaseAONumber(numAO);
+  match = projects.find(p => {
+    const ppmBase = getBaseAONumber(String(p.numAO));
+    return soumBase === ppmBase && p.entite === entite;
+  });
   return match;
 };
 
@@ -4524,10 +4547,16 @@ export default function Dashboard() {
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold flex items-center gap-2" title={exAOTitle(selectedSoumProjet.numAOComplet)}>
-                    Soumissionnaires — {selectedSoumProjet.numAOComplet}
-                    {selectedSoumProjet.numAOComplet.includes('ex') && <span className="text-sm opacity-70 cursor-help">↻</span>}
-                  </h3>
+                  {(() => {
+                    const ppmP = findPPMForSoum(data?.projects, selectedSoumProjet.numAO, selectedSoumProjet.entite);
+                    const displayNumAO = ppmP?.numAO ? `${ppmP.numAO}/${selectedSoumProjet.numAOComplet.split('/').slice(1).join('/')}` : selectedSoumProjet.numAOComplet;
+                    return (
+                      <h3 className="text-xl font-bold flex items-center gap-2" title={exAOTitle(ppmP?.numAO || selectedSoumProjet.numAOComplet)}>
+                        Soumissionnaires — {displayNumAO}
+                        {(ppmP?.numAO && String(ppmP.numAO).includes('ex') || selectedSoumProjet.numAOComplet.includes('ex')) && <span className="text-sm opacity-70 cursor-help">↻</span>}
+                      </h3>
+                    );
+                  })()}
                   <p className="text-sm text-indigo-200 mt-1">{selectedSoumProjet.objetAO}</p>
                 </div>
               </div>
@@ -4543,10 +4572,10 @@ export default function Dashboard() {
                 <Building2 className="w-3 h-3 mr-1" /> {selectedSoumProjet.entite}
               </Badge>
               <Badge className="bg-white/20 text-white border-0 text-xs">
-                <FileText className="w-3 h-3 mr-1" /> {selectedSoumProjet.numAOComplet}
+                <FileText className="w-3 h-3 mr-1" /> {(() => { const ppmP = findPPMForSoum(data?.projects, selectedSoumProjet.numAO, selectedSoumProjet.entite); return ppmP?.numAO ? `${ppmP.numAO}/${selectedSoumProjet.numAOComplet.split('/').slice(1).join('/')}` : selectedSoumProjet.numAOComplet; })()}
               </Badge>
               {(() => {
-                const ppmP = data?.projects.find(p => String(p.numAO) === selectedSoumProjet.numAO && p.entite === selectedSoumProjet.entite);
+                const ppmP = findPPMForSoum(data?.projects, selectedSoumProjet.numAO, selectedSoumProjet.entite);
                 return ppmP ? (
                   <>
                     {ppmP.dateJugement && (

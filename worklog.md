@@ -155,3 +155,24 @@ Stage Summary:
 - GET /api/soumissionnaires: tries Blob first → local Excel → static JSON
 - POST /api/soumissionnaires: parses Excel from memory buffer + uploads to Blob
 - User can now upload files via the web interface and data persists in Vercel Blob
+
+---
+Task ID: fix-upload-auth
+Agent: Main Agent
+Task: Fix upload authentication error "Accès réservé aux administrateurs"
+
+Work Log:
+- Investigated upload failure on production
+- Discovered root cause: getServerSession() was called WITHOUT authOptions parameter
+- In Next.js App Router, getServerSession() requires authOptions to properly decode JWT session
+- Without authOptions, session is null or doesn't contain the role → always rejected
+- Fixed both /api/ppm/route.ts and /api/soumissionnaires/route.ts
+- Added import: `import { authOptions } from '@/app/api/auth/[...nextauth]/route';`
+- Changed: `getServerSession()` → `getServerSession(authOptions)`
+- Deployed to production and verified upload works
+- Upload to Vercel Blob confirmed working: file persisted and data loads from Blob
+
+Stage Summary:
+- Bug fix: getServerSession(authOptions) now properly verifies JWT session
+- Upload to Vercel Blob works end-to-end on production
+- User can now upload files independently through the web interface

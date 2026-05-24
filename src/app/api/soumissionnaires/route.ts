@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { put, list, del } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
@@ -182,7 +183,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     // Check authenticated user (admin or user)
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }

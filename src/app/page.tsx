@@ -592,6 +592,7 @@ export default function Dashboard() {
   const [ficheStatusFilter, setFicheStatusFilter] = useState('all');
   const [ficheEntityFilter, setFicheEntityFilter] = useState('all');
   const [expandedFiche, setExpandedFiche] = useState<number | null>(null);
+  const [fichePrintMode, setFichePrintMode] = useState(false);
 
   /* ── Pipeline Order & Status Mapping ── */
   const PIPELINE_ORDER = ['Ouvert','En cours de jugement','Jugé','Engagé','Infructueux','Annulé','Publié PPM','DAO Envoyé au CE','A programmer'] as const;
@@ -2270,7 +2271,17 @@ export default function Dashboard() {
             return null;
           };
 
-          /* Fiches filters — state is in parent component */
+          /* Print functions */
+          const printAllFiches = () => {
+            setFichePrintMode(true);
+            setTimeout(() => { window.print(); setFichePrintMode(false); }, 300);
+          };
+          const printSingleFiche = (id: number) => {
+            setExpandedFiche(id);
+            setFichePrintMode(true);
+            setTimeout(() => { window.print(); setFichePrintMode(false); }, 300);
+          };
+
           const fichesFiltered = filtered.filter(p => {
             const matchSearch = !ficheSearch || 
               String(p.numAO ?? '').toLowerCase().includes(ficheSearch.toLowerCase()) ||
@@ -2287,8 +2298,24 @@ export default function Dashboard() {
 
           return (
           <div className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-violet-50/20">
+            {/* ── Print-specific CSS for Fiches ── */}
+            <style>{`
+              @media print {
+                body * { visibility: visible !important; }
+                aside, .no-print { display: none !important; }
+                main { margin-left: 0 !important; }
+                .fiche-card { page-break-inside: avoid; break-inside: avoid; margin-bottom: 8px; border: 1px solid #ccc !important; box-shadow: none !important; border-radius: 8px !important; }
+                .fiche-card + .fiche-card { page-break-before: auto; }
+                .fiche-header { background: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                .fiche-timeline { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                .fiche-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                .fiche-bar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                @page { margin: 1cm; size: A4; }
+              }
+            `}</style>
+
             {/* Header */}
-            <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 px-6 py-4">
+            <div className="no-print sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
@@ -2325,6 +2352,9 @@ export default function Dashboard() {
                     className="text-xs h-8 rounded-lg">
                     <X className="w-3 h-3 mr-1" />Réinitialiser
                   </Button>
+                  <Button onClick={printAllFiches} size="sm" className="text-xs h-8 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5">
+                    <Printer className="w-3.5 h-3.5" />Imprimer les fiches
+                  </Button>
                 </div>
               </div>
             </div>
@@ -2348,12 +2378,12 @@ export default function Dashboard() {
                 const dOuvJug = daysBetween(p.dateOuverture, p.dateJugement);
                 const dJugEng = daysBetween(p.dateJugement, p.dateEngagement);
                 const dOuvEng = daysBetween(p.dateOuverture, p.dateEngagement);
-                const isExpanded = expandedFiche === p.id;
+                const isExpanded = expandedFiche === p.id || fichePrintMode;
 
                 return (
-                <div key={p.id} className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                <div key={p.id} className="fiche-card bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
                   {/* Card Header */}
-                  <div className="px-5 py-4 flex items-center justify-between cursor-pointer" onClick={() => setExpandedFiche(isExpanded ? null : p.id)}>
+                  <div className="fiche-header px-5 py-4 flex items-center justify-between cursor-pointer" onClick={() => !fichePrintMode && setExpandedFiche(isExpanded && !fichePrintMode ? null : p.id)}>
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       {/* AO Number Badge */}
                       <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
@@ -2395,7 +2425,10 @@ export default function Dashboard() {
                           </div>
                         </div>
                       </div>
-                      {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                      <button onClick={(e) => { e.stopPropagation(); printSingleFiche(p.id); }} className="no-print w-7 h-7 rounded-lg bg-slate-100 hover:bg-indigo-100 flex items-center justify-center transition-colors" title="Imprimer cette fiche">
+                        <Printer className="w-3.5 h-3.5 text-slate-500 hover:text-indigo-600" />
+                      </button>
+                      {!fichePrintMode && (isExpanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />)}
                     </div>
                   </div>
 
@@ -2403,7 +2436,7 @@ export default function Dashboard() {
                   {isExpanded && (
                   <div className="border-t border-slate-100">
                     {/* Timeline visuelle */}
-                    <div className="px-5 py-4 bg-gradient-to-r from-slate-50 to-indigo-50/30">
+                    <div className="fiche-timeline px-5 py-4 bg-gradient-to-r from-slate-50 to-indigo-50/30">
                       <div className="flex items-center justify-between relative">
                         <div className="absolute top-4 left-0 right-0 h-0.5 bg-slate-200" />
                         {/* Étape 1: Ouverture */}

@@ -467,6 +467,10 @@ export default function Dashboard() {
   const [filterProjet, setFilterProjet] = useState('all');
   const [filterSource, setFilterSource] = useState('all');
   const [filterAttributaire, setFilterAttributaire] = useState('all');
+  const [soumFilterProgramme, setSoumFilterProgramme] = useState('all');
+  const [soumFilterProjet, setSoumFilterProjet] = useState('all');
+  const [soumFilterSource, setSoumFilterSource] = useState('all');
+  const [soumFilterAttributaire, setSoumFilterAttributaire] = useState('all');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [fileChanged, setFileChanged] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
@@ -1709,15 +1713,25 @@ export default function Dashboard() {
 
               {/* KPI Cards */}
               {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 && (() => {
+                // Apply filters to get filtered projets
+                const filteredSoumProjets = Object.values(soumissionnaireData.projets).filter(sp => {
+                  const ppmMatch = data?.projects.find(p => String(p.numAO) === sp.numAO && p.entite === sp.entite);
+                  const matchProgramme = soumFilterProgramme === 'all' || ppmMatch?.programme === soumFilterProgramme;
+                  const matchProjet = soumFilterProjet === 'all' || ppmMatch?.projet === soumFilterProjet;
+                  const matchSource = soumFilterSource === 'all' || ppmMatch?.sourceFinancement === soumFilterSource;
+                  const matchAttributaire = soumFilterAttributaire === 'all' || ppmMatch?.attributaire === soumFilterAttributaire;
+                  return matchProgramme && matchProjet && matchSource && matchAttributaire;
+                });
                 // Aggregate per-project unique soumissionnaire counts
-                const perProject = Object.values(soumissionnaireData.projets).map(sp => countUniqueByDecision(sp.soumissionnaires));
+                const perProject = filteredSoumProjets.map(sp => countUniqueByDecision(sp.soumissionnaires));
                 const totalAdmis = perProject.reduce((s, c) => s + c.admis, 0);
                 const totalEcartes = perProject.reduce((s, c) => s + c.ecarts, 0);
                 const totalEnAttente = perProject.reduce((s, c) => s + c.enAttente, 0);
                 const totalReportee = perProject.reduce((s, c) => s + c.reportee, 0);
                 const totalAnnule = perProject.reduce((s, c) => s + c.annule, 0);
-                const totalUniques = soumissionnaireData.totalSoumissionnaires;
+                const totalUniques = filteredSoumProjets.reduce((s, sp) => s + sp.nbSoumissionnairesUniques, 0);
                 const admisRate = totalUniques > 0 ? Math.round(totalAdmis / totalUniques * 100) : 0;
+                const hasSoumFiltersKPI = soumFilterProgramme !== 'all' || soumFilterProjet !== 'all' || soumFilterSource !== 'all' || soumFilterAttributaire !== 'all';
 
                 return (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1725,7 +1739,7 @@ export default function Dashboard() {
                       <CardContent className="p-4 text-center">
                         <Users className="w-6 h-6 text-indigo-500 mx-auto mb-1" />
                         <p className="text-2xl font-bold text-indigo-700">{totalUniques}</p>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">Soumissionnaires</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">Soumissionnaires{hasSoumFiltersKPI ? ' (filtrés)' : ''}</p>
                       </CardContent>
                     </Card>
                     <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #16a34a' }}>
@@ -1750,6 +1764,82 @@ export default function Dashboard() {
                       </CardContent>
                     </Card>
                   </div>
+                );
+              })()}
+
+              {/* Soumissionnaire Filters */}
+              {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 && (() => {
+                // Build unique values for each filter by cross-referencing PPM data
+                const soumProgrammes = [...new Set(
+                  Object.values(soumissionnaireData.projets)
+                    .map(sp => data?.projects.find(p => String(p.numAO) === sp.numAO && p.entite === sp.entite)?.programme)
+                    .filter(Boolean)
+                )].sort() as string[];
+                const soumProjets = [...new Set(
+                  Object.values(soumissionnaireData.projets)
+                    .map(sp => data?.projects.find(p => String(p.numAO) === sp.numAO && p.entite === sp.entite)?.projet)
+                    .filter(Boolean)
+                )].sort() as string[];
+                const soumSources = [...new Set(
+                  Object.values(soumissionnaireData.projets)
+                    .map(sp => data?.projects.find(p => String(p.numAO) === sp.numAO && p.entite === sp.entite)?.sourceFinancement)
+                    .filter(Boolean)
+                )].sort() as string[];
+                const soumAttributaires = [...new Set(
+                  Object.values(soumissionnaireData.projets)
+                    .map(sp => data?.projects.find(p => String(p.numAO) === sp.numAO && p.entite === sp.entite)?.attributaire)
+                    .filter(Boolean)
+                )].sort() as string[];
+                const hasSoumFilters = soumFilterProgramme !== 'all' || soumFilterProjet !== 'all' || soumFilterSource !== 'all' || soumFilterAttributaire !== 'all';
+                return (
+                  <Card className="border-0 shadow-md glass-card" style={{ borderTop: '4px solid #a78bfa' }}>
+                    <CardContent className="p-3">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Filtres</span>
+                        <Select value={soumFilterProgramme} onValueChange={setSoumFilterProgramme}>
+                          <SelectTrigger className="w-full sm:w-44 h-8 text-xs bg-slate-50/80 border-slate-200">
+                            <SelectValue placeholder="Programme" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Tous programmes</SelectItem>
+                            {soumProgrammes.map(p => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
+                          </SelectContent>
+                        </Select>
+                        <Select value={soumFilterProjet} onValueChange={setSoumFilterProjet}>
+                          <SelectTrigger className="w-full sm:w-44 h-8 text-xs bg-slate-50/80 border-slate-200">
+                            <SelectValue placeholder="Projet" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Tous projets</SelectItem>
+                            {soumProjets.map(p => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
+                          </SelectContent>
+                        </Select>
+                        <Select value={soumFilterSource} onValueChange={setSoumFilterSource}>
+                          <SelectTrigger className="w-full sm:w-48 h-8 text-xs bg-slate-50/80 border-slate-200">
+                            <SelectValue placeholder="Source" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Toutes sources</SelectItem>
+                            {soumSources.map(s => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+                          </SelectContent>
+                        </Select>
+                        <Select value={soumFilterAttributaire} onValueChange={setSoumFilterAttributaire}>
+                          <SelectTrigger className="w-full sm:w-48 h-8 text-xs bg-slate-50/80 border-slate-200">
+                            <SelectValue placeholder="Attributaire" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Tous attributaires</SelectItem>
+                            {soumAttributaires.map(a => (<SelectItem key={a} value={a}>{a}</SelectItem>))}
+                          </SelectContent>
+                        </Select>
+                        {hasSoumFilters && (
+                          <Button variant="ghost" size="sm" onClick={() => { setSoumFilterProgramme('all'); setSoumFilterProjet('all'); setSoumFilterSource('all'); setSoumFilterAttributaire('all'); }} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">
+                            <XCircle className="w-3 h-3" />Effacer
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 );
               })()}
 
@@ -1778,6 +1868,14 @@ export default function Dashboard() {
                         </thead>
                         <tbody>
                           {Object.entries(soumissionnaireData.projets)
+                            .filter(([, sp]) => {
+                              const ppmMatch = data?.projects.find(p => String(p.numAO) === sp.numAO && p.entite === sp.entite);
+                              const matchProgramme = soumFilterProgramme === 'all' || ppmMatch?.programme === soumFilterProgramme;
+                              const matchProjet = soumFilterProjet === 'all' || ppmMatch?.projet === soumFilterProjet;
+                              const matchSource = soumFilterSource === 'all' || ppmMatch?.sourceFinancement === soumFilterSource;
+                              const matchAttributaire = soumFilterAttributaire === 'all' || ppmMatch?.attributaire === soumFilterAttributaire;
+                              return matchProgramme && matchProjet && matchSource && matchAttributaire;
+                            })
                             .sort(([,a],[,b]) => b.nbSoumissionnairesUniques - a.nbSoumissionnairesUniques)
                             .map(([key, sp]) => {
                             const { admis, ecarts, enAttente: enAtt, reportee: rep, annule: ann } = countUniqueByDecision(sp.soumissionnaires);
@@ -3383,6 +3481,73 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* Second filter row: Programme, Projet, Source, Attributaire */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                {/* Programme filter */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Programme</span>
+                  <Select value={filterProgramme} onValueChange={setFilterProgramme}>
+                    <SelectTrigger className="w-full sm:w-48 h-10 text-sm bg-slate-50/80 border-slate-200 transition-all duration-300">
+                      <SelectValue placeholder="Programme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous programmes</SelectItem>
+                      {programmes.map(p => (
+                        <SelectItem key={p} value={p}>{p} ({projects.filter(pr => pr.programme === p).length})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Projet filter */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Projet</span>
+                  <Select value={filterProjet} onValueChange={setFilterProjet}>
+                    <SelectTrigger className="w-full sm:w-48 h-10 text-sm bg-slate-50/80 border-slate-200 transition-all duration-300">
+                      <SelectValue placeholder="Projet" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous projets</SelectItem>
+                      {projets.map(p => (
+                        <SelectItem key={p} value={p}>{p} ({projects.filter(pr => pr.projet === p).length})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Source de financement filter */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Source</span>
+                  <Select value={filterSource} onValueChange={setFilterSource}>
+                    <SelectTrigger className="w-full sm:w-52 h-10 text-sm bg-slate-50/80 border-slate-200 transition-all duration-300">
+                      <SelectValue placeholder="Source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes sources</SelectItem>
+                      {sources.map(s => (
+                        <SelectItem key={s} value={s}>{s} ({projects.filter(pr => pr.sourceFinancement === s).length})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Attributaire filter */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Attributaire</span>
+                  <Select value={filterAttributaire} onValueChange={setFilterAttributaire}>
+                    <SelectTrigger className="w-full sm:w-52 h-10 text-sm bg-slate-50/80 border-slate-200 transition-all duration-300">
+                      <SelectValue placeholder="Attributaire" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous attributaires</SelectItem>
+                      {attributaires.map(a => (
+                        <SelectItem key={a} value={a}>{a} ({projects.filter(pr => pr.attributaire === a).length})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               {/* Active filters + result count */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -3406,6 +3571,26 @@ export default function Dashboard() {
                       {filterStatus !== 'all' && (
                         <Badge className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 gap-1 cursor-pointer transition-all duration-200" onClick={() => setFilterStatus('all')}>
                           Statut: {filterStatus} <XCircle className="w-3 h-3" />
+                        </Badge>
+                      )}
+                      {filterProgramme !== 'all' && (
+                        <Badge className="bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 gap-1 cursor-pointer transition-all duration-200" onClick={() => setFilterProgramme('all')}>
+                          Programme: {filterProgramme} <XCircle className="w-3 h-3" />
+                        </Badge>
+                      )}
+                      {filterProjet !== 'all' && (
+                        <Badge className="bg-pink-50 text-pink-700 border-pink-200 hover:bg-pink-100 gap-1 cursor-pointer transition-all duration-200" onClick={() => setFilterProjet('all')}>
+                          Projet: {filterProjet} <XCircle className="w-3 h-3" />
+                        </Badge>
+                      )}
+                      {filterSource !== 'all' && (
+                        <Badge className="bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100 gap-1 cursor-pointer transition-all duration-200" onClick={() => setFilterSource('all')}>
+                          Source: {filterSource} <XCircle className="w-3 h-3" />
+                        </Badge>
+                      )}
+                      {filterAttributaire !== 'all' && (
+                        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 gap-1 cursor-pointer transition-all duration-200" onClick={() => setFilterAttributaire('all')}>
+                          Attributaire: {filterAttributaire} <XCircle className="w-3 h-3" />
                         </Badge>
                       )}
                       <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-[10px] h-6 text-slate-400 hover:text-red-500 transition-all duration-200">

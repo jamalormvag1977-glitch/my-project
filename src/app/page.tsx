@@ -2945,7 +2945,6 @@ export default function Dashboard() {
                         {(() => {
                           const engages = filtered.filter(p => p.situationAvancement === 'Engagé');
                           const juges = filtered.filter(p => p.situationAvancement === 'Jugé');
-                          const ouverts = filtered.filter(p => p.situationAvancement === 'Ouvert');
                           const enCoursJ = filtered.filter(p => p.situationAvancement === 'En cours de jugement');
                           const infructueux = filtered.filter(p => p.situationAvancement === 'Infructueux');
                           const annules = filtered.filter(p => p.situationAvancement === 'Annulé');
@@ -2959,13 +2958,13 @@ export default function Dashboard() {
                           const totalSoums = soumissionnaireData?.totalSoumissionnaires ?? 0;
                           const kpis = [
                             { label: 'Total AO', value: filteredKpis.totalProjects, sub: `${entities.length} entités`, bg: 'from-blue-50 to-blue-100/50', border: 'border-blue-100', iconBg: 'bg-blue-500/10', iconColor: 'text-blue-600', icon: <FileText className="w-4 h-4" /> },
+                            { label: 'AO Ouverts', value: aoOuvertCount, sub: `Eng+Jug+ECJ+Infr+Ann`, bg: 'from-cyan-50 to-cyan-100/50', border: 'border-cyan-100', iconBg: 'bg-cyan-500/10', iconColor: 'text-cyan-600', icon: <FolderOpen className="w-4 h-4" /> },
                             { label: 'Engagés', value: engages.length, sub: filteredKpis.totalProjects > 0 ? `${Math.round(engages.length/filteredKpis.totalProjects*100)}% du total` : '—', bg: 'from-green-50 to-green-100/50', border: 'border-green-100', iconBg: 'bg-green-500/10', iconColor: 'text-green-600', icon: <CheckCircle2 className="w-4 h-4" /> },
                             { label: 'Jugés', value: juges.length, sub: `${avecAttributaire.length} avec attributaire`, bg: 'from-indigo-50 to-indigo-100/50', border: 'border-indigo-100', iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-600', icon: <Gavel className="w-4 h-4" /> },
-                            { label: 'Ouverts', value: ouverts.length, sub: filteredKpis.totalProjects > 0 ? `${Math.round(ouverts.length/filteredKpis.totalProjects*100)}% du total` : '—', bg: 'from-cyan-50 to-cyan-100/50', border: 'border-cyan-100', iconBg: 'bg-cyan-500/10', iconColor: 'text-cyan-600', icon: <FolderOpen className="w-4 h-4" /> },
                             { label: 'En cours Jugement', value: enCoursJ.length, sub: `${avecJugement.length} jugés au total`, bg: 'from-amber-50 to-amber-100/50', border: 'border-amber-100', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-600', icon: <Clock className="w-4 h-4" /> },
                             { label: 'Infructueux', value: infructueux.length, sub: filteredKpis.totalProjects > 0 ? `${Math.round(infructueux.length/filteredKpis.totalProjects*100)}% du total` : '—', bg: 'from-red-50 to-red-100/50', border: 'border-red-100', iconBg: 'bg-red-500/10', iconColor: 'text-red-600', icon: <XCircle className="w-4 h-4" /> },
                             { label: 'Annulés', value: annules.length, sub: infructueux.length + annules.length > 0 ? `${infructueux.length + annules.length} échoués` : 'Aucun', bg: 'from-rose-50 to-rose-100/50', border: 'border-rose-100', iconBg: 'bg-rose-500/10', iconColor: 'text-rose-600', icon: <Ban className="w-4 h-4" /> },
-                            { label: 'Publié PPM', value: publies.length, sub: `${daoCE.length} DAO au CE`, bg: 'from-violet-50 to-violet-100/50', border: 'border-violet-100', iconBg: 'bg-violet-500/10', iconColor: 'text-violet-600', icon: <Activity className="w-4 h-4" /> },
+                            { label: 'AO Restants', value: aoRestantsCount, sub: `PPM+DAO+À prog`, bg: 'from-orange-50 to-orange-100/50', border: 'border-orange-100', iconBg: 'bg-orange-500/10', iconColor: 'text-orange-600', icon: <ListTodo className="w-4 h-4" /> },
                             { label: 'Marchés Conclus', value: avecMarche.length, sub: `${avecEngagement.length} engagés au total`, bg: 'from-teal-50 to-teal-100/50', border: 'border-teal-100', iconBg: 'bg-teal-500/10', iconColor: 'text-teal-600', icon: <FileSignature className="w-4 h-4" /> },
                             { label: 'Soumissionnaires', value: totalSoums > 0 ? totalSoums : '—', sub: totalSoums > 0 ? `${(totalSoums / filteredKpis.totalProjects).toFixed(1)} moy/AO` : 'Non chargé', bg: 'from-sky-50 to-sky-100/50', border: 'border-sky-100', iconBg: 'bg-sky-500/10', iconColor: 'text-sky-600', icon: <Users className="w-4 h-4" /> },
                           ];
@@ -2991,13 +2990,13 @@ export default function Dashboard() {
                         {(() => {
                           const engages = filtered.filter(p => p.situationAvancement === 'Engagé');
                           const juges = filtered.filter(p => p.situationAvancement === 'Jugé');
-                          const ouverts = filtered.filter(p => p.situationAvancement === 'Ouvert');
+                          const aoOuverts = filtered.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement));
                           const engCP = filtered.reduce((s,p) => s + (p.engagementCP||0), 0);
                           const engCE = filtered.reduce((s,p) => s + (p.engagementCE||0), 0);
                           const estEngages = engages.reduce((s,p) => s + (p.estimationAdmin||0), 0);
                           const engEngages = engages.reduce((s,p) => s + (p.montantEngagement||0), 0);
                           const estJuges = juges.reduce((s,p) => s + (p.estimationAdmin||0), 0);
-                          const estOuverts = ouverts.reduce((s,p) => s + (p.estimationAdmin||0), 0);
+                          const estOuverts = aoOuverts.reduce((s,p) => s + (p.estimationAdmin||0), 0);
                           const resteAEngager = filteredKpis.totalEstimation - filteredKpis.totalEngagement;
                           const montantKpis = [
                             { label: 'Budget Total (CP+CE)', value: fmtMDH(filteredKpis.totalBudget), sub: `CP: ${fmtMDH(filteredKpis.totalCP)} · CE: ${fmtMDH(filteredKpis.totalCE)}`, bg: 'from-violet-50 to-violet-100/50', border: 'border-violet-100', iconBg: 'bg-violet-500/10', iconColor: 'text-violet-600', icon: <Wallet className="w-4 h-4" /> },
@@ -3008,7 +3007,7 @@ export default function Dashboard() {
                             { label: 'Eng. CE', value: fmtMDH(engCE), sub: filteredKpis.totalCE > 0 ? `Taux: ${Math.round(engCE/filteredKpis.totalCE*100)}% du CE` : '—', bg: 'from-cyan-50 to-cyan-100/50', border: 'border-cyan-100', iconBg: 'bg-cyan-500/10', iconColor: 'text-cyan-600', icon: <Percent className="w-4 h-4" /> },
                             { label: 'Estim. Engagés', value: fmtMDH(estEngages), sub: `Engagé: ${fmtMDH(engEngages)}`, bg: 'from-emerald-50 to-emerald-100/50', border: 'border-emerald-100', iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-600', icon: <CheckCircle2 className="w-4 h-4" /> },
                             { label: 'Estim. Jugés', value: fmtMDH(estJuges), sub: `${juges.length} AO jugés`, bg: 'from-indigo-50 to-indigo-100/50', border: 'border-indigo-100', iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-600', icon: <Gavel className="w-4 h-4" /> },
-                            { label: 'Estim. Ouverts', value: fmtMDH(estOuverts), sub: `${ouverts.length} AO ouverts`, bg: 'from-sky-50 to-sky-100/50', border: 'border-sky-100', iconBg: 'bg-sky-500/10', iconColor: 'text-sky-600', icon: <FolderOpen className="w-4 h-4" /> },
+                            { label: 'Estim. AO Ouverts', value: fmtMDH(estOuverts), sub: `${aoOuvertCount} AO ouverts`, bg: 'from-sky-50 to-sky-100/50', border: 'border-sky-100', iconBg: 'bg-sky-500/10', iconColor: 'text-sky-600', icon: <FolderOpen className="w-4 h-4" /> },
                             { label: 'Reste à Engager', value: fmtMDH(resteAEngager), sub: filteredKpis.totalEstimation > 0 ? `${Math.round(resteAEngager/filteredKpis.totalEstimation*100)}% de l\'estim.` : '—', bg: 'from-rose-50 to-rose-100/50', border: 'border-rose-100', iconBg: 'bg-rose-500/10', iconColor: 'text-rose-600', icon: <ArrowLeftRight className="w-4 h-4" /> },
                           ];
                           return montantKpis.map((k, i) => (
@@ -3114,9 +3113,11 @@ export default function Dashboard() {
                           <tr className="bg-slate-50 border-b border-slate-100">
                             <th className="px-4 py-2.5 text-left font-semibold text-slate-600">Entité</th>
                             <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Nb AO</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">AO Ouverts</th>
                             <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Engagés</th>
                             <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Jugés</th>
-                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">Ouverts</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">En cours Jug.</th>
+                            <th className="px-4 py-2.5 text-center font-semibold text-slate-600">AO Restants</th>
                             <th className="px-4 py-2.5 text-right font-semibold text-slate-600">CP</th>
                             <th className="px-4 py-2.5 text-right font-semibold text-slate-600">CE</th>
                             <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Estimation</th>
@@ -3130,14 +3131,14 @@ export default function Dashboard() {
                             const eCount = eProjects.length;
                             const eEngages = eProjects.filter(p => p.situationAvancement === 'Engagé').length;
                             const eJuges = eProjects.filter(p => p.situationAvancement === 'Jugé').length;
-                            const eOuverts = eProjects.filter(p => p.situationAvancement === 'Ouvert').length;
+                            const eEnCoursJ = eProjects.filter(p => p.situationAvancement === 'En cours de jugement').length;
+                            const eOuverts = eProjects.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).length;
+                            const eRestants = eProjects.filter(p => ['Publié sur PMP','DAO Envoyé au CE','A programmer'].includes(p.situationAvancement)).length;
                             const eCP = eProjects.reduce((s,p) => s + (p.cp||0), 0);
                             const eCE = eProjects.reduce((s,p) => s + (p.ce||0), 0);
                             const eEstim = eProjects.reduce((s,p) => s + (p.estimationAdmin||0), 0);
                             const eEng = eProjects.reduce((s,p) => s + (p.montantEngagement||0), 0);
                             const eTaux = eEstim > 0 ? Math.round(eEng / eEstim * 100) : 0;
-                            const eEngCP = eProjects.reduce((s,p) => s + (p.engagementCP||0), 0);
-                            const eEngCE = eProjects.reduce((s,p) => s + (p.engagementCE||0), 0);
                             return (
                               <tr key={entity} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                                 <td className="px-4 py-2.5">
@@ -3148,13 +3149,19 @@ export default function Dashboard() {
                                 </td>
                                 <td className="px-4 py-2.5 text-center font-semibold text-slate-800">{eCount}</td>
                                 <td className="px-4 py-2.5 text-center">
+                                  <span className={`inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold ${eOuverts > 0 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'}`}>{eOuverts}</span>
+                                </td>
+                                <td className="px-4 py-2.5 text-center">
                                   <span className={`inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold ${eEngages > 0 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'}`}>{eEngages}</span>
                                 </td>
                                 <td className="px-4 py-2.5 text-center">
                                   <span className={`inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold ${eJuges > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-400'}`}>{eJuges}</span>
                                 </td>
                                 <td className="px-4 py-2.5 text-center">
-                                  <span className={`inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold ${eOuverts > 0 ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-100 text-slate-400'}`}>{eOuverts}</span>
+                                  <span className={`inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold ${eEnCoursJ > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'}`}>{eEnCoursJ}</span>
+                                </td>
+                                <td className="px-4 py-2.5 text-center">
+                                  <span className={`inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold ${eRestants > 0 ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-400'}`}>{eRestants}</span>
                                 </td>
                                 <td className="px-4 py-2.5 text-right font-medium text-blue-600">{fmtNum(eCP)}</td>
                                 <td className="px-4 py-2.5 text-right font-medium text-cyan-600">{fmtNum(eCE)}</td>
@@ -3177,13 +3184,19 @@ export default function Dashboard() {
                             <td className="px-4 py-2.5 text-slate-800">Total</td>
                             <td className="px-4 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
                             <td className="px-4 py-2.5 text-center">
+                              <span className="inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">{aoOuvertCount}</span>
+                            </td>
+                            <td className="px-4 py-2.5 text-center">
                               <span className="inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">{filtered.filter(p => p.situationAvancement === 'Engagé').length}</span>
                             </td>
                             <td className="px-4 py-2.5 text-center">
                               <span className="inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">{filtered.filter(p => p.situationAvancement === 'Jugé').length}</span>
                             </td>
                             <td className="px-4 py-2.5 text-center">
-                              <span className="inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-100 text-cyan-700">{filtered.filter(p => p.situationAvancement === 'Ouvert').length}</span>
+                              <span className="inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">{filtered.filter(p => p.situationAvancement === 'En cours de jugement').length}</span>
+                            </td>
+                            <td className="px-4 py-2.5 text-center">
+                              <span className="inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700">{aoRestantsCount}</span>
                             </td>
                             <td className="px-4 py-2.5 text-right text-blue-700">{fmtNum(filteredKpis.totalCP)}</td>
                             <td className="px-4 py-2.5 text-right text-cyan-700">{fmtNum(filteredKpis.totalCE)}</td>
@@ -3233,7 +3246,6 @@ export default function Dashboard() {
                     {(() => {
                       const engages = filtered.filter(p => p.situationAvancement === 'Engagé');
                       const juges = filtered.filter(p => p.situationAvancement === 'Jugé');
-                      const ouverts = filtered.filter(p => p.situationAvancement === 'Ouvert');
                       const enCoursJ = filtered.filter(p => p.situationAvancement === 'En cours de jugement');
                       const infructueux = filtered.filter(p => p.situationAvancement === 'Infructueux');
                       const annules = filtered.filter(p => p.situationAvancement === 'Annulé');
@@ -3251,11 +3263,11 @@ export default function Dashboard() {
                             L&apos;estimation administrative globale s&apos;élève à <strong>{fmtMDH(filteredKpis.totalEstimation)}</strong>.
                           </p>
                           <p>
-                            <strong>Par statut :</strong> {engages.length} AO engagés ({fmtMDH(engages.reduce((s,p)=>s+(p.montantEngagement||0),0))}),
+                            <strong>AO Ouverts ({aoOuvertCount}) :</strong> {engages.length} engagés ({fmtMDH(engages.reduce((s,p)=>s+(p.montantEngagement||0),0))}),
                             {juges.length} jugés ({fmtMDH(juges.reduce((s,p)=>s+(p.estimationAdmin||0),0))}),
-                            {ouverts.length} ouverts ({fmtMDH(ouverts.reduce((s,p)=>s+(p.estimationAdmin||0),0))}),
                             {enCoursJ.length} en cours de jugement,
                             {infructueux.length} infructueux et {annules.length} annulés.
+                            <strong> AO Restants : {aoRestantsCount}</strong> non encore lancés (PPM + DAO + À programmer).
                           </p>
                           <p>
                             <strong>Engagements :</strong> Le montant total des engagements atteint <strong>{fmtMDH(filteredKpis.totalEngagement)}</strong>,

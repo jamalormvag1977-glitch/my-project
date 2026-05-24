@@ -2747,9 +2747,11 @@ export default function Dashboard() {
             { key: 'synthese', icon: <BarChart3 className="w-5 h-5" />, label: 'Synthèse Générale', desc: 'Vue d\'ensemble complète', color: '#2563eb' },
             { key: 'entite', icon: <Building2 className="w-5 h-5" />, label: 'Par Entité', desc: 'Répartition par entité', color: '#16a34a' },
             { key: 'statut', icon: <ClipboardList className="w-5 h-5" />, label: 'Par Statut / Étape', desc: 'Pipeline et statuts', color: '#d97706' },
+            { key: 'financier', icon: <Wallet className="w-5 h-5" />, label: 'Suivi Financier', desc: 'Budgets, engagement CP/CE et taux', color: '#0891b2' },
+            { key: 'delais', icon: <Scale className="w-5 h-5" />, label: 'Analyse des Délais', desc: 'Ouv→Jugé, Jugé→Eng, Ouv→Eng', color: '#6366f1' },
+            { key: 'fiches', icon: <FileSearch className="w-5 h-5" />, label: 'Fiches AO', desc: 'Fiche synthétique par AO', color: '#7c3aed' },
             { key: 'alertes', icon: <AlertTriangle className="w-5 h-5" />, label: 'Alertes', desc: 'Points d\'attention', color: '#dc2626' },
-            { key: 'financier', icon: <Wallet className="w-5 h-5" />, label: 'Suivi Financier', desc: 'Budgets et engagements', color: '#0891b2' },
-            { key: 'chrono', icon: <CalendarDays className="w-5 h-5" />, label: 'Chronologique', desc: 'Timeline mensuelle', color: '#7c3aed' },
+            { key: 'chrono', icon: <CalendarDays className="w-5 h-5" />, label: 'Chronologique', desc: 'Timeline mensuelle', color: '#0d9488' },
           ];
 
           /* ── Print-optimized header ── */
@@ -2950,7 +2952,7 @@ export default function Dashboard() {
                             <span className="text-[10px] font-medium text-violet-600 uppercase tracking-wide">Budget Total</span>
                           </div>
                           <p className="text-2xl font-bold text-slate-900">{fmtMDH(filteredKpis.totalBudget)}</p>
-                          <p className="text-[10px] text-slate-500 mt-1">CP + CE cumulés</p>
+                          <p className="text-[10px] text-slate-500 mt-1">CP: {fmtMDH(filteredKpis.totalCP)} · CE: {fmtMDH(filteredKpis.totalCE)}</p>
                         </div>
                         <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-xl p-4 border border-amber-100">
                           <div className="flex items-center gap-2 mb-2">
@@ -2966,7 +2968,7 @@ export default function Dashboard() {
                             <span className="text-[10px] font-medium text-green-600 uppercase tracking-wide">Engagements</span>
                           </div>
                           <p className="text-2xl font-bold text-slate-900">{fmtMDH(filteredKpis.totalEngagement)}</p>
-                          <p className="text-[10px] text-slate-500 mt-1">Montant engagé total</p>
+                          <p className="text-[10px] text-slate-500 mt-1">Eng. CP: {fmtMDH(filtered.reduce((s,p) => s + (p.engagementCP||0), 0))} · CE: {fmtMDH(filtered.reduce((s,p) => s + (p.engagementCE||0), 0))}</p>
                         </div>
                       </div>
 
@@ -2982,6 +2984,32 @@ export default function Dashboard() {
                         <div className="flex justify-between text-[9px] text-slate-400 mt-1">
                           <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
                         </div>
+                      </div>
+                      {/* Délais & Soumissionnaires Summary */}
+                      <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        {(() => {
+                          const validOJ = filtered.filter(p => p.dateOuverture && p.dateJugement && new Date(p.dateOuverture) < new Date(p.dateJugement));
+                          const validJE = filtered.filter(p => p.dateJugement && p.dateEngagement && new Date(p.dateJugement) < new Date(p.dateEngagement));
+                          const validOE = filtered.filter(p => p.dateOuverture && p.dateEngagement && new Date(p.dateOuverture) < new Date(p.dateEngagement));
+                          const avgOJ = validOJ.length > 0 ? Math.round(validOJ.reduce((s,p) => s + (new Date(p.dateJugement!).getTime() - new Date(p.dateOuverture!).getTime()) / 86400000, 0) / validOJ.length) : 0;
+                          const avgJE = validJE.length > 0 ? Math.round(validJE.reduce((s,p) => s + (new Date(p.dateEngagement!).getTime() - new Date(p.dateJugement!).getTime()) / 86400000, 0) / validJE.length) : 0;
+                          const avgOE = validOE.length > 0 ? Math.round(validOE.reduce((s,p) => s + (new Date(p.dateEngagement!).getTime() - new Date(p.dateOuverture!).getTime()) / 86400000, 0) / validOE.length) : 0;
+                          const totalSoums = soumissionnaireData?.totalSoumissionnaires ?? 0;
+                          return [
+                            { label: 'Délai moyen Ouv.→Jugé', value: avgOJ > 0 ? `${avgOJ} jours` : '—', bg: 'bg-blue-50', border: 'border-blue-100', iconBg: 'bg-blue-100', iconColor: 'text-blue-600', icon: <Scale className="w-3.5 h-3.5" /> },
+                            { label: 'Délai moyen Jugé→Eng.', value: avgJE > 0 ? `${avgJE} jours` : '—', bg: 'bg-amber-50', border: 'border-amber-100', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', icon: <Gavel className="w-3.5 h-3.5" /> },
+                            { label: 'Délai moyen Ouv.→Eng.', value: avgOE > 0 ? `${avgOE} jours` : '—', bg: 'bg-indigo-50', border: 'border-indigo-100', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', icon: <Clock className="w-3.5 h-3.5" /> },
+                            { label: 'Total Soumissionnaires', value: totalSoums > 0 ? `${totalSoums}` : '—', bg: 'bg-sky-50', border: 'border-sky-100', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', icon: <Users className="w-3.5 h-3.5" /> },
+                          ].map((k, i) => (
+                            <div key={i} className={`${k.bg} rounded-lg p-3 border ${k.border} flex items-center gap-3`}>
+                              <div className={`w-8 h-8 rounded-lg ${k.iconBg} flex items-center justify-center ${k.iconColor}`}>{k.icon}</div>
+                              <div>
+                                <div className="text-[9px] text-slate-500 uppercase">{k.label}</div>
+                                <div className="text-sm font-bold text-slate-800">{k.value}</div>
+                              </div>
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -3328,6 +3356,212 @@ export default function Dashboard() {
               {/* ════════════════════════════════════════════════════
                   ⚠️ ALERTES
               ════════════════════════════════════════════════════ */}
+              {/* ════════════════════════════════════════════════════
+                  ⏱️ ANALYSE DES DÉLAIS
+              ════════════════════════════════════════════════════ */}
+              {reportType === 'delais' && (() => {
+                const validOJ = filtered.filter(p => p.dateOuverture && p.dateJugement && new Date(p.dateOuverture) < new Date(p.dateJugement));
+                const validJE = filtered.filter(p => p.dateJugement && p.dateEngagement && new Date(p.dateJugement) < new Date(p.dateEngagement));
+                const validOE = filtered.filter(p => p.dateOuverture && p.dateEngagement && new Date(p.dateOuverture) < new Date(p.dateEngagement));
+                const avgOJ = validOJ.length > 0 ? Math.round(validOJ.reduce((s,p) => s + (new Date(p.dateJugement!).getTime() - new Date(p.dateOuverture!).getTime()) / 86400000, 0) / validOJ.length) : 0;
+                const avgJE = validJE.length > 0 ? Math.round(validJE.reduce((s,p) => s + (new Date(p.dateEngagement!).getTime() - new Date(p.dateJugement!).getTime()) / 86400000, 0) / validJE.length) : 0;
+                const avgOE = validOE.length > 0 ? Math.round(validOE.reduce((s,p) => s + (new Date(p.dateEngagement!).getTime() - new Date(p.dateOuverture!).getTime()) / 86400000, 0) / validOE.length) : 0;
+                const maxOJ = validOJ.length > 0 ? Math.max(...validOJ.map(p => Math.round((new Date(p.dateJugement!).getTime() - new Date(p.dateOuverture!).getTime()) / 86400000))) : 0;
+                const maxJE = validJE.length > 0 ? Math.max(...validJE.map(p => Math.round((new Date(p.dateEngagement!).getTime() - new Date(p.dateJugement!).getTime()) / 86400000))) : 0;
+                const maxOE = validOE.length > 0 ? Math.max(...validOE.map(p => Math.round((new Date(p.dateEngagement!).getTime() - new Date(p.dateOuverture!).getTime()) / 86400000))) : 0;
+
+                return (
+                <div className="space-y-6">
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-indigo-700 to-violet-700 px-6 py-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center"><Scale className="w-6 h-6 text-white" /></div>
+                          <div>
+                            <h2 className="text-lg font-bold text-white">Analyse des Délais</h2>
+                            <p className="text-xs text-indigo-200">Délais moyens: Ouverture→Jugement, Jugement→Engagement — PPM 2026</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-blue-50 rounded-xl p-5 border border-blue-100 text-center">
+                          <Scale className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                          <p className="text-[10px] font-medium text-blue-600 uppercase">Ouv. → Jugé</p>
+                          <p className="text-2xl font-bold text-slate-900">{avgOJ} <span className="text-sm font-normal text-slate-500">jours</span></p>
+                          <p className="text-[10px] text-slate-400 mt-1">Max: {maxOJ}j · {validOJ.length} AO</p>
+                        </div>
+                        <div className="bg-amber-50 rounded-xl p-5 border border-amber-100 text-center">
+                          <Gavel className="w-6 h-6 text-amber-500 mx-auto mb-2" />
+                          <p className="text-[10px] font-medium text-amber-600 uppercase">Jugé → Engagé</p>
+                          <p className="text-2xl font-bold text-slate-900">{avgJE} <span className="text-sm font-normal text-slate-500">jours</span></p>
+                          <p className="text-[10px] text-slate-400 mt-1">Max: {maxJE}j · {validJE.length} AO</p>
+                        </div>
+                        <div className="bg-indigo-50 rounded-xl p-5 border border-indigo-100 text-center">
+                          <Clock className="w-6 h-6 text-indigo-500 mx-auto mb-2" />
+                          <p className="text-[10px] font-medium text-indigo-600 uppercase">Ouv. → Engagé</p>
+                          <p className="text-2xl font-bold text-slate-900">{avgOE} <span className="text-sm font-normal text-slate-500">jours</span></p>
+                          <p className="text-[10px] text-slate-400 mt-1">Max: {maxOE}j · {validOE.length} AO</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Délais detail table */}
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100">
+                      <h3 className="text-sm font-bold text-slate-800">Détail des délais par AO</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100">
+                            <th className="px-3 py-2.5 text-left font-semibold text-slate-600">N° AO</th>
+                            <th className="px-3 py-2.5 text-left font-semibold text-slate-600">Objet</th>
+                            <th className="px-3 py-2.5 text-left font-semibold text-slate-600">Entité</th>
+                            <th className="px-3 py-2.5 text-center font-semibold text-slate-600">Ouv.→Jugé</th>
+                            <th className="px-3 py-2.5 text-center font-semibold text-slate-600">Jugé→Eng.</th>
+                            <th className="px-3 py-2.5 text-center font-semibold text-slate-600">Ouv.→Eng.</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filtered.filter(p => p.dateOuverture || p.dateJugement || p.dateEngagement).map(p => {
+                            const dOJ = (p.dateOuverture && p.dateJugement && new Date(p.dateOuverture) < new Date(p.dateJugement)) ? Math.round((new Date(p.dateJugement!).getTime() - new Date(p.dateOuverture!).getTime()) / 86400000) : null;
+                            const dJE = (p.dateJugement && p.dateEngagement && new Date(p.dateJugement) < new Date(p.dateEngagement)) ? Math.round((new Date(p.dateEngagement!).getTime() - new Date(p.dateJugement!).getTime()) / 86400000) : null;
+                            const dOE = (p.dateOuverture && p.dateEngagement && new Date(p.dateOuverture) < new Date(p.dateEngagement)) ? Math.round((new Date(p.dateEngagement!).getTime() - new Date(p.dateOuverture!).getTime()) / 86400000) : null;
+                            return (
+                              <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                                <td className="px-3 py-2 font-semibold text-indigo-600">{p.numAO ?? p.id}</td>
+                                <td className="px-3 py-2 text-slate-700 max-w-[250px]">{p.objet}</td>
+                                <td className="px-3 py-2 text-slate-600">{p.entite}</td>
+                                <td className={`px-3 py-2 text-center font-bold ${dOJ != null ? (dOJ > 90 ? 'text-red-600' : dOJ > 60 ? 'text-amber-600' : 'text-green-600') : 'text-slate-300'}`}>{dOJ ?? '—'}</td>
+                                <td className={`px-3 py-2 text-center font-bold ${dJE != null ? (dJE > 60 ? 'text-red-600' : dJE > 30 ? 'text-amber-600' : 'text-green-600') : 'text-slate-300'}`}>{dJE ?? '—'}</td>
+                                <td className={`px-3 py-2 text-center font-bold ${dOE != null ? (dOE > 120 ? 'text-red-600' : dOE > 90 ? 'text-amber-600' : 'text-green-600') : 'text-slate-300'}`}>{dOE ?? '—'}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  {actionBar}
+                </div>
+                );
+              })()}
+
+              {/* ════════════════════════════════════════════════════
+                  📋 FICHES AO (Rapport imprimable)
+              ════════════════════════════════════════════════════ */}
+              {reportType === 'fiches' && (() => {
+                const fmtDate = (d: string | null) => d && d !== 'null' && !isNaN(new Date(d).getTime()) ? new Date(d!).toLocaleDateString('fr-FR') : '—';
+                const fmtMDH2 = (v: number | null | undefined) => v != null ? `${(v / 1_000_000).toFixed(2)} MDH` : '—';
+                const fmtPct2 = (v: number | null | undefined) => v != null && v > 0 ? `${v.toFixed(1)}%` : '—';
+                const daysBetween = (a: string | null, b: string | null) => {
+                  if (!a || !b || a === 'null' || b === 'null' || isNaN(new Date(a).getTime()) || isNaN(new Date(b).getTime())) return null;
+                  if (new Date(a) >= new Date(b)) return null;
+                  return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
+                };
+                const getSoums = (p: PPMProject) => {
+                  if (!soumissionnaireData?.projets) return { nb: 0, noms: [] as string[] };
+                  for (const key of [`${p.numAO ?? p.id}/${p.entite}`, `${p.id}/${p.entite}`]) {
+                    const found = soumissionnaireData.projets[key];
+                    if (found) return { nb: found.nbSoumissionnairesUniques || [...new Set(found.soumissionnaires.filter(s => s.nom).map(s => s.nom!))].length, noms: [...new Set(found.soumissionnaires.filter(s => s.nom).map(s => s.nom!))] };
+                  }
+                  return { nb: 0, noms: [] as string[] };
+                };
+                const tauxEng = (p: PPMProject) => (p.estimationAdmin && p.estimationAdmin > 0 && p.montantEngagement && p.montantEngagement > 0) ? Math.round(p.montantEngagement / p.estimationAdmin * 100 * 10) / 10 : null;
+
+                return (
+                <div className="space-y-4">
+                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-violet-700 to-purple-700 px-6 py-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center"><FileSearch className="w-6 h-6 text-white" /></div>
+                          <div>
+                            <h2 className="text-lg font-bold text-white">Fiches Appels d&apos;Offres</h2>
+                            <p className="text-xs text-violet-200">{filtered.length} fiches synthétiques — PPM 2026</p>
+                          </div>
+                        </div>
+                        <Button onClick={() => window.print()} size="sm" className="no-print bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs gap-1.5"><Printer className="w-3.5 h-3.5" />Imprimer</Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {filtered.map(p => {
+                    const soum = getSoums(p);
+                    const dOJ = daysBetween(p.dateOuverture, p.dateJugement);
+                    const dJE = daysBetween(p.dateJugement, p.dateEngagement);
+                    const dOE = daysBetween(p.dateOuverture, p.dateEngagement);
+                    const tE = tauxEng(p);
+                    return (
+                    <div key={p.id} className="fiche-card print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <div className="fiche-header bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold">{p.id}</div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-mono font-semibold text-indigo-600">AO N° {p.numAO ?? p.id}</span>
+                              <span className="text-xs text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">{p.situationAvancement}</span>
+                              <span className="text-xs text-slate-400">{p.entite}</span>
+                            </div>
+                            <p className="text-xs text-slate-700 mt-0.5">{p.objet}</p>
+                          </div>
+                        </div>
+                        {tE != null && <span className={`text-xs font-bold ${tE > 100 ? 'text-red-600' : 'text-green-600'}`}>Taux Eng.: {fmtPct2(tE)}</span>}
+                      </div>
+                      <div className="grid grid-cols-3 gap-0 text-xs">
+                        <div className="p-4 border-r border-b border-slate-100">
+                          <div className="text-[10px] font-bold text-indigo-600 uppercase mb-2">Informations</div>
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between"><span className="text-slate-500">Type</span><span className="font-medium">{p.typeBudget || '—'}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Nature</span><span className="font-medium">{p.natureBudget || '—'}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Source</span><span className="font-medium">{p.sourceFinancement || '—'}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Programme</span><span className="font-medium">{p.programme || '—'}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Projet</span><span className="font-medium">{p.projet || '—'}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Délais exéc.</span><span className="font-medium">{p.delaisExecution || '—'}</span></div>
+                          </div>
+                        </div>
+                        <div className="p-4 border-r border-b border-slate-100">
+                          <div className="text-[10px] font-bold text-green-600 uppercase mb-2">Budget & Montants</div>
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between"><span className="text-slate-500">CP</span><span className="font-medium">{fmtMDH2(p.cp)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">CE</span><span className="font-medium">{fmtMDH2(p.ce)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Estimation</span><span className="font-semibold text-blue-700">{fmtMDH2(p.estimationAdmin)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Montant Extrait</span><span className="font-medium">{fmtMDH2(p.montantExtrait)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Engagement</span><span className="font-semibold text-green-700">{fmtMDH2(p.montantEngagement)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Eng. CP / CE</span><span className="font-medium">{fmtMDH2(p.engagementCP)} / {fmtMDH2(p.engagementCE)}</span></div>
+                          </div>
+                        </div>
+                        <div className="p-4 border-b border-slate-100">
+                          <div className="text-[10px] font-bold text-amber-600 uppercase mb-2">Jugement & Marché</div>
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between"><span className="text-slate-500">Ouv. Plis</span><span className="font-medium">{fmtDate(p.dateOuverture)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Jugement</span><span className="font-medium">{fmtDate(p.dateJugement)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Ouv→Jugé</span><span className="font-bold text-indigo-600">{dOJ ?? '—'}{dOJ ? 'j' : ''}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Attributaire</span><span className="font-medium text-green-700">{p.attributaire || '—'}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">N° Marché</span><span className="font-medium">{p.numMarche || '—'}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Date Eng.</span><span className="font-medium">{fmtDate(p.dateEngagement)}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Jugé→Eng.</span><span className="font-bold text-indigo-600">{dJE ?? '—'}{dJE ? 'j' : ''}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Ouv→Eng.</span><span className="font-bold text-indigo-600">{dOE ?? '—'}{dOE ? 'j' : ''}</span></div>
+                          </div>
+                        </div>
+                      </div>
+                      {soum.nb > 0 && (
+                        <div className="px-4 py-2.5 border-t border-slate-100 bg-sky-50/30">
+                          <div className="text-[10px] font-bold text-sky-600 uppercase mb-1">Soumissionnaires ({soum.nb})</div>
+                          <p className="text-xs text-slate-700">{soum.noms.join(' • ')}</p>
+                        </div>
+                      )}
+                    </div>
+                    );
+                  })}
+                  {actionBar}
+                </div>
+                );
+              })()}
+
               {reportType === 'alertes' && (
                 <div className="space-y-6">
                   {/* Header */}

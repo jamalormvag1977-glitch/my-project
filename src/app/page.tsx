@@ -416,7 +416,7 @@ export default function Dashboard() {
   const [showUpload, setShowUpload] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const lastChecksumRef = useRef<string | null>(null);
-  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'reports' | 'alerts' | 'dashboard'>('dashboard');
+  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'soumissionnaires' | 'reports' | 'alerts' | 'dashboard'>('dashboard');
   const [expandedAO, setExpandedAO] = useState<number | null>(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
@@ -1013,6 +1013,7 @@ export default function Dashboard() {
               { key: 'entity' as const, label: 'Par Entité', icon: <Building2 className="w-4.5 h-4.5" /> },
               { key: 'step' as const, label: 'Par Étape', icon: <ClipboardList className="w-4.5 h-4.5" /> },
               { key: 'history' as const, label: 'Historique', icon: <History className="w-4.5 h-4.5" /> },
+              { key: 'soumissionnaires' as const, label: 'Soumissionnaires', icon: <Users className="w-4.5 h-4.5" /> },
               { key: 'reports' as const, label: 'Rapports', icon: <FileText className="w-4.5 h-4.5" /> },
               { key: 'alerts' as const, label: 'Alertes', icon: <AlertTriangle className="w-4.5 h-4.5" /> },
             ].map(tab => (
@@ -1522,6 +1523,259 @@ export default function Dashboard() {
                   );
                 })}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Full-Screen View: Soumissionnaires ── */}
+        {sidebarTab === 'soumissionnaires' && (
+          <div className="min-h-screen bg-slate-50 text-slate-800 animate-fade-in-up">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-5 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold">Soumissionnaires</h1>
+                    <p className="text-xs text-indigo-200">Résultats des Séances d&apos;Ouverture</p>
+                  </div>
+                  {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 && (
+                    <div className="flex items-center gap-2 ml-4">
+                      <Badge className="bg-white/20 text-white border-0 text-xs">
+                        {soumissionnaireData.totalProjets} AO
+                      </Badge>
+                      <Badge className="bg-white/20 text-white border-0 text-xs">
+                        <Users className="w-3 h-3 mr-1" /> {soumissionnaireData.totalSoumissionnaires} soumissionnaires
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {isAdmin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs text-white hover:text-indigo-600 hover:bg-white border-white/30 hover:border-white bg-transparent gap-1.5"
+                    onClick={() => setShowSoumUpload(!showSoumUpload)}
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    {showSoumUpload ? 'Fermer upload' : 'Mettre à jour'}
+                  </Button>
+                  )}
+                  <Button onClick={() => setSidebarTab('dashboard')} variant="outline" size="sm" className="h-8 text-xs text-white hover:text-indigo-600 hover:bg-white border-white/30 hover:border-white bg-transparent gap-1.5">
+                    <BarChart3 className="w-3.5 h-3.5" />Vue d&apos;ensemble
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-6 space-y-5">
+              {/* Upload zone */}
+              {showSoumUpload && (
+                <Card className="border-0 shadow-md animate-fade-in-up" style={{ borderTop: '4px solid #6366f1' }}>
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+                        <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-700">Mettre à jour les soumissionnaires</h4>
+                        <p className="text-[10px] text-slate-400">Uploadez le fichier Excel des résultats des séances d&apos;ouverture</p>
+                      </div>
+                    </div>
+                    <div
+                      className="relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 border-slate-300 bg-slate-50/50"
+                      onClick={() => document.getElementById('soum-file-input2')?.click()}
+                    >
+                      <input
+                        id="soum-file-input2"
+                        type="file"
+                        accept=".xlsx,.xls"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleSoumUpload(file);
+                        }}
+                      />
+                      {soumUploading ? (
+                        <div className="space-y-2">
+                          <div className="relative w-10 h-10 mx-auto">
+                            <div className="absolute inset-0 rounded-full border-4 border-slate-200" />
+                            <div className="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
+                          </div>
+                          <p className="text-xs font-medium text-indigo-600">Chargement en cours...</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <CloudUpload className="w-8 h-8 mx-auto text-indigo-400" />
+                          <p className="text-xs font-medium text-slate-600">
+                            Glissez ou <span className="text-indigo-500 underline">cliquez pour parcourir</span>
+                          </p>
+                          <p className="text-[10px] text-slate-400">Fichier Excel des séances d&apos;ouverture (.xlsx, .xls)</p>
+                        </div>
+                      )}
+                    </div>
+                    {soumUploadResult && (
+                      <div className={`mt-3 p-3 rounded-xl flex items-center gap-2 text-xs ${soumUploadResult.success ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                        {soumUploadResult.success ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
+                        <span className="font-medium">{soumUploadResult.message}</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* KPI Cards */}
+              {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 && (() => {
+                const totalAdmis = Object.values(soumissionnaireData.projets).reduce((sum, sp) =>
+                  sum + sp.soumissionnaires.filter(s => s.nom && s.decisionCommission === 'Admis').length, 0);
+                const totalEcartes = Object.values(soumissionnaireData.projets).reduce((sum, sp) =>
+                  sum + sp.soumissionnaires.filter(s => s.nom && s.decisionCommission && s.decisionCommission !== 'Admis' && s.decisionCommission !== '').length, 0);
+                const totalEnAttente = soumissionnaireData.totalSoumissionnaires - totalAdmis - totalEcartes;
+                const admisRate = soumissionnaireData.totalSoumissionnaires > 0 ? Math.round(totalAdmis / soumissionnaireData.totalSoumissionnaires * 100) : 0;
+
+                return (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #6366f1' }}>
+                      <CardContent className="p-4 text-center">
+                        <Users className="w-6 h-6 text-indigo-500 mx-auto mb-1" />
+                        <p className="text-2xl font-bold text-indigo-700">{soumissionnaireData.totalSoumissionnaires}</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">Soumissionnaires</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #16a34a' }}>
+                      <CardContent className="p-4 text-center">
+                        <UserCheck className="w-6 h-6 text-green-500 mx-auto mb-1" />
+                        <p className="text-2xl font-bold text-green-700">{totalAdmis}</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">Admis ({admisRate}%)</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #dc2626' }}>
+                      <CardContent className="p-4 text-center">
+                        <UserX className="w-6 h-6 text-red-500 mx-auto mb-1" />
+                        <p className="text-2xl font-bold text-red-700">{totalEcartes}</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">Ecartés</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #d97706' }}>
+                      <CardContent className="p-4 text-center">
+                        <Clock className="w-6 h-6 text-amber-500 mx-auto mb-1" />
+                        <p className="text-2xl font-bold text-amber-700">{totalEnAttente > 0 ? totalEnAttente : '—'}</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">En attente</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                );
+              })()}
+
+              {/* Main Table */}
+              {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 ? (
+                <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #6366f1' }}>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-gradient-to-r from-indigo-50 to-violet-50 border-b border-indigo-100 text-[10px] text-indigo-700 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left">N° AO</th>
+                            <th className="px-4 py-3 text-left">Entité</th>
+                            <th className="px-4 py-3 text-left">Objet</th>
+                            <th className="px-4 py-3 text-center">Nb Soum.</th>
+                            <th className="px-4 py-3 text-center">Admis</th>
+                            <th className="px-4 py-3 text-center">Ecartés</th>
+                            <th className="px-4 py-3 text-center">Taux Admission</th>
+                            <th className="px-4 py-3 text-center">Détails</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.entries(soumissionnaireData.projets)
+                            .sort(([,a],[,b]) => b.nbSoumissionnairesUniques - a.nbSoumissionnairesUniques)
+                            .map(([key, sp]) => {
+                            const admis = sp.soumissionnaires.filter(s => s.nom && s.decisionCommission === 'Admis').length;
+                            const ecarts = sp.soumissionnaires.filter(s => s.nom && s.decisionCommission && s.decisionCommission !== 'Admis' && s.decisionCommission !== '').length;
+                            const taux = sp.nbSoumissionnairesUniques > 0 ? Math.round(admis / sp.nbSoumissionnairesUniques * 100) : 0;
+                            return (
+                              <tr key={key} className="border-b border-slate-50 hover:bg-indigo-50/30 transition-colors">
+                                <td className="px-4 py-3">
+                                  <Badge className="bg-indigo-100 text-indigo-700 border-0 text-[10px] font-mono">{sp.numAOComplet}</Badge>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center gap-1.5">
+                                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                                    <span className="font-semibold text-slate-700">{sp.entite}</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-slate-600 max-w-[350px] truncate">{sp.objetAO}</td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="inline-flex items-center gap-1 font-bold text-indigo-700">
+                                    <Users className="w-3 h-3" />
+                                    {sp.nbSoumissionnairesUniques}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  {admis > 0 ? (
+                                    <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">
+                                      <UserCheck className="w-3 h-3 mr-0.5" />{admis}
+                                    </Badge>
+                                  ) : (
+                                    <span className="text-slate-300">—</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  {ecarts > 0 ? (
+                                    <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">
+                                      <UserX className="w-3 h-3 mr-0.5" />{ecarts}
+                                    </Badge>
+                                  ) : (
+                                    <span className="text-slate-300">—</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                      <div
+                                        className={`h-full rounded-full transition-all duration-500 ${taux >= 70 ? 'bg-green-500' : taux >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                        style={{ width: `${taux}%` }}
+                                      />
+                                    </div>
+                                    <span className={`text-[10px] font-bold ${taux >= 70 ? 'text-green-700' : taux >= 40 ? 'text-amber-700' : 'text-red-700'}`}>{taux}%</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-[10px] text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 gap-1"
+                                    onClick={() => { setSelectedSoumProjet(sp); setShowSoumModal(true); }}
+                                  >
+                                    <Eye className="w-3 h-3" /> Voir
+                                  </Button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="border-0 shadow-md">
+                  <CardContent className="p-12 text-center">
+                    <FileSpreadsheet className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <h3 className="text-sm font-semibold text-slate-500 mb-1">Aucune donnée de soumissionnaires</h3>
+                    <p className="text-xs text-slate-400">Uploadez le fichier Excel des résultats des séances d&apos;ouverture pour voir les données.</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Source info */}
+              {soumissionnaireData && (
+                <div className="text-center text-[10px] text-slate-400 py-2">
+                  Source : {soumissionnaireData.fileName || 'soumissionnaires.xlsx'} — Mis à jour : {soumissionnaireData.lastUpdated ? new Date(soumissionnaireData.lastUpdated).toLocaleString('fr-FR') : '—'}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -3846,274 +4100,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* ── 7. Soumissionnaires ── */}
-        <section className="animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <Users className="w-4 h-4 text-indigo-500" />
-              7. Soumissionnaires — Résultats des Séances d&apos;Ouverture
-              {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 && (
-                <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200 ml-2">
-                  {soumissionnaireData.totalProjets} AO — {soumissionnaireData.totalSoumissionnaires} soumissionnaires
-                </Badge>
-              )}
-            </h2>
-            {isAdmin && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-[10px] text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 border-indigo-200 gap-1"
-              onClick={() => setShowSoumUpload(!showSoumUpload)}
-            >
-              <Upload className="w-3 h-3" />
-              {showSoumUpload ? 'Fermer' : 'Mettre à jour le fichier'}
-            </Button>
-            )}
-          </div>
-
-          {/* Upload zone for soumissionnaires */}
-          {showSoumUpload && (
-            <Card className="border-0 shadow-md glass-card animate-fade-in-up mb-4" style={{ borderTop: '4px solid #6366f1' }}>
-              <CardContent className="p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
-                    <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-slate-700">Mettre à jour les soumissionnaires</h4>
-                    <p className="text-[10px] text-slate-400">Uploadez le fichier Excel des résultats des séances d&apos;ouverture</p>
-                  </div>
-                </div>
-                <div
-                  className="relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 border-slate-300 bg-slate-50/50"
-                  onClick={() => document.getElementById('soum-file-input')?.click()}
-                >
-                  <input
-                    id="soum-file-input"
-                    type="file"
-                    accept=".xlsx,.xls"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleSoumUpload(file);
-                    }}
-                  />
-                  {soumUploading ? (
-                    <div className="space-y-2">
-                      <div className="relative w-10 h-10 mx-auto">
-                        <div className="absolute inset-0 rounded-full border-4 border-slate-200" />
-                        <div className="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
-                      </div>
-                      <p className="text-xs font-medium text-indigo-600">Chargement en cours...</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <CloudUpload className="w-8 h-8 mx-auto text-indigo-400" />
-                      <p className="text-xs font-medium text-slate-600">
-                        Glissez ou <span className="text-indigo-500 underline">cliquez pour parcourir</span>
-                      </p>
-                      <p className="text-[10px] text-slate-400">Fichier Excel des séances d&apos;ouverture (.xlsx, .xls)</p>
-                    </div>
-                  )}
-                </div>
-                {soumUploadResult && (
-                  <div className={`mt-3 p-3 rounded-xl flex items-center gap-2 text-xs ${soumUploadResult.success ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                    {soumUploadResult.success ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
-                    <span className="font-medium">{soumUploadResult.message}</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 && (
-        <>
-          <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #6366f1' }}>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-gradient-to-r from-indigo-50 to-violet-50 border-b border-indigo-100 text-[10px] text-indigo-700 uppercase tracking-wider">
-                      <th className="px-3 py-3 text-left">N° AO</th>
-                      <th className="px-3 py-3 text-left">Entité</th>
-                      <th className="px-3 py-3 text-left">Objet</th>
-                      <th className="px-3 py-3 text-center">Nb Soum.</th>
-                      <th className="px-3 py-3 text-center">Admis</th>
-                      <th className="px-3 py-3 text-center">Ecartés</th>
-                      <th className="px-3 py-3 text-center">Détails</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(soumissionnaireData.projets)
-                      .sort(([,a],[,b]) => b.nbSoumissionnairesUniques - a.nbSoumissionnairesUniques)
-                      .map(([key, sp]) => {
-                      const admis = sp.soumissionnaires.filter(s => s.nom && s.decisionCommission === 'Admis').length;
-                      const ecarts = sp.soumissionnaires.filter(s => s.nom && s.decisionCommission && s.decisionCommission !== 'Admis' && s.decisionCommission !== '').length;
-                      const uniqueNoms = [...new Set(sp.soumissionnaires.filter(s => s.nom).map(s => s.nom))];
-                      return (
-                        <tr key={key} className="border-b border-slate-50 hover:bg-indigo-50/30 transition-colors">
-                          <td className="px-3 py-2.5">
-                            <Badge className="bg-indigo-100 text-indigo-700 border-0 text-[10px] font-mono">{sp.numAOComplet}</Badge>
-                          </td>
-                          <td className="px-3 py-2.5 font-semibold text-slate-700">{sp.entite}</td>
-                          <td className="px-3 py-2.5 text-slate-600 max-w-[300px] truncate">{sp.objetAO}</td>
-                          <td className="px-3 py-2.5 text-center">
-                            <span className="inline-flex items-center gap-1 font-bold text-indigo-700">
-                              <Users className="w-3 h-3" />
-                              {sp.nbSoumissionnairesUniques}
-                            </span>
-                          </td>
-                          <td className="px-3 py-2.5 text-center">
-                            {admis > 0 ? (
-                              <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">
-                                <UserCheck className="w-3 h-3 mr-0.5" />{admis}
-                              </Badge>
-                            ) : (
-                              <span className="text-slate-300">—</span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2.5 text-center">
-                            {ecarts > 0 ? (
-                              <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">
-                                <UserX className="w-3 h-3 mr-0.5" />{ecarts}
-                              </Badge>
-                            ) : (
-                              <span className="text-slate-300">—</span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2.5 text-center">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 text-[10px] text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 gap-1"
-                              onClick={() => { setSelectedSoumProjet(sp); setShowSoumModal(true); }}
-                            >
-                              <Eye className="w-3 h-3" /> Voir
-                            </Button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </>
-        )}
-        </section>
-
-        {/* ── Soumissionnaire Detail Modal ── */}
-        {showSoumModal && selectedSoumProjet && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in-up" style={{ animationDuration: '0.2s' }} onClick={() => setShowSoumModal(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden mx-4" onClick={e => e.stopPropagation()}>
-              {/* Modal Header */}
-              <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-4 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold flex items-center gap-2">
-                      <Users className="w-5 h-5" />
-                      Soumissionnaires — {selectedSoumProjet.numAOComplet}
-                    </h3>
-                    <p className="text-xs text-indigo-200 mt-1 max-w-[600px] truncate">{selectedSoumProjet.objetAO}</p>
-                  </div>
-                  <button onClick={() => setShowSoumModal(false)} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="flex items-center gap-4 mt-3">
-                  <Badge className="bg-white/20 text-white border-0 text-xs">
-                    <Users className="w-3 h-3 mr-1" /> {selectedSoumProjet.nbSoumissionnairesUniques} soumissionnaire(s)
-                  </Badge>
-                  <Badge className="bg-white/20 text-white border-0 text-xs">
-                    <Building2 className="w-3 h-3 mr-1" /> {selectedSoumProjet.entite}
-                  </Badge>
-                </div>
-              </div>
-              {/* Modal Body */}
-              <div className="overflow-y-auto max-h-[65vh] p-6">
-                {/* Unique soumissionnaires summary */}
-                {(() => {
-                  const uniqueNoms = [...new Set(selectedSoumProjet.soumissionnaires.filter(s => s.nom).map(s => s.nom!))];
-                  return uniqueNoms.length > 0 ? (
-                    <div className="mb-5">
-                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Soumissionnaires identifiés</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {uniqueNoms.map(nom => {
-                          const entries = selectedSoumProjet.soumissionnaires.filter(s => s.nom === nom);
-                          const isAdmis = entries.some(e => e.decisionCommission === 'Admis');
-                          const isEcarte = entries.some(e => e.decisionCommission && e.decisionCommission !== 'Admis' && e.decisionCommission !== '' && !e.decisionCommission.includes('reportée'));
-                          return (
-                            <div key={nom} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200
-                              ${isAdmis ? 'bg-green-50 border-green-200 text-green-700' : isEcarte ? 'bg-red-50 border-red-200 text-red-700' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
-                              {isAdmis ? <UserCheck className="w-3 h-3" /> : isEcarte ? <UserX className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                              {nom}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null;
-                })()}
-
-                {/* Detailed sessions table */}
-                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Déroulement des séances</h4>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
-                        <th className="px-3 py-2.5 text-left">Semaine</th>
-                        <th className="px-3 py-2.5 text-left">Séance</th>
-                        <th className="px-3 py-2.5 text-left">Objet</th>
-                        <th className="px-3 py-2.5 text-left">Président</th>
-                        <th className="px-3 py-2.5 text-left">Soumissionnaire</th>
-                        <th className="px-3 py-2.5 text-left">Décision</th>
-                        <th className="px-3 py-2.5 text-right">Offre financière</th>
-                        <th className="px-3 py-2.5 text-left">Décision OF</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedSoumProjet.soumissionnaires.map((s, idx) => (
-                        <tr key={idx} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${!s.nom ? 'opacity-50' : ''}`}>
-                          <td className="px-3 py-2 text-slate-500 max-w-[120px] truncate">{s.semaine}</td>
-                          <td className="px-3 py-2 text-slate-500 max-w-[120px] truncate">{s.seance}</td>
-                          <td className="px-3 py-2">
-                            <Badge variant="outline" className="text-[9px] h-5 bg-slate-50">{s.objetSeance}</Badge>
-                          </td>
-                          <td className="px-3 py-2 text-slate-600">{s.president}</td>
-                          <td className="px-3 py-2 font-semibold text-slate-800">{s.nom || '—'}</td>
-                          <td className="px-3 py-2">
-                            {s.decisionCommission === 'Admis' ? (
-                              <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">Admis</Badge>
-                            ) : s.decisionCommission && s.decisionCommission.includes('Ecarté') ? (
-                              <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">Ecarté</Badge>
-                            ) : s.decisionCommission && s.decisionCommission.includes('reportée') ? (
-                              <Badge className="bg-amber-100 text-amber-700 border-0 text-[10px]">Reportée</Badge>
-                            ) : (
-                              <span className="text-slate-400 text-[10px]">{s.decisionCommission || '—'}</span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-right font-mono text-slate-700">{s.offreFinanciere || '—'}</td>
-                          <td className="px-3 py-2 text-slate-500 max-w-[150px] truncate text-[10px]">{s.decisionCommissionOF || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              {/* Modal Footer */}
-              <div className="border-t border-slate-100 px-6 py-3 flex items-center justify-between bg-slate-50/50">
-                <p className="text-[10px] text-slate-400">
-                  Source : {soumissionnaireData?.fileName || 'soumissionnaires.xlsx'} — Mis à jour : {soumissionnaireData?.lastUpdated ? new Date(soumissionnaireData.lastUpdated).toLocaleString('fr-FR') : '—'}
-                </p>
-                <Button variant="outline" size="sm" onClick={() => setShowSoumModal(false)} className="text-xs h-7">
-                  Fermer
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* ── Footer ── */}
         <footer className="text-center text-xs text-slate-400 pb-6 pt-2 space-y-1">
           <p>Vue d'ensemble PPM 2026 — ORMVA du Gharb · Dernière lecture : {new Date(data.lastUpdated).toLocaleString('fr-FR')}</p>
@@ -4127,6 +4113,118 @@ export default function Dashboard() {
         </div>
         )}
         </main>
+
+      {/* ── Soumissionnaire Detail Modal (global) ── */}
+      {showSoumModal && selectedSoumProjet && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in-up" style={{ animationDuration: '0.2s' }} onClick={() => setShowSoumModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden mx-4" onClick={e => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Soumissionnaires — {selectedSoumProjet.numAOComplet}
+                  </h3>
+                  <p className="text-xs text-indigo-200 mt-1 max-w-[600px] truncate">{selectedSoumProjet.objetAO}</p>
+                </div>
+                <button onClick={() => setShowSoumModal(false)} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex items-center gap-4 mt-3">
+                <Badge className="bg-white/20 text-white border-0 text-xs">
+                  <Users className="w-3 h-3 mr-1" /> {selectedSoumProjet.nbSoumissionnairesUniques} soumissionnaire(s)
+                </Badge>
+                <Badge className="bg-white/20 text-white border-0 text-xs">
+                  <Building2 className="w-3 h-3 mr-1" /> {selectedSoumProjet.entite}
+                </Badge>
+              </div>
+            </div>
+            {/* Modal Body */}
+            <div className="overflow-y-auto max-h-[65vh] p-6">
+              {/* Unique soumissionnaires summary */}
+              {(() => {
+                const uniqueNoms = [...new Set(selectedSoumProjet.soumissionnaires.filter(s => s.nom).map(s => s.nom!))];
+                return uniqueNoms.length > 0 ? (
+                  <div className="mb-5">
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Soumissionnaires identifiés</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {uniqueNoms.map(nom => {
+                        const entries = selectedSoumProjet.soumissionnaires.filter(s => s.nom === nom);
+                        const isAdmis = entries.some(e => e.decisionCommission === 'Admis');
+                        const isEcarte = entries.some(e => e.decisionCommission && e.decisionCommission !== 'Admis' && e.decisionCommission !== '' && !e.decisionCommission.includes('reportée'));
+                        return (
+                          <div key={nom} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200
+                            ${isAdmis ? 'bg-green-50 border-green-200 text-green-700' : isEcarte ? 'bg-red-50 border-red-200 text-red-700' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
+                            {isAdmis ? <UserCheck className="w-3 h-3" /> : isEcarte ? <UserX className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                            {nom}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+
+              {/* Detailed sessions table */}
+              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Déroulement des séances</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                      <th className="px-3 py-2.5 text-left">Semaine</th>
+                      <th className="px-3 py-2.5 text-left">Séance</th>
+                      <th className="px-3 py-2.5 text-left">Objet</th>
+                      <th className="px-3 py-2.5 text-left">Président</th>
+                      <th className="px-3 py-2.5 text-left">Soumissionnaire</th>
+                      <th className="px-3 py-2.5 text-left">Décision</th>
+                      <th className="px-3 py-2.5 text-right">Offre financière</th>
+                      <th className="px-3 py-2.5 text-left">Décision OF</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedSoumProjet.soumissionnaires.map((s, idx) => (
+                      <tr key={idx} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${!s.nom ? 'opacity-50' : ''}`}>
+                        <td className="px-3 py-2 text-slate-500 max-w-[120px] truncate">{s.semaine}</td>
+                        <td className="px-3 py-2 text-slate-500 max-w-[120px] truncate">{s.seance}</td>
+                        <td className="px-3 py-2">
+                          <Badge variant="outline" className="text-[9px] h-5 bg-slate-50">{s.objetSeance}</Badge>
+                        </td>
+                        <td className="px-3 py-2 text-slate-600">{s.president}</td>
+                        <td className="px-3 py-2 font-semibold text-slate-800">{s.nom || '—'}</td>
+                        <td className="px-3 py-2">
+                          {s.decisionCommission === 'Admis' ? (
+                            <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">Admis</Badge>
+                          ) : s.decisionCommission && s.decisionCommission.includes('Ecarté') ? (
+                            <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">Ecarté</Badge>
+                          ) : s.decisionCommission && s.decisionCommission.includes('reportée') ? (
+                            <Badge className="bg-amber-100 text-amber-700 border-0 text-[10px]">Reportée</Badge>
+                          ) : (
+                            <span className="text-slate-400 text-[10px]">{s.decisionCommission || '—'}</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono text-slate-700">{s.offreFinanciere || '—'}</td>
+                        <td className="px-3 py-2 text-slate-500 max-w-[150px] truncate text-[10px]">{s.decisionCommissionOF || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {/* Modal Footer */}
+            <div className="border-t border-slate-100 px-6 py-3 flex items-center justify-between bg-slate-50/50">
+              <p className="text-[10px] text-slate-400">
+                Source : {soumissionnaireData?.fileName || 'soumissionnaires.xlsx'} — Mis à jour : {soumissionnaireData?.lastUpdated ? new Date(soumissionnaireData.lastUpdated).toLocaleString('fr-FR') : '—'}
+              </p>
+              <Button variant="outline" size="sm" onClick={() => setShowSoumModal(false)} className="text-xs h-7">
+                Fermer
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       </div>
     </div>
   );

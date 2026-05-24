@@ -1921,7 +1921,21 @@ export default function Dashboard() {
                               const matchAttributaire = filterAttributaire === 'all' || ppmMatch?.attributaire === filterAttributaire;
                               return matchEntity && matchStatus && matchNature && matchType && matchProgramme && matchProjet && matchSource && matchAttributaire;
                             })
-                            .sort(([,a],[,b]) => b.nbSoumissionnairesUniques - a.nbSoumissionnairesUniques)
+                            .sort(([,a],[,b]) => {
+                              const parseSeanceDate = (sp: typeof a) => {
+                                const seances = sp.soumissionnaires.map(s => s.seance).filter(Boolean);
+                                if (seances.length === 0) return new Date('9999-12-31');
+                                const dates = seances.map(s => {
+                                  const m = s.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+                                  if (m) { try { return new Date(`${m[2]} ${m[1]}, ${m[3]}`); } catch { return new Date('9999-12-31'); } }
+                                  return new Date('9999-12-31');
+                                });
+                                return dates.reduce((min, d) => d < min ? d : min, dates[0]);
+                              };
+                              const dateA = parseSeanceDate(a);
+                              const dateB = parseSeanceDate(b);
+                              return dateA.getTime() - dateB.getTime();
+                            })
                             .map(([key, sp]) => {
                             const { admis, ecarts, enAttente: enAtt, reportee: rep, annule: ann } = countUniqueByDecision(sp.soumissionnaires);
                             const taux = sp.nbSoumissionnairesUniques > 0 ? Math.round(admis / sp.nbSoumissionnairesUniques * 100) : 0;

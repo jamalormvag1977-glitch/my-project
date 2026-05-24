@@ -2965,7 +2965,6 @@ export default function Dashboard() {
                             { label: 'Annulés', value: annules.length, pct: filteredKpis.totalProjects > 0 ? Math.round(annules.length/filteredKpis.totalProjects*100) : 0, sub: infructueux.length + annules.length > 0 ? `${infructueux.length + annules.length} échoués` : 'Aucun', bg: 'from-rose-50 to-rose-100/50', border: 'border-rose-100', iconBg: 'bg-rose-500/10', iconColor: 'text-rose-600', icon: <Ban className="w-4 h-4" /> },
                             { label: 'AO Restants', value: aoRestantsCount, pct: filteredKpis.totalProjects > 0 ? Math.round(aoRestantsCount/filteredKpis.totalProjects*100) : 0, sub: `PPM+DAO+À prog`, bg: 'from-orange-50 to-orange-100/50', border: 'border-orange-100', iconBg: 'bg-orange-500/10', iconColor: 'text-orange-600', icon: <ListTodo className="w-4 h-4" /> },
                             { label: 'Marchés Conclus', value: avecMarche.length, pct: filteredKpis.totalProjects > 0 ? Math.round(avecMarche.length/filteredKpis.totalProjects*100) : 0, sub: `${avecEngagement.length} engagés au total`, bg: 'from-teal-50 to-teal-100/50', border: 'border-teal-100', iconBg: 'bg-teal-500/10', iconColor: 'text-teal-600', icon: <FileSignature className="w-4 h-4" /> },
-                            { label: 'Soumissionnaires', value: totalSoums > 0 ? totalSoums : '—', pct: null, sub: totalSoums > 0 ? `${(totalSoums / filteredKpis.totalProjects).toFixed(1)} moy/AO` : 'Non chargé', bg: 'from-sky-50 to-sky-100/50', border: 'border-sky-100', iconBg: 'bg-sky-500/10', iconColor: 'text-sky-600', icon: <Users className="w-4 h-4" /> },
                           ];
                           return kpis.map((k, i) => (
                             <div key={i} className={`bg-gradient-to-br ${k.bg} rounded-xl p-3.5 border ${k.border}`}>
@@ -3082,12 +3081,10 @@ export default function Dashboard() {
                           const avgOJ = validOJ.length > 0 ? Math.round(validOJ.reduce((s,p) => s + (new Date(p.dateJugement!).getTime() - new Date(p.dateOuverture!).getTime()) / 86400000, 0) / validOJ.length) : 0;
                           const avgJE = validJE.length > 0 ? Math.round(validJE.reduce((s,p) => s + (new Date(p.dateEngagement!).getTime() - new Date(p.dateJugement!).getTime()) / 86400000, 0) / validJE.length) : 0;
                           const avgOE = validOE.length > 0 ? Math.round(validOE.reduce((s,p) => s + (new Date(p.dateEngagement!).getTime() - new Date(p.dateOuverture!).getTime()) / 86400000, 0) / validOE.length) : 0;
-                          const totalSoums = soumissionnaireData?.totalSoumissionnaires ?? 0;
                           return [
                             { label: 'Délai moyen Ouv.→Jugé', value: avgOJ > 0 ? `${avgOJ} j` : '—', sub: `${validOJ.length} AO exploitables`, bg: 'bg-blue-50', border: 'border-blue-100', iconBg: 'bg-blue-100', iconColor: 'text-blue-600', icon: <Scale className="w-3.5 h-3.5" /> },
                             { label: 'Délai moyen Jugé→Eng.', value: avgJE > 0 ? `${avgJE} j` : '—', sub: `${validJE.length} AO exploitables`, bg: 'bg-amber-50', border: 'border-amber-100', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', icon: <Gavel className="w-3.5 h-3.5" /> },
                             { label: 'Délai moyen Ouv.→Eng.', value: avgOE > 0 ? `${avgOE} j` : '—', sub: `${validOE.length} AO exploitables`, bg: 'bg-indigo-50', border: 'border-indigo-100', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', icon: <Clock className="w-3.5 h-3.5" /> },
-                            { label: 'Total Soumissionnaires', value: totalSoums > 0 ? `${totalSoums}` : '—', sub: totalSoums > 0 ? `${(totalSoums / filteredKpis.totalProjects).toFixed(1)} moy/AO` : 'Non chargé', bg: 'bg-sky-50', border: 'border-sky-100', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', icon: <Users className="w-3.5 h-3.5" /> },
                           ].map((k, i) => (
                             <div key={i} className={`${k.bg} rounded-lg p-3 border ${k.border} flex items-center gap-3`}>
                               <div className={`w-8 h-8 rounded-lg ${k.iconBg} flex items-center justify-center ${k.iconColor}`}>{k.icon}</div>

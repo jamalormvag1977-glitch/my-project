@@ -3172,7 +3172,7 @@ export default function Dashboard() {
         {/* ── Full-Screen View: Délais ── */}
         {sidebarTab === 'delais' && (() => {
           // Compute delays between key dates
-          type DelayRecord = { id: number; objet: string; entite: string; statut: string; estimation: number; dateOuverture: string; dateJugement: string | null; dateEngagement: string | null; delaiOuvJuge: number | null; delaiOuvEng: number | null; delaiJugeEng: number | null; };
+          type DelayRecord = { id: number; numAO: string; objet: string; entite: string; statut: string; estimation: number; dateOuverture: string; dateJugement: string | null; dateEngagement: string | null; delaiOuvJuge: number | null; delaiOuvEng: number | null; delaiJugeEng: number | null; };
           const delayData: DelayRecord[] = sidebarStatusFiltered.filter(p => isValidDate(p.dateOuverture)).map(p => {
             const dOuv = new Date(p.dateOuverture);
             let delaiOuvJuge: number | null = null;
@@ -3194,7 +3194,7 @@ export default function Dashboard() {
               const days = Math.round((dEng.getTime() - dJuge.getTime()) / (1000 * 60 * 60 * 24));
               delaiJugeEng = days >= 0 ? days : null;
             }
-            return { id: p.id, objet: p.objet, entite: p.entite, statut: p.situationAvancement, estimation: p.estimationAdmin || 0, dateOuverture: p.dateOuverture, dateJugement: p.dateJugement, dateEngagement: p.dateEngagement, delaiOuvJuge, delaiOuvEng, delaiJugeEng };
+            return { id: p.id, numAO: p.numAO || '', objet: p.objet, entite: p.entite, statut: p.situationAvancement, estimation: p.estimationAdmin || 0, dateOuverture: p.dateOuverture, dateJugement: p.dateJugement, dateEngagement: p.dateEngagement, delaiOuvJuge, delaiOuvEng, delaiJugeEng };
           });
 
           const withOuvJuge = delayData.filter(d => d.delaiOuvJuge !== null);
@@ -3261,11 +3261,13 @@ export default function Dashboard() {
           });
 
           // AO still pending (ouvert, no jugement yet) — compute days since ouverture
+          // Only for AO where ouverture already happened (date <= today), not future planned dates
           const today = new Date();
-          const pendingSinceOuv = delayData.filter(d => d.delaiOuvJuge === null).map(d => ({
-            ...d,
-            joursEnAttente: Math.round((today.getTime() - new Date(d.dateOuverture).getTime()) / (1000 * 60 * 60 * 24)),
-          })).sort((a, b) => b.joursEnAttente - a.joursEnAttente);
+          const pendingSinceOuv = delayData.filter(d => d.delaiOuvJuge === null).map(d => {
+            const ouvDate = new Date(d.dateOuverture);
+            const jours = Math.round((today.getTime() - ouvDate.getTime()) / (1000 * 60 * 60 * 24));
+            return { ...d, joursEnAttente: jours >= 0 ? jours : null };
+          }).filter(d => d.joursEnAttente !== null).sort((a, b) => (b.joursEnAttente || 0) - (a.joursEnAttente || 0));
 
           // Slowest AO per category
           const slowestOuvJuge = [...delayData].filter(d => d.delaiOuvJuge !== null).sort((a, b) => (b.delaiOuvJuge || 0) - (a.delaiOuvJuge || 0)).slice(0, 10);
@@ -3658,6 +3660,7 @@ export default function Dashboard() {
                       <thead>
                         <tr className="bg-amber-50/50 border-b border-amber-100 text-[9px] text-amber-700 uppercase tracking-wider">
                           <th className="px-2 py-1.5 text-center">#</th>
+                          <th className="px-2 py-1.5 text-center">N° AO</th>
                           <th className="px-2 py-1.5 text-left">Objet</th>
                           <th className="px-2 py-1.5 text-center font-bold">Jours</th>
                         </tr>
@@ -3668,7 +3671,8 @@ export default function Dashboard() {
                             <td className="px-2 py-1.5 text-center">
                               <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[8px] font-bold ${i < 3 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>{i + 1}</span>
                             </td>
-                            <td className="px-2 py-1.5 text-slate-700 max-w-[180px] truncate text-[10px]" title={d.objet}>{d.objet}</td>
+                            <td className="px-2 py-1.5 text-center font-mono text-[10px] text-amber-700 font-bold">{d.numAO || '—'}</td>
+                            <td className="px-2 py-1.5 text-slate-700 text-[10px]" title={d.objet}>{d.objet}</td>
                             <td className="px-2 py-1.5 text-center">
                               <span className={`font-bold ${d.delaiOuvJuge! > avgOuvJuge ? 'text-red-600' : 'text-amber-600'}`}>{d.delaiOuvJuge}j</span>
                             </td>
@@ -3692,6 +3696,7 @@ export default function Dashboard() {
                       <thead>
                         <tr className="bg-green-50/50 border-b border-green-100 text-[9px] text-green-700 uppercase tracking-wider">
                           <th className="px-2 py-1.5 text-center">#</th>
+                          <th className="px-2 py-1.5 text-center">N° AO</th>
                           <th className="px-2 py-1.5 text-left">Objet</th>
                           <th className="px-2 py-1.5 text-center font-bold">Jours</th>
                         </tr>
@@ -3702,7 +3707,8 @@ export default function Dashboard() {
                             <td className="px-2 py-1.5 text-center">
                               <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[8px] font-bold ${i < 3 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{i + 1}</span>
                             </td>
-                            <td className="px-2 py-1.5 text-slate-700 max-w-[180px] truncate text-[10px]" title={d.objet}>{d.objet}</td>
+                            <td className="px-2 py-1.5 text-center font-mono text-[10px] text-green-700 font-bold">{d.numAO || '—'}</td>
+                            <td className="px-2 py-1.5 text-slate-700 text-[10px]" title={d.objet}>{d.objet}</td>
                             <td className="px-2 py-1.5 text-center">
                               <span className={`font-bold ${d.delaiJugeEng! > avgJugeEng ? 'text-red-600' : 'text-green-600'}`}>{d.delaiJugeEng}j</span>
                             </td>
@@ -3726,6 +3732,7 @@ export default function Dashboard() {
                       <thead>
                         <tr className="bg-blue-50/50 border-b border-blue-100 text-[9px] text-blue-700 uppercase tracking-wider">
                           <th className="px-2 py-1.5 text-center">#</th>
+                          <th className="px-2 py-1.5 text-center">N° AO</th>
                           <th className="px-2 py-1.5 text-left">Objet</th>
                           <th className="px-2 py-1.5 text-center font-bold">Jours</th>
                         </tr>
@@ -3736,7 +3743,8 @@ export default function Dashboard() {
                             <td className="px-2 py-1.5 text-center">
                               <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[8px] font-bold ${i < 3 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{i + 1}</span>
                             </td>
-                            <td className="px-2 py-1.5 text-slate-700 max-w-[180px] truncate text-[10px]" title={d.objet}>{d.objet}</td>
+                            <td className="px-2 py-1.5 text-center font-mono text-[10px] text-blue-700 font-bold">{d.numAO || '—'}</td>
+                            <td className="px-2 py-1.5 text-slate-700 text-[10px]" title={d.objet}>{d.objet}</td>
                             <td className="px-2 py-1.5 text-center">
                               <span className={`font-bold ${d.delaiOuvEng! > avgOuvEng ? 'text-red-600' : 'text-blue-600'}`}>{d.delaiOuvEng}j</span>
                             </td>
@@ -3764,6 +3772,7 @@ export default function Dashboard() {
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                          <th className="px-3 py-2.5 text-center">N° AO</th>
                           <th className="px-3 py-2.5 text-left">Objet</th>
                           <th className="px-3 py-2.5 text-left">Entité</th>
                           <th className="px-3 py-2.5 text-center">Statut</th>
@@ -3774,7 +3783,8 @@ export default function Dashboard() {
                       <tbody>
                         {pendingSinceOuv.slice(0, 20).map(d => (
                           <tr key={d.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                            <td className="px-3 py-2 text-slate-700 max-w-[300px] truncate" title={d.objet}>{d.objet}</td>
+                            <td className="px-3 py-2 text-center font-mono text-[10px] font-bold text-slate-700">{d.numAO || '—'}</td>
+                            <td className="px-3 py-2 text-slate-700" title={d.objet}>{d.objet}</td>
                             <td className="px-3 py-2">
                               <div className="flex items-center gap-1.5">
                                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entityColorMap[d.entite] || '#3b82f6' }} />
@@ -3816,6 +3826,7 @@ export default function Dashboard() {
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
+                          <th className="px-3 py-2.5 text-center">N° AO</th>
                           <th className="px-3 py-2.5 text-left">Objet</th>
                           <th className="px-3 py-2.5 text-left">Entité</th>
                           <th className="px-3 py-2.5 text-center">Statut</th>
@@ -3836,7 +3847,8 @@ export default function Dashboard() {
                           return (b.delaiOuvEng || 0) - (a.delaiOuvEng || 0);
                         }).map(d => (
                           <tr key={d.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                            <td className="px-3 py-2 text-slate-700 max-w-[250px] truncate" title={d.objet}>{d.objet}</td>
+                            <td className="px-3 py-2 text-center font-mono text-[10px] font-bold text-slate-700">{d.numAO || '—'}</td>
+                            <td className="px-3 py-2 text-slate-700" title={d.objet}>{d.objet}</td>
                             <td className="px-3 py-2">
                               <div className="flex items-center gap-1.5">
                                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entityColorMap[d.entite] || '#3b82f6' }} />

@@ -3264,8 +3264,10 @@ export default function Dashboard() {
             joursEnAttente: Math.round((today.getTime() - new Date(d.dateOuverture).getTime()) / (1000 * 60 * 60 * 24)),
           })).sort((a, b) => b.joursEnAttente - a.joursEnAttente);
 
-          // Slowest AO (top 10 by total delay ouv->eng)
-          const slowestAO = [...delayData].filter(d => d.delaiOuvEng !== null).sort((a, b) => (b.delaiOuvEng || 0) - (a.delaiOuvEng || 0)).slice(0, 10);
+          // Slowest AO per category
+          const slowestOuvJuge = [...delayData].filter(d => d.delaiOuvJuge !== null).sort((a, b) => (b.delaiOuvJuge || 0) - (a.delaiOuvJuge || 0)).slice(0, 10);
+          const slowestJugeEng = [...delayData].filter(d => d.delaiJugeEng !== null).sort((a, b) => (b.delaiJugeEng || 0) - (a.delaiJugeEng || 0)).slice(0, 10);
+          const slowestOuvEng = [...delayData].filter(d => d.delaiOuvEng !== null).sort((a, b) => (b.delaiOuvEng || 0) - (a.delaiOuvEng || 0)).slice(0, 10);
 
           // Chart data for recharts
           const bucketChartOJ = makeBuckets(withOuvJuge, 'delaiOuvJuge');
@@ -3638,70 +3640,110 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              {/* Top 10 Slowest AO */}
-              <Card className="border-0 shadow-md overflow-hidden">
-                <CardHeader className="pb-2 pt-4 px-5">
-                  <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                    <TrendingDown className="w-4 h-4 text-red-500" />
-                    Top 10 AO les plus lents (Ouv. → Engagement)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
+              {/* Top 5 Rankings per Delay Type */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Top 5 Ouv→Jugé */}
+                <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #f59e0b' }}>
+                  <CardHeader className="pb-2 pt-4 px-4">
+                    <CardTitle className="text-xs font-semibold text-slate-700 flex items-center gap-2">
+                      <ArrowLeftRight className="w-3.5 h-3.5 text-amber-500" />
+                      Top 5 Ouv. → Jugé
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
-                          <th className="px-3 py-2.5 text-center">#</th>
-                          <th className="px-3 py-2.5 text-left">Objet</th>
-                          <th className="px-3 py-2.5 text-left">Entité</th>
-                          <th className="px-3 py-2.5 text-center">Statut</th>
-                          <th className="px-3 py-2.5 text-center">Ouv. Plis</th>
-                          <th className="px-3 py-2.5 text-center">Jugement</th>
-                          <th className="px-3 py-2.5 text-center">Engagement</th>
-                          <th className="px-3 py-2.5 text-center">Ouv→Jugé</th>
-                          <th className="px-3 py-2.5 text-center">Jugé→Eng</th>
-                          <th className="px-3 py-2.5 text-center font-bold">Ouv→Eng</th>
+                        <tr className="bg-amber-50/50 border-b border-amber-100 text-[9px] text-amber-700 uppercase tracking-wider">
+                          <th className="px-2 py-1.5 text-center">#</th>
+                          <th className="px-2 py-1.5 text-left">Objet</th>
+                          <th className="px-2 py-1.5 text-center font-bold">Jours</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {slowestAO.map((d, i) => (
-                          <tr key={d.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                            <td className="px-3 py-2 text-center">
-                              <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-bold ${i < 3 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>{i + 1}</span>
+                        {slowestOuvJuge.slice(0, 5).map((d, i) => (
+                          <tr key={d.id} className="border-b border-slate-50 hover:bg-amber-50/30 transition-colors">
+                            <td className="px-2 py-1.5 text-center">
+                              <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[8px] font-bold ${i < 3 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>{i + 1}</span>
                             </td>
-                            <td className="px-3 py-2 text-slate-700 max-w-[250px] truncate" title={d.objet}>{d.objet}</td>
-                            <td className="px-3 py-2">
-                              <div className="flex items-center gap-1.5">
-                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entityColorMap[d.entite] || '#3b82f6' }} />
-                                <span className="text-slate-600">{d.entite}</span>
-                              </div>
-                            </td>
-                            <td className="px-3 py-2 text-center">
-                              <Badge className="text-[9px] border-0" style={{ backgroundColor: `${statusColorMap[d.statut] || '#6b7280'}20`, color: statusColorMap[d.statut] || '#6b7280' }}>{d.statut}</Badge>
-                            </td>
-                            <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{d.dateOuverture}</td>
-                            <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{d.dateJugement || '—'}</td>
-                            <td className="px-3 py-2 text-center font-mono text-[10px] text-slate-600">{d.dateEngagement || '—'}</td>
-                            <td className="px-3 py-2 text-center">
-                              {d.delaiOuvJuge !== null ? (
-                                <span className={`font-bold ${d.delaiOuvJuge > avgOuvJuge ? 'text-red-600' : 'text-amber-600'}`}>{d.delaiOuvJuge}j</span>
-                              ) : <span className="text-slate-300">—</span>}
-                            </td>
-                            <td className="px-3 py-2 text-center">
-                              {d.delaiJugeEng !== null ? (
-                                <span className={`font-bold ${d.delaiJugeEng > avgJugeEng ? 'text-red-600' : 'text-green-600'}`}>{d.delaiJugeEng}j</span>
-                              ) : <span className="text-slate-300">—</span>}
-                            </td>
-                            <td className="px-3 py-2 text-center">
-                              <span className={`font-bold ${d.delaiOuvEng !== null && d.delaiOuvEng > avgOuvEng ? 'text-red-600' : 'text-blue-600'}`}>{d.delaiOuvEng}j</span>
+                            <td className="px-2 py-1.5 text-slate-700 max-w-[180px] truncate text-[10px]" title={d.objet}>{d.objet}</td>
+                            <td className="px-2 py-1.5 text-center">
+                              <span className={`font-bold ${d.delaiOuvJuge! > avgOuvJuge ? 'text-red-600' : 'text-amber-600'}`}>{d.delaiOuvJuge}j</span>
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+
+                {/* Top 5 Jugé→Eng */}
+                <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #16a34a' }}>
+                  <CardHeader className="pb-2 pt-4 px-4">
+                    <CardTitle className="text-xs font-semibold text-slate-700 flex items-center gap-2">
+                      <ArrowLeftRight className="w-3.5 h-3.5 text-green-500" />
+                      Top 5 Jugé → Engagé
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-green-50/50 border-b border-green-100 text-[9px] text-green-700 uppercase tracking-wider">
+                          <th className="px-2 py-1.5 text-center">#</th>
+                          <th className="px-2 py-1.5 text-left">Objet</th>
+                          <th className="px-2 py-1.5 text-center font-bold">Jours</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {slowestJugeEng.slice(0, 5).map((d, i) => (
+                          <tr key={d.id} className="border-b border-slate-50 hover:bg-green-50/30 transition-colors">
+                            <td className="px-2 py-1.5 text-center">
+                              <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[8px] font-bold ${i < 3 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{i + 1}</span>
+                            </td>
+                            <td className="px-2 py-1.5 text-slate-700 max-w-[180px] truncate text-[10px]" title={d.objet}>{d.objet}</td>
+                            <td className="px-2 py-1.5 text-center">
+                              <span className={`font-bold ${d.delaiJugeEng! > avgJugeEng ? 'text-red-600' : 'text-green-600'}`}>{d.delaiJugeEng}j</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </CardContent>
+                </Card>
+
+                {/* Top 5 Ouv→Eng */}
+                <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #3b82f6' }}>
+                  <CardHeader className="pb-2 pt-4 px-4">
+                    <CardTitle className="text-xs font-semibold text-slate-700 flex items-center gap-2">
+                      <ArrowLeftRight className="w-3.5 h-3.5 text-blue-500" />
+                      Top 5 Ouv. → Engagé
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-blue-50/50 border-b border-blue-100 text-[9px] text-blue-700 uppercase tracking-wider">
+                          <th className="px-2 py-1.5 text-center">#</th>
+                          <th className="px-2 py-1.5 text-left">Objet</th>
+                          <th className="px-2 py-1.5 text-center font-bold">Jours</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {slowestOuvEng.slice(0, 5).map((d, i) => (
+                          <tr key={d.id} className="border-b border-slate-50 hover:bg-blue-50/30 transition-colors">
+                            <td className="px-2 py-1.5 text-center">
+                              <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[8px] font-bold ${i < 3 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{i + 1}</span>
+                            </td>
+                            <td className="px-2 py-1.5 text-slate-700 max-w-[180px] truncate text-[10px]" title={d.objet}>{d.objet}</td>
+                            <td className="px-2 py-1.5 text-center">
+                              <span className={`font-bold ${d.delaiOuvEng! > avgOuvEng ? 'text-red-600' : 'text-blue-600'}`}>{d.delaiOuvEng}j</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </CardContent>
+                </Card>
+              </div>
 
               {/* AO en attente (no jugement yet) */}
               {pendingSinceOuv.length > 0 && (
@@ -3778,12 +3820,18 @@ export default function Dashboard() {
                           <th className="px-3 py-2.5 text-center">Jugement</th>
                           <th className="px-3 py-2.5 text-center">Engagement</th>
                           <th className="px-3 py-2.5 text-center text-amber-600">Ouv→Jugé</th>
-                          <th className="px-3 py-2.5 text-center text-blue-600">Ouv→Eng</th>
                           <th className="px-3 py-2.5 text-center text-green-600">Jugé→Eng</th>
+                          <th className="px-3 py-2.5 text-center text-blue-600">Ouv→Eng</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {delayData.sort((a, b) => (b.delaiOuvEng || 0) - (a.delaiOuvEng || 0)).map(d => (
+                        {delayData.sort((a, b) => {
+                          // Sort by Ouv→Eng desc, nulls at bottom
+                          if (a.delaiOuvEng === null && b.delaiOuvEng === null) return 0;
+                          if (a.delaiOuvEng === null) return 1;
+                          if (b.delaiOuvEng === null) return -1;
+                          return (b.delaiOuvEng || 0) - (a.delaiOuvEng || 0);
+                        }).map(d => (
                           <tr key={d.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                             <td className="px-3 py-2 text-slate-700 max-w-[250px] truncate" title={d.objet}>{d.objet}</td>
                             <td className="px-3 py-2">
@@ -3802,10 +3850,10 @@ export default function Dashboard() {
                               {d.delaiOuvJuge !== null ? <span className="font-bold text-amber-600">{d.delaiOuvJuge}j</span> : <span className="text-slate-300">—</span>}
                             </td>
                             <td className="px-3 py-2 text-center">
-                              {d.delaiOuvEng !== null ? <span className="font-bold text-blue-600">{d.delaiOuvEng}j</span> : <span className="text-slate-300">—</span>}
+                              {d.delaiJugeEng !== null ? <span className="font-bold text-green-600">{d.delaiJugeEng}j</span> : <span className="text-slate-300">—</span>}
                             </td>
                             <td className="px-3 py-2 text-center">
-                              {d.delaiJugeEng !== null ? <span className="font-bold text-green-600">{d.delaiJugeEng}j</span> : <span className="text-slate-300">—</span>}
+                              {d.delaiOuvEng !== null ? <span className="font-bold text-blue-600">{d.delaiOuvEng}j</span> : <span className="text-slate-300">—</span>}
                             </td>
                           </tr>
                         ))}

@@ -287,7 +287,6 @@ const statusColor: Record<string, string> = {
   'En cours de jugement': '#d97706',
   'En cours de jugement des offres': '#e97c16',
   'Publié sur PMP': '#7c3aed',
-  'Publié PPM': '#7c3aed',
   'DAO Envoyé au CE': '#0891b2',
   'A programmer': '#6b7280',
   'Infructueux': '#dc2626',
@@ -301,7 +300,6 @@ const statusIcon: Record<string, React.ReactNode> = {
   'En cours de jugement': <Clock className="w-3.5 h-3.5" />,
   'En cours de jugement des offres': <Clock className="w-3.5 h-3.5" />,
   'Publié sur PMP': <Activity className="w-3.5 h-3.5" />,
-  'Publié PPM': <Activity className="w-3.5 h-3.5" />,
   'DAO Envoyé au CE': <Send className="w-3.5 h-3.5" />,
   'A programmer': <AlertCircle className="w-3.5 h-3.5" />,
   'Infructueux': <XCircle className="w-3.5 h-3.5" />,
@@ -595,7 +593,7 @@ export default function Dashboard() {
   const [fichePrintMode, setFichePrintMode] = useState(false);
 
   /* ── Pipeline Order & Status Mapping ── */
-  const PIPELINE_ORDER = ['Ouvert','En cours de jugement','Jugé','Engagé','Infructueux','Annulé','Publié PPM','DAO Envoyé au CE','A programmer'] as const;
+  const PIPELINE_ORDER = ['Ouvert','En cours de jugement','Jugé','Engagé','Infructueux','Annulé','Publié sur PMP','DAO Envoyé au CE','A programmer'] as const;
   const PIPELINE_STATUS_MAP: Record<string, string> = {
     'Ouvert': '__computed__',
     'En cours de jugement': 'En cours de jugement',
@@ -603,7 +601,7 @@ export default function Dashboard() {
     'Engagé': 'Engagé',
     'Infructueux': 'Infructueux',
     'Annulé': 'Annulé',
-    'Publié PPM': 'Publié sur PMP',
+    'Publié sur PMP': 'Publié sur PMP',
     'DAO Envoyé au CE': 'DAO Envoyé au CE',
     'A programmer': 'A programmer',
   };
@@ -963,7 +961,7 @@ export default function Dashboard() {
   const aoOuvertCE = filtered.filter(aoOuvertFilter).reduce((s, p) => s + (p.ce || 0), 0);
   const aoOuvertEngCP = filtered.filter(aoOuvertFilter).reduce((s, p) => s + (p.engagementCP || 0), 0);
   const aoOuvertEngCE = filtered.filter(aoOuvertFilter).reduce((s, p) => s + (p.engagementCE || 0), 0);
-  // AO Restants group: Publié PPM, DAO Envoyé au CE, À programmer
+  // AO Restants group: Publié sur PMP, DAO Envoyé au CE, À programmer
   const aoRestantsFilter = (p: Project) => ['Publié sur PMP','DAO Envoyé au CE','A programmer'].includes(p.situationAvancement);
   const aoRestantsCount = filtered.filter(aoRestantsFilter).length;
   const aoRestantsEstimation = filtered.filter(aoRestantsFilter).reduce((s, p) => s + (p.estimationAdmin || 0), 0);
@@ -1147,7 +1145,7 @@ export default function Dashboard() {
     { label: 'Engagé', rate: engagementRate, count: filtered.filter(p => p.montantEngagement && p.montantEngagement > 0).length, color: '#16a34a', icon: <DollarSign className="w-4 h-4" /> },
     { label: 'Infructueux', rate: infructueuxRate, count: filteredStatusCount['Infructueux'] || 0, color: '#dc2626', icon: <XCircle className="w-4 h-4" /> },
     { label: 'Annulé', rate: annuleRate, count: filteredStatusCount['Annulé'] || 0, color: '#991b1b', icon: <XCircle className="w-4 h-4" /> },
-    { label: 'Publié PPM', rate: publiePpmRate, count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed', icon: <Activity className="w-4 h-4" /> },
+    { label: 'Publié sur PMP', rate: publiePpmRate, count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed', icon: <Activity className="w-4 h-4" /> },
     { label: 'DAO Envoyé au CE', rate: daoCeRate, count: filteredStatusCount['DAO Envoyé au CE'] || 0, color: '#0891b2', icon: <Send className="w-4 h-4" /> },
     { label: 'A programmer', rate: aProgrammerRate, count: filteredStatusCount['A programmer'] || 0, color: '#6b7280', icon: <AlertCircle className="w-4 h-4" /> },
   ];
@@ -2743,7 +2741,7 @@ export default function Dashboard() {
             { key: 'infructueux-sans-date', label: 'Infructueux sans date', color: '#dc2626', count: filtered.filter(p => p.situationAvancement === 'Infructueux' && !isValidDate(p.dateJugement)).length },
             { key: 'annule-sans-date', label: 'Annulé sans date', color: '#991b1b', count: filtered.filter(p => p.situationAvancement === 'Annulé' && !isValidDate(p.dateJugement)).length },
             { key: 'dao-sans-date', label: 'DAO CE sans date', color: '#0891b2', count: filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE' && !isValidDate(p.dateJugement) && !isValidDate(p.dateOuverture)).length },
-            { key: 'publie-sans-date', label: 'Publié PPM sans date', color: '#7c3aed', count: filtered.filter(p => p.situationAvancement === 'Publié sur PMP' && !isValidDate(p.dateOuverture)).length },
+            { key: 'publie-sans-date', label: 'Publié sur PMP sans date', color: '#7c3aed', count: filtered.filter(p => p.situationAvancement === 'Publié sur PMP' && !isValidDate(p.dateOuverture)).length },
             { key: 'a-programmer', label: 'À programmer', color: '#6b7280', count: filtered.filter(p => p.situationAvancement === 'A programmer').length },
           ];
           const totalAlertCount = alertCats.reduce((s, a) => s + a.count, 0);
@@ -5061,7 +5059,7 @@ export default function Dashboard() {
             },
             {
               key: 'publie-sans-date',
-              label: 'Publié PPM sans date d\'ouverture',
+              label: 'Publié sur PMP sans date d\'ouverture',
               icon: <Activity className="w-4 h-4" />,
               color: '#7c3aed',
               bg: 'bg-violet-50',
@@ -5687,7 +5685,7 @@ export default function Dashboard() {
               <CardContent className="px-5 pb-4">
                 <div className="grid grid-cols-3 gap-4">
                   {[
-                    { label: 'Publié PPM', count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed', icon: <Megaphone className="w-4 h-4" /> },
+                    { label: 'Publié sur PMP', count: filteredStatusCount['Publié sur PMP'] || 0, color: '#7c3aed', icon: <Megaphone className="w-4 h-4" /> },
                     { label: 'DAO au CE', count: filteredStatusCount['DAO Envoyé au CE'] || 0, color: '#0891b2', icon: <FileSignature className="w-4 h-4" /> },
                     { label: 'À programmer', count: filteredStatusCount['A programmer'] || 0, color: '#6b7280', icon: <ListTodo className="w-4 h-4" /> },
                   ].map(item => {
@@ -5949,7 +5947,7 @@ export default function Dashboard() {
                 { label: 'Engagé', count: nbEngage, color: '#16a34a', icon: <CheckCircle2 className="w-3 h-3" /> },
                 { label: 'Infruct.', count: nbInfructueux, color: '#dc2626', icon: <XCircle className="w-3 h-3" /> },
                 { label: 'Annulé', count: nbAnnule, color: '#64748b', icon: <Ban className="w-3 h-3" /> },
-                { label: 'Publié PPM', count: nbPublie, color: '#7c3aed', icon: <Megaphone className="w-3 h-3" /> },
+                { label: 'Publié sur PMP', count: nbPublie, color: '#7c3aed', icon: <Megaphone className="w-3 h-3" /> },
                 { label: 'DAO CE', count: nbDaoCE, color: '#0891b2', icon: <Send className="w-3 h-3" /> },
                 { label: 'Progr.', count: nbProgrammer, color: '#6b7280', icon: <ListTodo className="w-3 h-3" /> },
               ];

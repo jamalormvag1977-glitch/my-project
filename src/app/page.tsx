@@ -1398,6 +1398,22 @@ export default function Dashboard() {
                     <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
                     <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
                   </Select>
+                  <Select value={filterProgramme} onValueChange={setFilterProgramme}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Programme" /></SelectTrigger>
+                    <SelectContent>{programmes.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous programmes</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterProjet} onValueChange={setFilterProjet}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
+                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous projets</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterSource} onValueChange={setFilterSource}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Source financement" /></SelectTrigger>
+                    <SelectContent>{sources.map(s => <SelectItem key={s} value={s} className="text-[10px]">{s}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes sources</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterAttributaire} onValueChange={setFilterAttributaire}>
+                    <SelectTrigger className="h-7 text-[10px] w-[160px] bg-white border-slate-200"><SelectValue placeholder="Attributaire" /></SelectTrigger>
+                    <SelectContent>{attributaires.map(a => <SelectItem key={a} value={a} className="text-[10px]">{a}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous attributaires</SelectItem></SelectContent>
+                  </Select>
                   {hasActiveFilters && (
                     <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">
                       <X className="w-3 h-3" />Réinitialiser
@@ -1524,6 +1540,22 @@ export default function Dashboard() {
                   <Select value={filterType} onValueChange={setFilterType}>
                     <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
                     <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterProgramme} onValueChange={setFilterProgramme}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Programme" /></SelectTrigger>
+                    <SelectContent>{programmes.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous programmes</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterProjet} onValueChange={setFilterProjet}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
+                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous projets</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterSource} onValueChange={setFilterSource}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Source financement" /></SelectTrigger>
+                    <SelectContent>{sources.map(s => <SelectItem key={s} value={s} className="text-[10px]">{s}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes sources</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterAttributaire} onValueChange={setFilterAttributaire}>
+                    <SelectTrigger className="h-7 text-[10px] w-[160px] bg-white border-slate-200"><SelectValue placeholder="Attributaire" /></SelectTrigger>
+                    <SelectContent>{attributaires.map(a => <SelectItem key={a} value={a} className="text-[10px]">{a}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous attributaires</SelectItem></SelectContent>
                   </Select>
                   {hasActiveFilters && (
                     <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">
@@ -2150,6 +2182,22 @@ export default function Dashboard() {
                   <Select value={filterType} onValueChange={setFilterType}>
                     <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
                     <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterProgramme} onValueChange={setFilterProgramme}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Programme" /></SelectTrigger>
+                    <SelectContent>{programmes.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous programmes</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterProjet} onValueChange={setFilterProjet}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
+                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous projets</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterSource} onValueChange={setFilterSource}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Source financement" /></SelectTrigger>
+                    <SelectContent>{sources.map(s => <SelectItem key={s} value={s} className="text-[10px]">{s}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes sources</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterAttributaire} onValueChange={setFilterAttributaire}>
+                    <SelectTrigger className="h-7 text-[10px] w-[160px] bg-white border-slate-200"><SelectValue placeholder="Attributaire" /></SelectTrigger>
+                    <SelectContent>{attributaires.map(a => <SelectItem key={a} value={a} className="text-[10px]">{a}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous attributaires</SelectItem></SelectContent>
                   </Select>
                   {hasActiveFilters && (
                     <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">
@@ -3196,6 +3244,30 @@ export default function Dashboard() {
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
                       <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Statut" /></SelectTrigger>
                       <SelectContent>{statuses.map(s => <SelectItem key={s} value={s} className="text-[10px]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{backgroundColor: statusColor[s]}} />{s}</span></SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous les statuts</SelectItem></SelectContent>
+                    </Select>
+                    <Select value={filterNature} onValueChange={setFilterNature}>
+                      <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Nature" /></SelectTrigger>
+                      <SelectContent>{natures.map(n => <SelectItem key={n} value={n} className="text-[10px]">{n}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes natures</SelectItem></SelectContent>
+                    </Select>
+                    <Select value={filterType} onValueChange={setFilterType}>
+                      <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
+                      <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
+                    </Select>
+                    <Select value={filterProgramme} onValueChange={setFilterProgramme}>
+                      <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Programme" /></SelectTrigger>
+                      <SelectContent>{programmes.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous programmes</SelectItem></SelectContent>
+                    </Select>
+                    <Select value={filterProjet} onValueChange={setFilterProjet}>
+                      <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
+                      <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous projets</SelectItem></SelectContent>
+                    </Select>
+                    <Select value={filterSource} onValueChange={setFilterSource}>
+                      <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Source financement" /></SelectTrigger>
+                      <SelectContent>{sources.map(s => <SelectItem key={s} value={s} className="text-[10px]">{s}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes sources</SelectItem></SelectContent>
+                    </Select>
+                    <Select value={filterAttributaire} onValueChange={setFilterAttributaire}>
+                      <SelectTrigger className="h-7 text-[10px] w-[160px] bg-white border-slate-200"><SelectValue placeholder="Attributaire" /></SelectTrigger>
+                      <SelectContent>{attributaires.map(a => <SelectItem key={a} value={a} className="text-[10px]">{a}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous attributaires</SelectItem></SelectContent>
                     </Select>
                     {hasActiveFilters && (
                       <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">

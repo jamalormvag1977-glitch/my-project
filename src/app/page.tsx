@@ -1272,6 +1272,10 @@ export default function Dashboard() {
                   {data.fileName ? data.fileName.replace(/\.xlsx?$/i, '') : 'PPM 2026'}
                   {data.fileLastModified && <> · Modifié: {new Date(data.fileLastModified).toLocaleDateString('fr-FR')}</>}
                 </span>
+                <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  Dernière lecture : {new Date(data.lastUpdated).toLocaleString('fr-FR')}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 {fileChanged && (
@@ -6343,7 +6347,7 @@ export default function Dashboard() {
 
         {/* ── Footer ── */}
         <footer className="text-center text-xs text-slate-400 pb-6 pt-2 space-y-1">
-          <p>Vue d'ensemble PPM 2026 — ORMVA du Gharb · Dernière lecture : {new Date(data.lastUpdated).toLocaleString('fr-FR')}</p>
+          <p>Vue d'ensemble PPM 2026 — ORMVA du Gharb</p>
           {data.fileChecksum && (
             <p className="text-[10px] text-slate-300">
               Checksum : {data.fileChecksum.substring(0, 12)}... · Sync auto : {autoRefresh ? 'ON (5s)' : 'OFF'} · Base de données : {data.dataSaved ? 'SQLite ✓' : 'Non synchronisée'}

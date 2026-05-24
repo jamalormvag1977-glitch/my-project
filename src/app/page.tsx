@@ -3851,6 +3851,9 @@ export default function Dashboard() {
                       <th className="px-3 py-2.5 text-center text-green-500">Engagé</th>
                       <th className="px-3 py-2.5 text-center text-red-500">Infruct.</th>
                       <th className="px-3 py-2.5 text-center text-slate-400">Annulé</th>
+                      <th className="px-3 py-2.5 text-center text-violet-500">Publié</th>
+                      <th className="px-3 py-2.5 text-center text-cyan-500">DAO CE</th>
+                      <th className="px-3 py-2.5 text-center text-gray-400">Progr.</th>
                       <th className="px-3 py-2.5 text-right">CP (MDH)</th>
                       <th className="px-3 py-2.5 text-right">CE (MDH)</th>
                       <th className="px-3 py-2.5 text-right">Estimation (MDH)</th>
@@ -3868,11 +3871,16 @@ export default function Dashboard() {
                       const engTotal = d.engagement;
                       const rate = d.estimation > 0 ? Math.round((engTotal / d.estimation) * 100) : 0;
                       const accentColor = entityColorMap[name] || '#3b82f6';
-                      const nbOuvert = entityProjects.filter(p => p.situationAvancement === 'Ouvert').length;
+                      // AO Ouvert = En cours de jugement + Jugé + Engagé + Infructueux + Annulé
+                      const nbOuvert = entityProjects.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).length;
                       const nbJuge = entityProjects.filter(p => p.situationAvancement === 'Jugé' || p.situationAvancement === 'En cours de jugement').length;
                       const nbEngage = entityProjects.filter(p => p.situationAvancement === 'Engagé').length;
                       const nbInfructueux = entityProjects.filter(p => p.situationAvancement === 'Infructueux').length;
                       const nbAnnule = entityProjects.filter(p => p.situationAvancement === 'Annulé').length;
+                      // AO Restants
+                      const nbPublie = entityProjects.filter(p => p.situationAvancement === 'Publié sur PMP').length;
+                      const nbDaoCE = entityProjects.filter(p => p.situationAvancement === 'DAO Envoyé au CE').length;
+                      const nbProgrammer = entityProjects.filter(p => p.situationAvancement === 'A programmer').length;
                       return (
                         <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                           <td className="px-3 py-2.5">
@@ -3887,6 +3895,9 @@ export default function Dashboard() {
                           <td className="px-3 py-2.5 text-center">{nbEngage > 0 ? <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">{nbEngage}</Badge> : <span className="text-slate-300">—</span>}</td>
                           <td className="px-3 py-2.5 text-center">{nbInfructueux > 0 ? <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">{nbInfructueux}</Badge> : <span className="text-slate-300">—</span>}</td>
                           <td className="px-3 py-2.5 text-center">{nbAnnule > 0 ? <Badge className="bg-slate-200 text-slate-600 border-0 text-[10px]">{nbAnnule}</Badge> : <span className="text-slate-300">—</span>}</td>
+                          <td className="px-3 py-2.5 text-center">{nbPublie > 0 ? <Badge className="bg-violet-100 text-violet-700 border-0 text-[10px]">{nbPublie}</Badge> : <span className="text-slate-300">—</span>}</td>
+                          <td className="px-3 py-2.5 text-center">{nbDaoCE > 0 ? <Badge className="bg-cyan-100 text-cyan-700 border-0 text-[10px]">{nbDaoCE}</Badge> : <span className="text-slate-300">—</span>}</td>
+                          <td className="px-3 py-2.5 text-center">{nbProgrammer > 0 ? <Badge className="bg-gray-100 text-gray-700 border-0 text-[10px]">{nbProgrammer}</Badge> : <span className="text-slate-300">—</span>}</td>
                           <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
                           <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
                           <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
@@ -3909,11 +3920,14 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 font-semibold">
                       <td className="px-3 py-2.5 text-slate-800">Total</td>
                       <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
-                      <td className="px-3 py-2.5 text-center"><Badge className="bg-blue-100 text-blue-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Ouvert').length}</Badge></td>
+                      <td className="px-3 py-2.5 text-center"><Badge className="bg-blue-100 text-blue-700 border-0 text-[10px]">{filtered.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).length}</Badge></td>
                       <td className="px-3 py-2.5 text-center"><Badge className="bg-amber-100 text-amber-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Jugé' || p.situationAvancement === 'En cours de jugement').length}</Badge></td>
                       <td className="px-3 py-2.5 text-center"><Badge className="bg-green-100 text-green-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Engagé').length}</Badge></td>
                       <td className="px-3 py-2.5 text-center"><Badge className="bg-red-100 text-red-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Infructueux').length}</Badge></td>
                       <td className="px-3 py-2.5 text-center"><Badge className="bg-slate-200 text-slate-600 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Annulé').length}</Badge></td>
+                      <td className="px-3 py-2.5 text-center"><Badge className="bg-violet-100 text-violet-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Publié sur PMP').length}</Badge></td>
+                      <td className="px-3 py-2.5 text-center"><Badge className="bg-cyan-100 text-cyan-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'DAO Envoyé au CE').length}</Badge></td>
+                      <td className="px-3 py-2.5 text-center"><Badge className="bg-gray-100 text-gray-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'A programmer').length}</Badge></td>
                       <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
                       <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
                       <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>

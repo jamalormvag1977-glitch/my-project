@@ -1213,12 +1213,12 @@ export default function Dashboard() {
               { key: 'dashboard' as const, label: "Vue d'ensemble", icon: <BarChart3 className="w-4.5 h-4.5" /> },
               { key: 'entity' as const, label: 'Par Entité', icon: <Building2 className="w-4.5 h-4.5" /> },
               { key: 'step' as const, label: 'Par Étape', icon: <ClipboardList className="w-4.5 h-4.5" /> },
-              { key: 'history' as const, label: 'Historique', icon: <History className="w-4.5 h-4.5" /> },
               { key: 'soumissionnaires' as const, label: 'Soumissionnaires', icon: <Users className="w-4.5 h-4.5" /> },
+              { key: 'delais' as const, label: 'Délais', icon: <Timer className="w-4.5 h-4.5" /> },
+              { key: 'history' as const, label: 'Historique', icon: <History className="w-4.5 h-4.5" /> },
+              { key: 'alerts' as const, label: 'Alertes', icon: <AlertTriangle className="w-4.5 h-4.5" /> },
               { key: 'fiches' as const, label: 'Fiches AO', icon: <FileSearch className="w-4.5 h-4.5" /> },
               { key: 'reports' as const, label: 'Rapports', icon: <FileText className="w-4.5 h-4.5" /> },
-              { key: 'delais' as const, label: 'Délais', icon: <Timer className="w-4.5 h-4.5" /> },
-              { key: 'alerts' as const, label: 'Alertes', icon: <AlertTriangle className="w-4.5 h-4.5" /> },
             ].map(tab => (
               <button
                 key={tab.key}

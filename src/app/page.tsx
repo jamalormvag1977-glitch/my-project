@@ -109,6 +109,49 @@ interface PPMData {
 }
 
 /* ── Helpers ──────────────────────────────────────────── */
+const isAdmisDecision = (d: string | null | undefined): boolean => {
+  if (!d) return false;
+  return d === 'Admis' || d.includes('Admis') || d.includes('acceptables') || d.includes('retenue');
+};
+
+const isEcarteDecision = (d: string | null | undefined): boolean => {
+  if (!d) return false;
+  return d.includes('Ecarté');
+};
+
+const isReporteeDecision = (d: string | null | undefined): boolean => {
+  if (!d) return false;
+  return d.includes('reportée') || d.includes('reporté');
+};
+
+const isAnnuleDecision = (d: string | null | undefined): boolean => {
+  if (!d) return false;
+  return d.includes('Annulé') || d.includes('Pas de soumissionnaires');
+};
+
+// Count unique soumissionnaires by their "best" decision across all séances
+// Admis = has at least one "Admis" decision; Ecarté = only "Ecarté" decisions; En attente = neither
+const countUniqueByDecision = (soumissionnaires: Soumissionnaire[]): { admis: number; ecarts: number; enAttente: number; reportee: number; annule: number } => {
+  const byName: Record<string, { hasAdmis: boolean; hasEcarte: boolean; hasReportee: boolean; hasAnnule: boolean }> = {};
+  soumissionnaires.forEach(s => {
+    if (!s.nom) return;
+    if (!byName[s.nom]) byName[s.nom] = { hasAdmis: false, hasEcarte: false, hasReportee: false, hasAnnule: false };
+    if (isAdmisDecision(s.decisionCommission)) byName[s.nom].hasAdmis = true;
+    if (isEcarteDecision(s.decisionCommission)) byName[s.nom].hasEcarte = true;
+    if (isReporteeDecision(s.decisionCommission)) byName[s.nom].hasReportee = true;
+    if (isAnnuleDecision(s.decisionCommission)) byName[s.nom].hasAnnule = true;
+  });
+  let admis = 0, ecarts = 0, enAttente = 0, reportee = 0, annule = 0;
+  Object.values(byName).forEach(v => {
+    if (v.hasAdmis) admis++;
+    else if (v.hasEcarte) ecarts++;
+    else if (v.hasReportee) reportee++;
+    else if (v.hasAnnule) annule++;
+    else enAttente++;
+  });
+  return { admis, ecarts, enAttente, reportee, annule };
+};
+
 const fmtM = (n: number) => {
   if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + ' MDH';
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + ' MDH';
@@ -1629,19 +1672,22 @@ export default function Dashboard() {
 
               {/* KPI Cards */}
               {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 && (() => {
-                const totalAdmis = Object.values(soumissionnaireData.projets).reduce((sum, sp) =>
-                  sum + sp.soumissionnaires.filter(s => s.nom && s.decisionCommission === 'Admis').length, 0);
-                const totalEcartes = Object.values(soumissionnaireData.projets).reduce((sum, sp) =>
-                  sum + sp.soumissionnaires.filter(s => s.nom && s.decisionCommission && s.decisionCommission !== 'Admis' && s.decisionCommission !== '').length, 0);
-                const totalEnAttente = soumissionnaireData.totalSoumissionnaires - totalAdmis - totalEcartes;
-                const admisRate = soumissionnaireData.totalSoumissionnaires > 0 ? Math.round(totalAdmis / soumissionnaireData.totalSoumissionnaires * 100) : 0;
+                // Aggregate per-project unique soumissionnaire counts
+                const perProject = Object.values(soumissionnaireData.projets).map(sp => countUniqueByDecision(sp.soumissionnaires));
+                const totalAdmis = perProject.reduce((s, c) => s + c.admis, 0);
+                const totalEcartes = perProject.reduce((s, c) => s + c.ecarts, 0);
+                const totalEnAttente = perProject.reduce((s, c) => s + c.enAttente, 0);
+                const totalReportee = perProject.reduce((s, c) => s + c.reportee, 0);
+                const totalAnnule = perProject.reduce((s, c) => s + c.annule, 0);
+                const totalUniques = soumissionnaireData.totalSoumissionnaires;
+                const admisRate = totalUniques > 0 ? Math.round(totalAdmis / totalUniques * 100) : 0;
 
                 return (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #6366f1' }}>
                       <CardContent className="p-4 text-center">
                         <Users className="w-6 h-6 text-indigo-500 mx-auto mb-1" />
-                        <p className="text-2xl font-bold text-indigo-700">{soumissionnaireData.totalSoumissionnaires}</p>
+                        <p className="text-2xl font-bold text-indigo-700">{totalUniques}</p>
                         <p className="text-[10px] text-slate-500 uppercase tracking-wider">Soumissionnaires</p>
                       </CardContent>
                     </Card>
@@ -1693,8 +1739,7 @@ export default function Dashboard() {
                           {Object.entries(soumissionnaireData.projets)
                             .sort(([,a],[,b]) => b.nbSoumissionnairesUniques - a.nbSoumissionnairesUniques)
                             .map(([key, sp]) => {
-                            const admis = sp.soumissionnaires.filter(s => s.nom && s.decisionCommission === 'Admis').length;
-                            const ecarts = sp.soumissionnaires.filter(s => s.nom && s.decisionCommission && s.decisionCommission !== 'Admis' && s.decisionCommission !== '').length;
+                            const { admis, ecarts, enAttente: enAtt, reportee: rep, annule: ann } = countUniqueByDecision(sp.soumissionnaires);
                             const taux = sp.nbSoumissionnairesUniques > 0 ? Math.round(admis / sp.nbSoumissionnairesUniques * 100) : 0;
                             // Séances uniques
                             const seances = [...new Set(sp.soumissionnaires.map(s => s.seance))].filter(Boolean);
@@ -4167,9 +4212,7 @@ export default function Dashboard() {
           <div className="overflow-y-auto p-6 space-y-6" style={{ height: 'calc(100vh - 120px)' }}>
             {/* KPI summary for this project */}
             {(() => {
-              const admis = selectedSoumProjet.soumissionnaires.filter(s => s.nom && s.decisionCommission === 'Admis').length;
-              const ecarts = selectedSoumProjet.soumissionnaires.filter(s => s.nom && s.decisionCommission && s.decisionCommission !== 'Admis' && s.decisionCommission !== '').length;
-              const enAttente = selectedSoumProjet.nbSoumissionnairesUniques - admis - ecarts;
+              const { admis, ecarts, enAttente, reportee: nbReportee, annule: nbAnnule } = countUniqueByDecision(selectedSoumProjet.soumissionnaires);
               const tauxAdm = selectedSoumProjet.nbSoumissionnairesUniques > 0 ? Math.round(admis / selectedSoumProjet.nbSoumissionnairesUniques * 100) : 0;
               // Séances uniques
               const seancesUniques = [...new Set(selectedSoumProjet.soumissionnaires.map(s => s.seance))].filter(Boolean);
@@ -4229,8 +4272,8 @@ export default function Dashboard() {
                     <div className="flex flex-wrap gap-2">
                       {uniqueNoms.map(nom => {
                         const entries = selectedSoumProjet.soumissionnaires.filter(s => s.nom === nom);
-                        const isAdmis = entries.some(e => e.decisionCommission === 'Admis');
-                        const isEcarte = entries.some(e => e.decisionCommission && e.decisionCommission !== 'Admis' && e.decisionCommission !== '' && !e.decisionCommission.includes('reportée'));
+                        const isAdmis = entries.some(e => isAdmisDecision(e.decisionCommission));
+                        const isEcarte = entries.some(e => isEcarteDecision(e.decisionCommission));
                         const nbSeances = entries.length;
                         return (
                           <div key={nom} className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200
@@ -4284,12 +4327,14 @@ export default function Dashboard() {
                           <td className="px-5 py-3 text-slate-700 font-medium">{s.president}</td>
                           <td className="px-5 py-3 font-bold text-slate-900">{s.nom || '—'}</td>
                           <td className="px-5 py-3">
-                            {s.decisionCommission === 'Admis' ? (
-                              <Badge className="bg-green-100 text-green-700 border-0 text-xs gap-1"><UserCheck className="w-3 h-3" /> Admis</Badge>
-                            ) : s.decisionCommission && s.decisionCommission.includes('Ecarté') ? (
-                              <Badge className="bg-red-100 text-red-700 border-0 text-xs gap-1"><UserX className="w-3 h-3" /> Ecarté</Badge>
-                            ) : s.decisionCommission && s.decisionCommission.includes('reportée') ? (
+                            {isAdmisDecision(s.decisionCommission) ? (
+                              <Badge className="bg-green-100 text-green-700 border-0 text-xs gap-1"><UserCheck className="w-3 h-3" /> {s.decisionCommission}</Badge>
+                            ) : isEcarteDecision(s.decisionCommission) ? (
+                              <Badge className="bg-red-100 text-red-700 border-0 text-xs gap-1"><UserX className="w-3 h-3" /> {s.decisionCommission}</Badge>
+                            ) : isReporteeDecision(s.decisionCommission) ? (
                               <Badge className="bg-amber-100 text-amber-700 border-0 text-xs gap-1"><Clock className="w-3 h-3" /> Reportée</Badge>
+                            ) : isAnnuleDecision(s.decisionCommission) ? (
+                              <Badge className="bg-slate-200 text-slate-700 border-0 text-xs gap-1"><XCircle className="w-3 h-3" /> {s.decisionCommission}</Badge>
                             ) : (
                               <span className="text-slate-500 text-xs">{s.decisionCommission || '—'}</span>
                             )}

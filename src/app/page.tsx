@@ -3383,49 +3383,7 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
 
-                {/* Ouv -> Eng */}
-                <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #3b82f6' }}>
-                  <CardHeader className="pb-2 pt-4 px-5">
-                    <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center shadow-sm"><ArrowLeftRight className="w-4 h-4 text-white" /></span>
-                      Délai Ouverture → Engagement
-                      <Badge className="text-[9px] bg-blue-100 text-blue-700 border-blue-200 border ml-auto">{withOuvEng.length} AO</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-5 pb-4">
-                    <div className="text-center mb-3">
-                      <p className="text-3xl font-bold text-blue-600">{avgOuvEng} <span className="text-sm text-slate-500">jours</span></p>
-                      <p className="text-[10px] text-slate-400">Délai moyen</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-center">
-                      <div className="bg-blue-50 rounded-lg p-2">
-                        <p className="text-[9px] text-slate-500">Min</p>
-                        <p className="text-sm font-bold text-blue-700">{minOuvEng}j</p>
-                      </div>
-                      <div className="bg-blue-50 rounded-lg p-2">
-                        <p className="text-[9px] text-slate-500">Max</p>
-                        <p className="text-sm font-bold text-blue-700">{maxOuvEng}j</p>
-                      </div>
-                    </div>
-                    {/* Distribution */}
-                    {bucketChartOE.length > 0 && (
-                      <div className="mt-3 pt-2 border-t border-slate-100 space-y-1">
-                        <p className="text-[9px] text-slate-400 uppercase tracking-wider font-medium">Distribution</p>
-                        {bucketChartOE.map(b => (
-                          <div key={b.label} className="flex items-center gap-2 text-[9px]">
-                            <span className="w-16 text-slate-500 text-right">{b.label}</span>
-                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bg-blue-400" style={{ width: `${withOuvEng.length > 0 ? (b.count / withOuvEng.length) * 100 : 0}%` }} />
-                            </div>
-                            <span className="w-6 text-slate-700 font-bold">{b.count}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Juge -> Eng */}
+                {/* Juge -> Eng (2nd étape chronologique) */}
                 <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #16a34a' }}>
                   <CardHeader className="pb-2 pt-4 px-5">
                     <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
@@ -3466,6 +3424,48 @@ export default function Dashboard() {
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Ouv -> Eng (3ème étape chronologique — délai global) */}
+                <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #3b82f6' }}>
+                  <CardHeader className="pb-2 pt-4 px-5">
+                    <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center shadow-sm"><ArrowLeftRight className="w-4 h-4 text-white" /></span>
+                      Délai Ouverture → Engagement
+                      <Badge className="text-[9px] bg-blue-100 text-blue-700 border-blue-200 border ml-auto">{withOuvEng.length} AO</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-5 pb-4">
+                    <div className="text-center mb-3">
+                      <p className="text-3xl font-bold text-blue-600">{avgOuvEng} <span className="text-sm text-slate-500">jours</span></p>
+                      <p className="text-[10px] text-slate-400">Délai moyen</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-center">
+                      <div className="bg-blue-50 rounded-lg p-2">
+                        <p className="text-[9px] text-slate-500">Min</p>
+                        <p className="text-sm font-bold text-blue-700">{minOuvEng}j</p>
+                      </div>
+                      <div className="bg-blue-50 rounded-lg p-2">
+                        <p className="text-[9px] text-slate-500">Max</p>
+                        <p className="text-sm font-bold text-blue-700">{maxOuvEng}j</p>
+                      </div>
+                    </div>
+                    {/* Distribution */}
+                    {bucketChartOE.length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-slate-100 space-y-1">
+                        <p className="text-[9px] text-slate-400 uppercase tracking-wider font-medium">Distribution</p>
+                        {bucketChartOE.map(b => (
+                          <div key={b.label} className="flex items-center gap-2 text-[9px]">
+                            <span className="w-16 text-slate-500 text-right">{b.label}</span>
+                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-blue-400" style={{ width: `${withOuvEng.length > 0 ? (b.count / withOuvEng.length) * 100 : 0}%` }} />
+                            </div>
+                            <span className="w-6 text-slate-700 font-bold">{b.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Bar Charts for Distribution */}
@@ -3490,24 +3490,6 @@ export default function Dashboard() {
                 </Card>
                 <Card className="border-0 shadow-md">
                   <CardHeader className="pb-2 pt-4 px-5">
-                    <CardTitle className="text-xs font-semibold text-slate-700">Distribution Ouv. → Engagé (jours)</CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-2 pb-4">
-                    <div className="h-48">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={bucketChartOE} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                          <XAxis dataKey="label" tick={{ fontSize: 9 }} />
-                          <YAxis tick={{ fontSize: 9 }} allowDecimals={false} />
-                          <Tooltip contentStyle={{ fontSize: 10 }} />
-                          <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Nb AO" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="border-0 shadow-md">
-                  <CardHeader className="pb-2 pt-4 px-5">
                     <CardTitle className="text-xs font-semibold text-slate-700">Distribution Jugé → Engagé (jours)</CardTitle>
                   </CardHeader>
                   <CardContent className="px-2 pb-4">
@@ -3519,6 +3501,24 @@ export default function Dashboard() {
                           <YAxis tick={{ fontSize: 9 }} allowDecimals={false} />
                           <Tooltip contentStyle={{ fontSize: 10 }} />
                           <Bar dataKey="count" fill="#16a34a" radius={[4, 4, 0, 0]} name="Nb AO" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-0 shadow-md">
+                  <CardHeader className="pb-2 pt-4 px-5">
+                    <CardTitle className="text-xs font-semibold text-slate-700">Distribution Ouv. → Engagé (jours)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-2 pb-4">
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={bucketChartOE} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                          <XAxis dataKey="label" tick={{ fontSize: 9 }} />
+                          <YAxis tick={{ fontSize: 9 }} allowDecimals={false} />
+                          <Tooltip contentStyle={{ fontSize: 10 }} />
+                          <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Nb AO" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>

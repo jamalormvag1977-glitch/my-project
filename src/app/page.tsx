@@ -3839,6 +3839,11 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 uppercase tracking-wider">
                       <th className="px-3 py-2.5 text-left">Entité</th>
                       <th className="px-3 py-2.5 text-center">Nb AO</th>
+                      <th className="px-3 py-2.5 text-center text-blue-500">Ouvert</th>
+                      <th className="px-3 py-2.5 text-center text-amber-500">Jugé</th>
+                      <th className="px-3 py-2.5 text-center text-green-500">Engagé</th>
+                      <th className="px-3 py-2.5 text-center text-red-500">Infruct.</th>
+                      <th className="px-3 py-2.5 text-center text-slate-400">Annulé</th>
                       <th className="px-3 py-2.5 text-right">CP (MDH)</th>
                       <th className="px-3 py-2.5 text-right">CE (MDH)</th>
                       <th className="px-3 py-2.5 text-right">Estimation (MDH)</th>
@@ -3850,11 +3855,17 @@ export default function Dashboard() {
                   </thead>
                   <tbody>
                     {Object.entries(filteredEntityBudget).sort(([,a],[,b]) => b.estimation - a.estimation).map(([name, d]) => {
-                      const engCP = filtered.filter(p => p.entite === name).reduce((s, p) => s + (p.engagementCP || 0), 0);
-                      const engCE = filtered.filter(p => p.entite === name).reduce((s, p) => s + (p.engagementCE || 0), 0);
+                      const entityProjects = filtered.filter(p => p.entite === name);
+                      const engCP = entityProjects.reduce((s, p) => s + (p.engagementCP || 0), 0);
+                      const engCE = entityProjects.reduce((s, p) => s + (p.engagementCE || 0), 0);
                       const engTotal = d.engagement;
                       const rate = d.estimation > 0 ? Math.round((engTotal / d.estimation) * 100) : 0;
                       const accentColor = entityColorMap[name] || '#3b82f6';
+                      const nbOuvert = entityProjects.filter(p => p.situationAvancement === 'Ouvert').length;
+                      const nbJuge = entityProjects.filter(p => p.situationAvancement === 'Jugé' || p.situationAvancement === 'En cours de jugement').length;
+                      const nbEngage = entityProjects.filter(p => p.situationAvancement === 'Engagé').length;
+                      const nbInfructueux = entityProjects.filter(p => p.situationAvancement === 'Infructueux').length;
+                      const nbAnnule = entityProjects.filter(p => p.situationAvancement === 'Annulé').length;
                       return (
                         <tr key={name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                           <td className="px-3 py-2.5">
@@ -3864,6 +3875,11 @@ export default function Dashboard() {
                             </div>
                           </td>
                           <td className="px-3 py-2.5 text-center font-bold text-slate-800">{d.count}</td>
+                          <td className="px-3 py-2.5 text-center">{nbOuvert > 0 ? <Badge className="bg-blue-100 text-blue-700 border-0 text-[10px]">{nbOuvert}</Badge> : <span className="text-slate-300">—</span>}</td>
+                          <td className="px-3 py-2.5 text-center">{nbJuge > 0 ? <Badge className="bg-amber-100 text-amber-700 border-0 text-[10px]">{nbJuge}</Badge> : <span className="text-slate-300">—</span>}</td>
+                          <td className="px-3 py-2.5 text-center">{nbEngage > 0 ? <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">{nbEngage}</Badge> : <span className="text-slate-300">—</span>}</td>
+                          <td className="px-3 py-2.5 text-center">{nbInfructueux > 0 ? <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">{nbInfructueux}</Badge> : <span className="text-slate-300">—</span>}</td>
+                          <td className="px-3 py-2.5 text-center">{nbAnnule > 0 ? <Badge className="bg-slate-200 text-slate-600 border-0 text-[10px]">{nbAnnule}</Badge> : <span className="text-slate-300">—</span>}</td>
                           <td className="px-3 py-2.5 text-right text-blue-600">{fmtMDH(d.cp)}</td>
                           <td className="px-3 py-2.5 text-right text-cyan-600">{fmtMDH(d.ce)}</td>
                           <td className="px-3 py-2.5 text-right text-amber-600">{fmtMDH(d.estimation)}</td>
@@ -3886,6 +3902,11 @@ export default function Dashboard() {
                     <tr className="bg-slate-50 font-semibold">
                       <td className="px-3 py-2.5 text-slate-800">Total</td>
                       <td className="px-3 py-2.5 text-center text-slate-800">{filteredKpis.totalProjects}</td>
+                      <td className="px-3 py-2.5 text-center"><Badge className="bg-blue-100 text-blue-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Ouvert').length}</Badge></td>
+                      <td className="px-3 py-2.5 text-center"><Badge className="bg-amber-100 text-amber-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Jugé' || p.situationAvancement === 'En cours de jugement').length}</Badge></td>
+                      <td className="px-3 py-2.5 text-center"><Badge className="bg-green-100 text-green-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Engagé').length}</Badge></td>
+                      <td className="px-3 py-2.5 text-center"><Badge className="bg-red-100 text-red-700 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Infructueux').length}</Badge></td>
+                      <td className="px-3 py-2.5 text-center"><Badge className="bg-slate-200 text-slate-600 border-0 text-[10px]">{filtered.filter(p => p.situationAvancement === 'Annulé').length}</Badge></td>
                       <td className="px-3 py-2.5 text-right text-blue-700">{fmtMDH(filteredKpis.totalCP)}</td>
                       <td className="px-3 py-2.5 text-right text-cyan-700">{fmtMDH(filteredKpis.totalCE)}</td>
                       <td className="px-3 py-2.5 text-right text-amber-700">{fmtMDH(filteredKpis.totalEstimation)}</td>

@@ -3815,17 +3815,25 @@ export default function Dashboard() {
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {[
-              { label: 'CP', value: filteredKpis.totalCP / 1_000_000, color: '#3b82f6', icon: '💰' },
-              { label: 'CE', value: filteredKpis.totalCE / 1_000_000, color: '#06b6d4', icon: '🏦' },
-              { label: 'Estimation', value: filteredKpis.totalEstimation / 1_000_000, color: '#d97706', icon: '📊' },
-              { label: 'Engagement CP', value: filteredKpis.totalEngagementCP / 1_000_000, color: '#7c3aed', icon: '📝' },
-              { label: 'Engagement CE', value: filteredKpis.totalEngagementCE / 1_000_000, color: '#0891b2', icon: '📋' },
-              { label: 'Engagement Total', value: filteredKpis.totalEngagement / 1_000_000, color: '#16a34a', icon: '✅' },
+              { label: 'CP', value: filteredKpis.totalCP / 1_000_000, color: '#3b82f6', icon: '💰', rate: null },
+              { label: 'CE', value: filteredKpis.totalCE / 1_000_000, color: '#06b6d4', icon: '🏦', rate: null },
+              { label: 'Estimation', value: filteredKpis.totalEstimation / 1_000_000, color: '#d97706', icon: '📊', rate: null },
+              { label: 'Engagement CP', value: filteredKpis.totalEngagementCP / 1_000_000, color: '#7c3aed', icon: '📝', rate: filteredKpis.totalCP > 0 ? Math.round((filteredKpis.totalEngagementCP / filteredKpis.totalCP) * 100) : 0, rateLabel: 'Eng/CP' },
+              { label: 'Engagement CE', value: filteredKpis.totalEngagementCE / 1_000_000, color: '#0891b2', icon: '📋', rate: filteredKpis.totalCE > 0 ? Math.round((filteredKpis.totalEngagementCE / filteredKpis.totalCE) * 100) : 0, rateLabel: 'Eng/CE' },
+              { label: 'Engagement Total', value: filteredKpis.totalEngagement / 1_000_000, color: '#16a34a', icon: '✅', rate: filteredKpis.totalEstimation > 0 ? Math.round((filteredKpis.totalEngagement / filteredKpis.totalEstimation) * 100) : 0, rateLabel: 'Eng/Estim' },
             ].map(item => (
               <Card key={item.label} className="border-0 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden" style={{ borderTop: `3px solid ${item.color}` }}>
                 <CardContent className="p-4 text-center space-y-1">
                   <p className="text-[9px] text-slate-400 uppercase tracking-wider font-medium">{item.label}</p>
                   <p className="text-lg font-bold text-slate-800">{item.value.toFixed(2)} <span className="text-xs text-slate-500">MDH</span></p>
+                  {item.rate !== null && (
+                    <div className="mt-1 space-y-1">
+                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, item.rate)}%`, backgroundColor: item.rate >= 50 ? '#16a34a' : item.rate >= 25 ? '#d97706' : '#dc2626' }} />
+                      </div>
+                      <p className="text-[10px] font-bold" style={{ color: item.rate >= 50 ? '#16a34a' : item.rate >= 25 ? '#d97706' : '#dc2626' }}>{item.rateLabel}: {item.rate}%</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

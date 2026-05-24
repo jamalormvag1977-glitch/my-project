@@ -463,6 +463,10 @@ export default function Dashboard() {
   const [filterEntity, setFilterEntity] = useState('all');
   const [filterNature, setFilterNature] = useState('all');
   const [filterType, setFilterType] = useState('all');
+  const [filterProgramme, setFilterProgramme] = useState('all');
+  const [filterProjet, setFilterProjet] = useState('all');
+  const [filterSource, setFilterSource] = useState('all');
+  const [filterAttributaire, setFilterAttributaire] = useState('all');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [fileChanged, setFileChanged] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
@@ -664,7 +668,7 @@ export default function Dashboard() {
   // Reset expanded when filters change
   useEffect(() => {
     setExpandedRow(null);
-  }, [filterStatus, filterEntity, filterNature, filterType, searchTerm]);
+  }, [filterStatus, filterEntity, filterNature, filterType, filterProgramme, filterProjet, filterSource, filterAttributaire, searchTerm]);
 
   /* ── exportToExcel - MUST be before early return (Rules of Hooks) ── */
   const exportToExcel = useCallback(() => {
@@ -785,12 +789,20 @@ export default function Dashboard() {
     const matchEntity = filterEntity === 'all' || p.entite === filterEntity;
     const matchNature = filterNature === 'all' || p.natureBudget === filterNature;
     const matchType = filterType === 'all' || p.typeBudget === filterType;
-    return matchSearch && matchStatus && matchEntity && matchNature && matchType;
+    const matchProgramme = filterProgramme === 'all' || p.programme === filterProgramme;
+    const matchProjet = filterProjet === 'all' || p.projet === filterProjet;
+    const matchSource = filterSource === 'all' || p.sourceFinancement === filterSource;
+    const matchAttributaire = filterAttributaire === 'all' || p.attributaire === filterAttributaire;
+    return matchSearch && matchStatus && matchEntity && matchNature && matchType && matchProgramme && matchProjet && matchSource && matchAttributaire;
   });
 
   const entities = [...new Set(projects.map(p => p.entite))].sort();
   const natures = [...new Set(projects.map(p => p.natureBudget))].sort();
   const types = [...new Set(projects.map(p => p.typeBudget))].sort();
+  const programmes = [...new Set(projects.map(p => p.programme).filter(Boolean))].sort();
+  const projets = [...new Set(projects.map(p => p.projet).filter(Boolean))].sort();
+  const sources = [...new Set(projects.map(p => p.sourceFinancement).filter(Boolean))].sort();
+  const attributaires = [...new Set(projects.map(p => p.attributaire).filter(Boolean))].sort();
   const statuses = [...new Set(projects.map(p => p.situationAvancement))].sort((a, b) => {
     const aIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === a);
     const bIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === b);
@@ -963,8 +975,8 @@ export default function Dashboard() {
   const timelineEngagements = timelineData.map(d => d.engagement);
   const timelineCounts = timelineData.map(d => d.count);
 
-  const hasActiveFilters = filterStatus !== 'all' || filterEntity !== 'all' || filterNature !== 'all' || filterType !== 'all';
-  const clearAllFilters = () => { setFilterStatus('all'); setFilterEntity('all'); setFilterNature('all'); setFilterType('all'); setSearchTerm(''); };
+  const hasActiveFilters = filterStatus !== 'all' || filterEntity !== 'all' || filterNature !== 'all' || filterType !== 'all' || filterProgramme !== 'all' || filterProjet !== 'all' || filterSource !== 'all' || filterAttributaire !== 'all';
+  const clearAllFilters = () => { setFilterStatus('all'); setFilterEntity('all'); setFilterNature('all'); setFilterType('all'); setFilterProgramme('all'); setFilterProjet('all'); setFilterSource('all'); setFilterAttributaire('all'); setSearchTerm(''); };
 
   const engagedCount = filteredStatusCount['Engagé'] || 0;
   const judgedCount = filteredStatusCount['Jugé'] || 0;
@@ -1204,6 +1216,22 @@ export default function Dashboard() {
                   <Select value={filterType} onValueChange={setFilterType}>
                     <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Type" /></SelectTrigger>
                     <SelectContent>{types.map(t => <SelectItem key={t} value={t} className="text-[10px]">{t}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous types</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterProgramme} onValueChange={setFilterProgramme}>
+                    <SelectTrigger className="h-7 text-[10px] w-[120px] bg-white border-slate-200"><SelectValue placeholder="Programme" /></SelectTrigger>
+                    <SelectContent>{programmes.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous programmes</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterProjet} onValueChange={setFilterProjet}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
+                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous projets</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterSource} onValueChange={setFilterSource}>
+                    <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Source financement" /></SelectTrigger>
+                    <SelectContent>{sources.map(s => <SelectItem key={s} value={s} className="text-[10px]">{s}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Toutes sources</SelectItem></SelectContent>
+                  </Select>
+                  <Select value={filterAttributaire} onValueChange={setFilterAttributaire}>
+                    <SelectTrigger className="h-7 text-[10px] w-[160px] bg-white border-slate-200"><SelectValue placeholder="Attributaire" /></SelectTrigger>
+                    <SelectContent>{attributaires.map(a => <SelectItem key={a} value={a} className="text-[10px]">{a}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous attributaires</SelectItem></SelectContent>
                   </Select>
                   {hasActiveFilters && (
                     <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-[10px] text-red-500 hover:text-red-700 hover:bg-red-50 gap-1">

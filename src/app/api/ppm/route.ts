@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { put, head, list, del } from '@vercel/blob';
 import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -266,22 +267,51 @@ type PPMResponse = {
   entityEngagementRate: unknown;
 };
 
-/* ── GET: Load data ── */
+/* ── GET: Load data (Vercel Blob → Excel → static JSON → DB) ── */
 export async function GET() {
   try {
-    // First try: read directly from Excel files (works locally and on Vercel if files are accessible)
+    // Priority 1: Try loading from Vercel Blob (persisted upload)
+    try {
+      const blobs = await list({ prefix: 'ppm-' });
+      if (blobs.blobs.length > 0) {
+        // Get the most recent blob
+        const latestBlob = blobs.blobs.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
+        const response = await fetch(latestBlob.url);
+        if (response.ok) {
+          const arrayBuffer = await response.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          const projects = parseExcelBuffer(buffer);
+          const analytics = computeAnalytics(projects);
+          const checksum = crypto.createHash('md5').update(buffer).digest('hex');
+          return NextResponse.json({
+            lastUpdated: latestBlob.uploadedAt,
+            fileChecksum: checksum,
+            fileName: latestBlob.pathname.replace('ppm-', ''),
+            fileSize: latestBlob.size,
+            blobUrl: latestBlob.url,
+            dataSaved: true,
+            projects,
+            ...analytics,
+          });
+        }
+      }
+    } catch (blobErr) {
+      console.warn('Vercel Blob read failed (may not be configured):', (blobErr as Error).message);
+    }
+
+    // Priority 2: read directly from local Excel files
     const excelResponse = buildResponseFromExcel();
     if (excelResponse) {
       return NextResponse.json(excelResponse);
     }
 
-    // Second try: read from pre-built static JSON (works on Vercel where fs may not find public/)
+    // Priority 3: read from pre-built static JSON
     const staticResponse = readStaticJson();
     if (staticResponse) {
       return NextResponse.json(staticResponse);
     }
 
-    // Fallback: try loading from DB
+    // Priority 4: try loading from DB
     const db = await getDb();
     if (!db) {
       return NextResponse.json({ error: 'Aucune donnée disponible. Veuillez uploader un fichier Excel.', noFile: true }, { status: 404 });
@@ -373,7 +403,7 @@ function parseExcelBuffer(buffer: Buffer) {
   return projects;
 }
 
-/* ── POST: Upload new Excel file ── */
+/* ── POST: Upload new Excel file to Vercel Blob ── */
 export async function POST(request: Request) {
   try {
     // Check authenticated user (admin or user)
@@ -396,42 +426,39 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Format non supporté. Utilisez .xlsx ou .xls' }, { status: 400 });
     }
 
-    // Parse Excel directly from memory buffer (works on Vercel serverless)
+    // Parse Excel directly from memory buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const projects = parseExcelBuffer(buffer);
     const analytics = computeAnalytics(projects);
     const checksum = crypto.createHash('md5').update(buffer).digest('hex');
 
-    // Try to save file to filesystem (works locally, may fail on Vercel — non-critical)
+    // Upload to Vercel Blob (persistent storage — survives serverless restarts)
+    let blobUrl = '';
     try {
-      if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-      const filePath = path.join(UPLOAD_DIR, file.name);
-      fs.writeFileSync(filePath, buffer);
-      // Also copy to public/data for local dev
-      const ppmPath = path.join(PUBLIC_DATA_DIR, 'ppm.xlsx');
-      fs.writeFileSync(ppmPath, buffer);
-    } catch (fsErr) {
-      console.warn('Could not save file to filesystem (expected on Vercel):', (fsErr as Error).message);
+      // Delete previous PPM blob files to keep only the latest
+      const existingBlobs = await list({ prefix: 'ppm-' });
+      for (const blob of existingBlobs.blobs) {
+        await del(blob.url);
+      }
+      // Upload new file with standardized name
+      const blobResult = await put(`ppm-${file.name}`, file, {
+        access: 'public',
+        contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      blobUrl = blobResult.url;
+      console.log('✅ File uploaded to Vercel Blob:', blobUrl);
+    } catch (blobErr) {
+      console.warn('⚠️ Vercel Blob upload failed (check BLOB_READ_WRITE_TOKEN):', (blobErr as Error).message);
     }
 
-    // Try to sync to DB if available
-    const db = await getDb();
-    if (db) {
-      try {
-        await db.$transaction(async (tx: any) => {
-          await tx.pPMProject.deleteMany();
-          await tx.fileMetadata.deleteMany();
-          await tx.fileMetadata.create({
-            data: { fileName: file.name, fileChecksum: checksum, fileSize: buffer.length, fileLastModified: new Date() },
-          });
-          for (const p of projects) {
-            await tx.pPMProject.create({ data: p });
-          }
-        });
-      } catch (dbErr) {
-        console.error('DB sync failed (non-critical):', dbErr);
-      }
+    // Also try to save to local filesystem (for local dev)
+    try {
+      if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+      fs.writeFileSync(path.join(UPLOAD_DIR, file.name), buffer);
+      fs.writeFileSync(path.join(PUBLIC_DATA_DIR, 'ppm.xlsx'), buffer);
+    } catch (fsErr) {
+      // Expected on Vercel serverless — non-critical
     }
 
     return NextResponse.json({
@@ -439,6 +466,7 @@ export async function POST(request: Request) {
       fileChecksum: checksum,
       fileName: file.name,
       fileSize: buffer.length,
+      blobUrl,
       dataSaved: true,
       uploadSuccess: true,
       message: `Fichier "${file.name}" chargé avec succès — ${projects.length} AO trouvés`,

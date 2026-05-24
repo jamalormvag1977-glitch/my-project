@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { put, list, del } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
 
@@ -111,8 +112,36 @@ export async function GET(request: Request) {
   const entite = searchParams.get('entite');
   const key = searchParams.get('key');
 
-  let projets = readFromExcel();
+  let projets: Record<string, any> | null = null;
 
+  // Priority 1: Try Vercel Blob
+  try {
+    const blobs = await list({ prefix: 'soumissionnaires-' });
+    if (blobs.blobs.length > 0) {
+      const latestBlob = blobs.blobs.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
+      const response = await fetch(latestBlob.url);
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const XLSX = require('xlsx');
+        const wb = XLSX.read(buffer, { type: 'buffer' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const result = processExcelData(rows);
+        projets = result.projets;
+      }
+    }
+  } catch (blobErr) {
+    console.warn('Vercel Blob read failed:', (blobErr as Error).message);
+  }
+
+  // Priority 2: local Excel
+  if (!projets) {
+    projets = readFromExcel();
+  }
+
+  // Priority 3: static JSON
   if (!projets) {
     projets = readFromStaticJson();
   }
@@ -188,28 +217,36 @@ export async function POST(request: Request) {
     // Process the data
     const { projets, totalProjets, totalSoumissionnaires } = processExcelData(rows);
 
-    // Save the Excel file and regenerate JSON (works locally, may fail on Vercel — non-critical)
+    // Upload to Vercel Blob (persistent storage)
+    let blobUrl = '';
+    try {
+      const existingBlobs = await list({ prefix: 'soumissionnaires-' });
+      for (const blob of existingBlobs.blobs) {
+        await del(blob.url);
+      }
+      const blobResult = await put(`soumissionnaires-${file.name}`, file, {
+        access: 'public',
+        contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      blobUrl = blobResult.url;
+    } catch (blobErr) {
+      console.warn('Vercel Blob upload failed:', (blobErr as Error).message);
+    }
+
+    // Save locally (for local dev — non-critical on Vercel)
     try {
       const excelPath = path.join(process.cwd(), 'public', 'data', 'soumissionnaires.xlsx');
       fs.writeFileSync(excelPath, buffer);
-
-      // Also regenerate the static JSON
-      const jsonData = {
-        lastUpdated: new Date().toISOString(),
-        fileName: file.name,
-        totalProjets,
-        totalSoumissionnaires,
-        projets
-      };
-      const jsonPath = path.join(process.cwd(), 'public', 'data', 'soumissionnaires.json');
-      fs.writeFileSync(jsonPath, JSON.stringify(jsonData, null, 2), 'utf8');
+      const jsonData = { lastUpdated: new Date().toISOString(), fileName: file.name, totalProjets, totalSoumissionnaires, projets };
+      fs.writeFileSync(path.join(process.cwd(), 'public', 'data', 'soumissionnaires.json'), JSON.stringify(jsonData, null, 2), 'utf8');
     } catch (fsErr) {
-      console.warn('Could not save files to filesystem (expected on Vercel):', (fsErr as Error).message);
+      // Expected on Vercel — non-critical
     }
 
     return NextResponse.json({
       success: true,
       uploadSuccess: true,
+      blobUrl,
       message: `Fichier "${file.name}" traité avec succès : ${totalProjets} AO, ${totalSoumissionnaires} soumissionnaires`,
       totalProjets,
       totalSoumissionnaires,

@@ -2941,7 +2941,7 @@ export default function Dashboard() {
                         <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-4 border border-blue-100">
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center"><FileText className="w-4 h-4 text-blue-600" /></div>
-                            <span className="text-[10px] font-medium text-blue-600 uppercase tracking-wide">Total Projets</span>
+                            <span className="text-[10px] font-medium text-blue-600 uppercase tracking-wide">Total AO</span>
                           </div>
                           <p className="text-2xl font-bold text-slate-900">{filteredKpis.totalProjects}</p>
                           <p className="text-[10px] text-slate-500 mt-1">{filtered.length} AO dans le PPM</p>

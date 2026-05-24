@@ -1311,7 +1311,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <h2 className="text-sm font-bold text-slate-800">Par Étape</h2>
-                      <p className="text-[10px] text-slate-500">Pipeline d&apos;avancement des marchés</p>
+                      <p className="text-[10px] text-slate-500">Pipeline d&apos;avancement des AO</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1343,7 +1343,7 @@ export default function Dashboard() {
                   </Select>
                   <Select value={filterProjet} onValueChange={setFilterProjet}>
                     <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
-                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous projets</SelectItem></SelectContent>
+                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous AO</SelectItem></SelectContent>
                   </Select>
                   <Select value={filterSource} onValueChange={setFilterSource}>
                     <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Source financement" /></SelectTrigger>
@@ -1358,7 +1358,7 @@ export default function Dashboard() {
                       <X className="w-3 h-3" />Réinitialiser
                     </Button>
                   )}
-                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
+                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} AO</span>
                 </div>
               </div>
             </div>
@@ -1415,7 +1415,7 @@ export default function Dashboard() {
                           <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: statusColor[status] || '#6b7280' }}>{statusIcon[status]}</div>
                           <div>
                             <h3 className="text-sm font-semibold text-slate-800">{status}</h3>
-                            <p className="text-[10px] text-slate-500">{count} projets · Estim: {fmtM(filteredStatusBudget[status]?.estimation || 0)} · Engagé: {fmtM(filteredStatusBudget[status]?.engagement || 0)}</p>
+                            <p className="text-[10px] text-slate-500">{count} AO · Estim: {fmtM(filteredStatusBudget[status]?.estimation || 0)} · Engagé: {fmtM(filteredStatusBudget[status]?.engagement || 0)}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -1488,7 +1488,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <h2 className="text-sm font-bold text-slate-800">Par Entité</h2>
-                      <p className="text-[10px] text-slate-500">Détail des marchés par entité</p>
+                      <p className="text-[10px] text-slate-500">Détail des AO par entité</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1520,7 +1520,7 @@ export default function Dashboard() {
                   </Select>
                   <Select value={filterProjet} onValueChange={setFilterProjet}>
                     <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
-                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous projets</SelectItem></SelectContent>
+                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous AO</SelectItem></SelectContent>
                   </Select>
                   <Select value={filterSource} onValueChange={setFilterSource}>
                     <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Source financement" /></SelectTrigger>
@@ -1535,7 +1535,7 @@ export default function Dashboard() {
                       <X className="w-3 h-3" />Réinitialiser
                     </Button>
                   )}
-                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
+                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} AO</span>
                 </div>
               </div>
             </div>
@@ -1555,7 +1555,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <h3 className="text-sm font-semibold text-slate-800">{entity}</h3>
-                          <p className="text-[10px] text-slate-500">{d.count} projets · Estim: {fmtM(d.estimation)} · Engagé: {fmtM(d.engagement)} · Taux: {engRate}%</p>
+                          <p className="text-[10px] text-slate-500">{d.count} AO · Estim: {fmtM(d.estimation)} · Engagé: {fmtM(d.engagement)} · Taux: {engRate}%</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1663,7 +1663,7 @@ export default function Dashboard() {
                   </Select>
                   <Select value={filterProjet} onValueChange={setFilterProjet}>
                     <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
-                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous projets</SelectItem></SelectContent>
+                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous AO</SelectItem></SelectContent>
                   </Select>
                   <Select value={filterSource} onValueChange={setFilterSource}>
                     <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Source financement" /></SelectTrigger>
@@ -1678,7 +1678,7 @@ export default function Dashboard() {
                       <X className="w-3 h-3" />Réinitialiser
                     </Button>
                   )}
-                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
+                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} AO</span>
                 </div>
               </div>
             </div>
@@ -1945,7 +1945,7 @@ export default function Dashboard() {
                     </Select>
                     <Select value={filterProjet} onValueChange={setFilterProjet}>
                       <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
-                      <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous projets</SelectItem></SelectContent>
+                      <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous AO</SelectItem></SelectContent>
                     </Select>
                     <Select value={filterSource} onValueChange={setFilterSource}>
                       <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Source financement" /></SelectTrigger>
@@ -2220,7 +2220,7 @@ export default function Dashboard() {
             <div className="print:hidden flex items-center justify-between bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-3 mt-6">
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <Eye className="w-4 h-4" />
-                <span>{filtered.length} projets · {reportTypes.find(r => r.key === reportType)?.label}</span>
+                <span>{filtered.length} AO · {reportTypes.find(r => r.key === reportType)?.label}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Button onClick={() => setSidebarTab('dashboard')} variant="outline" className="h-8 text-xs gap-1.5 border-slate-200 hover:bg-slate-50">
@@ -2296,7 +2296,7 @@ export default function Dashboard() {
                   </Select>
                   <Select value={filterProjet} onValueChange={setFilterProjet}>
                     <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
-                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous projets</SelectItem></SelectContent>
+                    <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous AO</SelectItem></SelectContent>
                   </Select>
                   <Select value={filterSource} onValueChange={setFilterSource}>
                     <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Source financement" /></SelectTrigger>
@@ -2311,7 +2311,7 @@ export default function Dashboard() {
                       <X className="w-3 h-3" />Réinitialiser
                     </Button>
                   )}
-                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
+                  <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} AO</span>
                 </div>
               </div>
             </div>
@@ -2370,7 +2370,7 @@ export default function Dashboard() {
                         </div>
                         <div className="text-right text-xs text-slate-400">
                           <p>{new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-                          <p>{filtered.length} projets analysés</p>
+                          <p>{filtered.length} AO analysés</p>
                         </div>
                       </div>
                     </div>
@@ -2384,7 +2384,7 @@ export default function Dashboard() {
                             <span className="text-[10px] font-medium text-blue-600 uppercase tracking-wide">Total Projets</span>
                           </div>
                           <p className="text-2xl font-bold text-slate-900">{filteredKpis.totalProjects}</p>
-                          <p className="text-[10px] text-slate-500 mt-1">{filtered.length} marchés dans le PPM</p>
+                          <p className="text-[10px] text-slate-500 mt-1">{filtered.length} AO dans le PPM</p>
                         </div>
                         <div className="bg-gradient-to-br from-violet-50 to-violet-100/50 rounded-xl p-4 border border-violet-100">
                           <div className="flex items-center gap-2 mb-2">
@@ -2489,7 +2489,7 @@ export default function Dashboard() {
                               <Cell key={i} fill={statusColor[entry.name] || CHART_COLORS[i % CHART_COLORS.length]} />
                             ))}
                           </Pie>
-                          <Tooltip formatter={(v: number) => [`${v} projets`, '']} contentStyle={{ fontSize: 11, borderRadius: 10 }} />
+                          <Tooltip formatter={(v: number) => [`${v} AO`, '']} contentStyle={{ fontSize: 11, borderRadius: 10 }} />
                           <Legend wrapperStyle={{ fontSize: 10 }} />
                         </PieChart>
                       </ResponsiveContainer>
@@ -2503,12 +2503,12 @@ export default function Dashboard() {
                       <h3 className="text-sm font-bold text-slate-800">Synthèse Automatique</h3>
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      Le PPM 2026 de l&apos;ORMVAG comprend <strong>{filteredKpis.totalProjects} marchés</strong> pour un budget total de <strong>{fmtMDH(filteredKpis.totalBudget)}</strong>.
+                      Le PPM 2026 de l&apos;ORMVAG comprend <strong>{filteredKpis.totalProjects} AO</strong> pour un budget total de <strong>{fmtMDH(filteredKpis.totalBudget)}</strong>.
                       L&apos;estimation administrative s&apos;élève à <strong>{fmtMDH(filteredKpis.totalEstimation)}</strong> et les engagements atteignent <strong>{fmtMDH(filteredKpis.totalEngagement)}</strong>,
                       soit un taux d&apos;engagement de <strong>{engRate}%</strong>.
-                      {filteredStatusCount['Engagé'] > 0 && ` ${filteredStatusCount['Engagé']} marchés sont engagés.`}
-                      {filteredStatusCount['Ouvert'] > 0 && ` ${filteredStatusCount['Ouvert']} marchés restent ouverts.`}
-                      {filteredStatusCount['Jugé'] > 0 && ` ${filteredStatusCount['Jugé']} marchés ont été jugés.`}
+                      {filteredStatusCount['Engagé'] > 0 && ` ${filteredStatusCount['Engagé']} AO sont engagés.`}
+                      {filteredStatusCount['Ouvert'] > 0 && ` ${filteredStatusCount['Ouvert']} AO restent ouverts.`}
+                      {filteredStatusCount['Jugé'] > 0 && ` ${filteredStatusCount['Jugé']} AO ont été jugés.`}
                       {totalAlertCount > 0 && ` ${totalAlertCount} point(s) d'attention nécessitent un suivi.`}
                       {engRate >= 50
                         ? ' Le taux d\'engagement est satisfaisant, supérieur à 50%.'
@@ -2538,12 +2538,12 @@ export default function Dashboard() {
                           </div>
                           <div>
                             <h2 className="text-lg font-bold text-white">Rapport par Entité</h2>
-                            <p className="text-xs text-green-200">Répartition détaillée des marchés par entité — PPM 2026</p>
+                            <p className="text-xs text-green-200">Répartition détaillée des AO par entité — PPM 2026</p>
                           </div>
                         </div>
                         <div className="text-right text-xs text-green-200">
                           <p>{entities.length} entités</p>
-                          <p>{filtered.length} marchés</p>
+                          <p>{filtered.length} AO</p>
                         </div>
                       </div>
                     </div>
@@ -2663,7 +2663,7 @@ export default function Dashboard() {
                           </div>
                           <div>
                             <h2 className="text-lg font-bold text-white">Rapport par Statut / Étape</h2>
-                            <p className="text-xs text-amber-200">Pipeline d&apos;avancement des marchés — PPM 2026</p>
+                            <p className="text-xs text-amber-200">Pipeline d&apos;avancement des AO — PPM 2026</p>
                           </div>
                         </div>
                       </div>
@@ -2758,7 +2758,7 @@ export default function Dashboard() {
                             <Cell key={i} fill={statusColor[entry.name] || CHART_COLORS[i % CHART_COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(v: number) => [`${v} projets`, '']} contentStyle={{ fontSize: 11, borderRadius: 10 }} />
+                        <Tooltip formatter={(v: number) => [`${v} AO`, '']} contentStyle={{ fontSize: 11, borderRadius: 10 }} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -3029,7 +3029,7 @@ export default function Dashboard() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-400 text-center py-4">Aucun marché jugé sans engagement</p>
+                        <p className="text-xs text-slate-400 text-center py-4">Aucun AO jugé sans engagement</p>
                       )}
                     </div>
                   </div>
@@ -3366,7 +3366,7 @@ export default function Dashboard() {
                     </Select>
                     <Select value={filterProjet} onValueChange={setFilterProjet}>
                       <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Projet" /></SelectTrigger>
-                      <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous projets</SelectItem></SelectContent>
+                      <SelectContent>{projets.map(p => <SelectItem key={p} value={p} className="text-[10px]">{p}</SelectItem>)}<SelectItem value="all" className="text-[10px]">Tous AO</SelectItem></SelectContent>
                     </Select>
                     <Select value={filterSource} onValueChange={setFilterSource}>
                       <SelectTrigger className="h-7 text-[10px] w-[140px] bg-white border-slate-200"><SelectValue placeholder="Source financement" /></SelectTrigger>
@@ -3381,7 +3381,7 @@ export default function Dashboard() {
                         <X className="w-3 h-3" />Réinitialiser
                       </Button>
                     )}
-                    <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} projets</span>
+                    <span className="text-[10px] text-slate-400 ml-auto">{filtered.length} / {projects.length} AO</span>
                   </div>
                 </div>
               </div>
@@ -3429,7 +3429,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <h3 className={`text-sm font-semibold ${cat.textColor}`}>{cat.label}</h3>
-                          <p className="text-[10px] text-slate-500">{cat.items.length} marché{cat.items.length > 1 ? 's' : ''} concerné{cat.items.length > 1 ? 's' : ''}</p>
+                          <p className="text-[10px] text-slate-500">{cat.items.length} AO{cat.items.length > 1 ? 's' : ''} concerné{cat.items.length > 1 ? 's' : ''}</p>
                         </div>
                       </div>
                       <Badge className="text-[10px] h-6 border-0 text-white" style={{ backgroundColor: cat.color }}>
@@ -3529,7 +3529,7 @@ export default function Dashboard() {
                           </div>
                           <div>
                             <p className="text-[10px] text-slate-400">Marchés détectés</p>
-                            <p className="text-xs font-medium text-slate-600">{projects.length} projets</p>
+                            <p className="text-xs font-medium text-slate-600">{projects.length} AO</p>
                           </div>
                           <div>
                             <p className="text-[10px] text-slate-400">Dernière lecture</p>
@@ -3686,7 +3686,7 @@ export default function Dashboard() {
                       <SelectValue placeholder="Projet" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous projets</SelectItem>
+                      <SelectItem value="all">Tous AO</SelectItem>
                       {projets.map(p => (
                         <SelectItem key={p} value={p}>{p} ({projects.filter(pr => pr.projet === p).length})</SelectItem>
                       ))}
@@ -3778,11 +3778,11 @@ export default function Dashboard() {
                     </>
                   )}
                   {!hasActiveFilters && !searchTerm && (
-                    <span className="text-[10px] text-slate-400">Aucun filtre actif — affichage de tous les marchés</span>
+                    <span className="text-[10px] text-slate-400">Aucun filtre actif — affichage de tous les AO</span>
                   )}
                 </div>
                 <span className="text-xs font-medium text-slate-500">
-                  {filtered.length} / {projects.length} marchés
+                  {filtered.length} / {projects.length} AO
                 </span>
               </div>
             </div>
@@ -3802,7 +3802,7 @@ export default function Dashboard() {
                 <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                   <span className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center shadow-sm"><Scale className="w-4.5 h-4.5 text-white" /></span>
                   AO Ouvert
-                  <Badge className="text-[9px] bg-blue-100 text-blue-700 border-blue-200 border ml-auto">{aoOuvertCount} marchés</Badge>
+                  <Badge className="text-[9px] bg-blue-100 text-blue-700 border-blue-200 border ml-auto">{aoOuvertCount} AO</Badge>
                 </CardTitle>
                 <p className="text-[10px] text-slate-400">En cours de jugement, Jugé, Engagé, Infructueux, Annulé</p>
               </CardHeader>
@@ -3837,7 +3837,7 @@ export default function Dashboard() {
                 <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                   <span className="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center shadow-sm"><Clock className="w-4.5 h-4.5 text-white" /></span>
                   AO Restants
-                  <Badge className="text-[9px] bg-amber-100 text-amber-700 border-amber-200 border ml-auto">{aoRestantsCount} marchés</Badge>
+                  <Badge className="text-[9px] bg-amber-100 text-amber-700 border-amber-200 border ml-auto">{aoRestantsCount} AO</Badge>
                 </CardTitle>
                 <p className="text-[10px] text-slate-400">Publié Portail, Envoyé au CE, À programmer</p>
               </CardHeader>

@@ -4101,6 +4101,48 @@ export default function Dashboard() {
                         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, tauxEngagement)}%`, backgroundColor: tauxEngagement >= 50 ? '#16a34a' : tauxEngagement >= 25 ? '#d97706' : '#dc2626' }} />
                       </div>
                     </div>
+
+                    {/* ── AO Status Progression ── */}
+                    {(() => {
+                      const entityProjects = filtered.filter(p => p.entite === name);
+                      const nbOuvert = entityProjects.filter(p => ['En cours de jugement','Jugé','Engagé','Infructueux','Annulé'].includes(p.situationAvancement)).length;
+                      const nbJuge = entityProjects.filter(p => p.situationAvancement === 'Jugé' || p.situationAvancement === 'En cours de jugement').length;
+                      const nbEngage = entityProjects.filter(p => p.situationAvancement === 'Engagé').length;
+                      const nbInfructueux = entityProjects.filter(p => p.situationAvancement === 'Infructueux').length;
+                      const nbAnnule = entityProjects.filter(p => p.situationAvancement === 'Annulé').length;
+                      const nbPublie = entityProjects.filter(p => p.situationAvancement === 'Publié sur PMP').length;
+                      const nbDaoCE = entityProjects.filter(p => p.situationAvancement === 'DAO Envoyé au CE').length;
+                      const nbProgrammer = entityProjects.filter(p => p.situationAvancement === 'A programmer').length;
+                      const total = d.count || 1;
+                      const aoStatusItems = [
+                        { label: 'Ouvert', count: nbOuvert, color: '#3b82f6', bg: 'bg-blue-100', text: 'text-blue-700' },
+                        { label: 'Jugé', count: nbJuge, color: '#d97706', bg: 'bg-amber-100', text: 'text-amber-700' },
+                        { label: 'Engagé', count: nbEngage, color: '#16a34a', bg: 'bg-green-100', text: 'text-green-700' },
+                        { label: 'Infruct.', count: nbInfructueux, color: '#dc2626', bg: 'bg-red-100', text: 'text-red-700' },
+                        { label: 'Annulé', count: nbAnnule, color: '#64748b', bg: 'bg-slate-200', text: 'text-slate-600' },
+                        { label: 'Publié PPM', count: nbPublie, color: '#7c3aed', bg: 'bg-violet-100', text: 'text-violet-700' },
+                        { label: 'DAO CE', count: nbDaoCE, color: '#0891b2', bg: 'bg-cyan-100', text: 'text-cyan-700' },
+                        { label: 'Progr.', count: nbProgrammer, color: '#6b7280', bg: 'bg-gray-100', text: 'text-gray-700' },
+                      ];
+                      return (
+                        <div className="mt-2 pt-2 border-t border-slate-100">
+                          <p className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold mb-2">Progression AO</p>
+                          <div className="space-y-1.5">
+                            {aoStatusItems.map(item => (
+                              <div key={item.label} className="space-y-0.5">
+                                <div className="flex items-center justify-between text-[10px]">
+                                  <span className="text-slate-500 font-medium">{item.label}</span>
+                                  <span className={`font-bold ${item.text}`}>{item.count} <span className="text-slate-400">({Math.round(item.count / total * 100)}%)</span></span>
+                                </div>
+                                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.round(item.count / total * 100))}%`, backgroundColor: item.color }} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
               );

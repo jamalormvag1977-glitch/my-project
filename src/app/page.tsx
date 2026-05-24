@@ -159,6 +159,15 @@ const fmtM = (n: number) => {
   return n.toLocaleString('fr-FR') + ' DH';
 };
 
+// Tooltip for AO numbers containing "ex" (e.g. "25 ex 2" = AO 25 relaunched after AO 2 was cancelled/unsuccessful)
+const exAOTitle = (numAO: string | number | null): string | undefined => {
+  if (!numAO || !String(numAO).includes('ex')) return undefined;
+  const parts = String(numAO).split('ex');
+  const newAO = parts[0].trim();
+  const refAO = parts[1]?.trim();
+  return `AO n°${newAO} relancé suite au jugement de l'AO n°${refAO} (annulé ou infructueux)`;
+};
+
 const fmtMDH = (n: number) => (n / 1_000_000).toFixed(2) + ' MDH';
 
 const fmtFull = (n: number) =>
@@ -1290,7 +1299,7 @@ export default function Dashboard() {
                               <tbody>
                                 {statusProjects.map(p => (
                                   <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-3 py-2 text-center text-slate-600 font-mono text-[10px]">{p.numAO || '—'}</td>
+                                    <td className="px-3 py-2 text-center text-slate-600 font-mono text-[10px]" title={exAOTitle(p.numAO) || undefined}>{p.numAO || '—'}{String(p.numAO || '').includes('ex') && <span className="text-[7px] opacity-50 ml-0.5">↻</span>}</td>
                                     <td className="px-3 py-2 text-slate-700 min-w-[200px]">{p.objet}</td>
                                     <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{p.situationAvancement}</Badge></td>
                                     <td className="px-3 py-2 text-right text-slate-700">{p.cp ? fmtM(p.cp) : '—'}</td>
@@ -1414,7 +1423,7 @@ export default function Dashboard() {
                             <tbody>
                               {entityProjects.map(p => (
                                 <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                  <td className="px-3 py-2 text-center text-slate-600 font-mono text-[10px]">{p.numAO || '—'}</td>
+                                  <td className="px-3 py-2 text-center text-slate-600 font-mono text-[10px]" title={exAOTitle(p.numAO) || undefined}>{p.numAO || '—'}{String(p.numAO || '').includes('ex') && <span className="text-[7px] opacity-50 ml-0.5">↻</span>}</td>
                                   <td className="px-3 py-2 text-slate-700 min-w-[200px]">{p.objet}</td>
                                   <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{p.situationAvancement}</Badge></td>
                                   <td className="px-3 py-2 text-right text-slate-700">{p.cp ? fmtM(p.cp) : '—'}</td>
@@ -1543,7 +1552,7 @@ export default function Dashboard() {
                             <tbody>
                               {projectsList.map(p => (
                                 <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer" onClick={() => { setSidebarTab('dashboard'); setTimeout(() => setExpandedAO(p.id), 100); }}>
-                                  <td className="px-3 py-2 text-center text-slate-600 font-mono text-[10px]">{p.numAO || '—'}</td>
+                                  <td className="px-3 py-2 text-center text-slate-600 font-mono text-[10px]" title={exAOTitle(p.numAO) || undefined}>{p.numAO || '—'}{String(p.numAO || '').includes('ex') && <span className="text-[7px] opacity-50 ml-0.5">↻</span>}</td>
                                   <td className="px-3 py-2 text-slate-700 min-w-[200px]">{p.objet}</td>
                                   <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{p.situationAvancement}</Badge></td>
                                   <td className="px-3 py-2 text-right text-slate-700">{p.cp ? fmtM(p.cp) : '—'}</td>
@@ -1752,7 +1761,13 @@ export default function Dashboard() {
                             return (
                               <tr key={key} className="border-b border-slate-50 hover:bg-indigo-50/30 transition-colors">
                                 <td className="px-4 py-3">
-                                  <Badge className="bg-indigo-100 text-indigo-700 border-0 text-[10px] font-mono">{sp.numAOComplet}</Badge>
+                                  <Badge
+                                    className="bg-indigo-100 text-indigo-700 border-0 text-[10px] font-mono cursor-help"
+                                    title={exAOTitle(sp.numAOComplet)}
+                                  >
+                                    {sp.numAOComplet}
+                                    {sp.numAOComplet.includes('ex') && <span className="ml-1 text-[8px] opacity-60">↻</span>}
+                                  </Badge>
                                 </td>
                                 <td className="px-4 py-3">
                                   <div className="flex items-center gap-1.5">
@@ -4234,8 +4249,9 @@ export default function Dashboard() {
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold flex items-center gap-2">
+                  <h3 className="text-xl font-bold flex items-center gap-2" title={exAOTitle(selectedSoumProjet.numAOComplet)}>
                     Soumissionnaires — {selectedSoumProjet.numAOComplet}
+                    {selectedSoumProjet.numAOComplet.includes('ex') && <span className="text-sm opacity-70 cursor-help">↻</span>}
                   </h3>
                   <p className="text-sm text-indigo-200 mt-1">{selectedSoumProjet.objetAO}</p>
                 </div>

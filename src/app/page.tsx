@@ -255,6 +255,21 @@ const aoIndicatorCells = (ind: ReturnType<typeof computeAOIndicators>) => (
   </>
 );
 
+// Reusable engagement rate cell (progress bar + percentage)
+const tauxEngagementCell = (numerator: number, denominator: number) => {
+  const rate = denominator > 0 ? Math.round((numerator / denominator) * 100) : 0;
+  return (
+    <td className="px-3 py-2.5">
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-full rounded-full" style={{ width: `${Math.min(100, rate)}%`, backgroundColor: rate >= 50 ? '#16a34a' : rate >= 25 ? '#d97706' : '#dc2626' }} />
+        </div>
+        <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
+      </div>
+    </td>
+  );
+};
+
 const fmtFull = (n: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
 
@@ -3913,6 +3928,8 @@ export default function Dashboard() {
                       <th className="px-3 py-2.5 text-right">Eng. CE (MDH)</th>
                       <th className="px-3 py-2.5 text-right">Eng. Total (MDH)</th>
                       <th className="px-3 py-2.5 text-center">Taux</th>
+                      <th className="px-3 py-2.5 text-center">Taux Eng. CP (%)</th>
+                      <th className="px-3 py-2.5 text-center">Taux Eng. CE (%)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -3964,6 +3981,8 @@ export default function Dashboard() {
                               <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
                             </div>
                           </td>
+                          {tauxEngagementCell(engCP, d.cp)}
+                          {tauxEngagementCell(engCE, d.ce)}
                         </tr>
                       );
                     })}
@@ -3994,6 +4013,8 @@ export default function Dashboard() {
                           <span className="font-bold w-8 text-right text-[10px]">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span>
                         </div>
                       </td>
+                      {tauxEngagementCell(filteredKpis.totalEngagementCP, filteredKpis.totalCP)}
+                      {tauxEngagementCell(filteredKpis.totalEngagementCE, filteredKpis.totalCE)}
                     </tr>
                   </tfoot>
                 </table>
@@ -4109,6 +4130,8 @@ export default function Dashboard() {
                       <th className="px-3 py-2.5 text-right">Eng. CE (MDH)</th>
                       <th className="px-3 py-2.5 text-right">Eng. Total (MDH)</th>
                       <th className="px-3 py-2.5 text-center">Taux</th>
+                      <th className="px-3 py-2.5 text-center">Taux Eng. CP (%)</th>
+                      <th className="px-3 py-2.5 text-center">Taux Eng. CE (%)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -4136,6 +4159,8 @@ export default function Dashboard() {
                               <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
                             </div>
                           </td>
+                          {tauxEngagementCell(ind.engCP, d.cp)}
+                          {tauxEngagementCell(ind.engCE, d.ce)}
                         </tr>
                       );
                     })}
@@ -4159,6 +4184,8 @@ export default function Dashboard() {
                           <span className="font-bold w-8 text-right text-[10px]">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span>
                         </div>
                       </td>
+                      {tauxEngagementCell(filteredKpis.totalEngagementCP, filteredKpis.totalCP)}
+                      {tauxEngagementCell(filteredKpis.totalEngagementCE, filteredKpis.totalCE)}
                     </tr>
                   </tfoot>
                 </table>
@@ -4189,6 +4216,8 @@ export default function Dashboard() {
                       <th className="px-3 py-2.5 text-right">Eng. CE (MDH)</th>
                       <th className="px-3 py-2.5 text-right">Eng. Total (MDH)</th>
                       <th className="px-3 py-2.5 text-center">Taux</th>
+                      <th className="px-3 py-2.5 text-center">Taux Eng. CP (%)</th>
+                      <th className="px-3 py-2.5 text-center">Taux Eng. CE (%)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -4216,6 +4245,8 @@ export default function Dashboard() {
                               <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
                             </div>
                           </td>
+                          {tauxEngagementCell(ind.engCP, d.cp)}
+                          {tauxEngagementCell(ind.engCE, d.ce)}
                         </tr>
                       );
                     })}
@@ -4239,6 +4270,8 @@ export default function Dashboard() {
                           <span className="font-bold w-8 text-right text-[10px]">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span>
                         </div>
                       </td>
+                      {tauxEngagementCell(filteredKpis.totalEngagementCP, filteredKpis.totalCP)}
+                      {tauxEngagementCell(filteredKpis.totalEngagementCE, filteredKpis.totalCE)}
                     </tr>
                   </tfoot>
                 </table>
@@ -4269,6 +4302,8 @@ export default function Dashboard() {
                       <th className="px-3 py-2.5 text-right">Eng. CE (MDH)</th>
                       <th className="px-3 py-2.5 text-right">Eng. Total (MDH)</th>
                       <th className="px-3 py-2.5 text-center">Taux</th>
+                      <th className="px-3 py-2.5 text-center">Taux Eng. CP (%)</th>
+                      <th className="px-3 py-2.5 text-center">Taux Eng. CE (%)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -4301,6 +4336,8 @@ export default function Dashboard() {
                               <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
                             </div>
                           </td>
+                          {tauxEngagementCell(ind.engCP, d.cp)}
+                          {tauxEngagementCell(ind.engCE, d.ce)}
                         </tr>
                       );
                     })}
@@ -4324,6 +4361,8 @@ export default function Dashboard() {
                           <span className="font-bold w-8 text-right text-[10px]">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span>
                         </div>
                       </td>
+                      {tauxEngagementCell(filteredKpis.totalEngagementCP, filteredKpis.totalCP)}
+                      {tauxEngagementCell(filteredKpis.totalEngagementCE, filteredKpis.totalCE)}
                     </tr>
                   </tfoot>
                 </table>
@@ -4354,6 +4393,8 @@ export default function Dashboard() {
                       <th className="px-3 py-2.5 text-right">Eng. CE (MDH)</th>
                       <th className="px-3 py-2.5 text-right">Eng. Total (MDH)</th>
                       <th className="px-3 py-2.5 text-center">Taux</th>
+                      <th className="px-3 py-2.5 text-center">Taux Eng. CP (%)</th>
+                      <th className="px-3 py-2.5 text-center">Taux Eng. CE (%)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -4386,6 +4427,8 @@ export default function Dashboard() {
                               <span className={`font-bold w-8 text-right text-[10px] ${rate >= 50 ? 'text-green-600' : rate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{rate}%</span>
                             </div>
                           </td>
+                          {tauxEngagementCell(ind.engCP, d.cp)}
+                          {tauxEngagementCell(ind.engCE, d.ce)}
                         </tr>
                       );
                     })}
@@ -4409,6 +4452,8 @@ export default function Dashboard() {
                           <span className="font-bold w-8 text-right text-[10px]">{filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0}%</span>
                         </div>
                       </td>
+                      {tauxEngagementCell(filteredKpis.totalEngagementCP, filteredKpis.totalCP)}
+                      {tauxEngagementCell(filteredKpis.totalEngagementCE, filteredKpis.totalCE)}
                     </tr>
                   </tfoot>
                 </table>

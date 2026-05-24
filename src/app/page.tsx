@@ -168,6 +168,23 @@ const exAOTitle = (numAO: string | number | null): string | undefined => {
   return `AO n°${newAO} relancé suite au jugement de l'AO n°${refAO} (annulé ou infructueux)`;
 };
 
+// Helper: find PPM project matching a soumissionnaire project
+// Handles "ex" notation: soum numAO="25" can match PPM numAO="25 ex 2"
+const findPPMForSoum = (projects: PPMProject[] | undefined, numAO: string, entite: string): PPMProject | undefined => {
+  if (!projects) return undefined;
+  // 1. Exact match
+  let match = projects.find(p => String(p.numAO) === numAO && p.entite === entite);
+  if (match) return match;
+  // 2. If soum numAO doesn't have "ex", try matching PPM entries that start with numAO + " ex"
+  if (!numAO.includes('ex')) {
+    match = projects.find(p => {
+      const pNum = String(p.numAO);
+      return pNum.startsWith(numAO + ' ex') && p.entite === entite;
+    });
+  }
+  return match;
+};
+
 const fmtMDH = (n: number) => (n / 1_000_000).toFixed(2) + ' MDH';
 
 const fmtFull = (n: number) =>
@@ -1743,7 +1760,7 @@ export default function Dashboard() {
               {soumissionnaireData && Object.keys(soumissionnaireData.projets).length > 0 && (() => {
                 // Apply filters to get filtered projets
                 const filteredSoumProjets = Object.values(soumissionnaireData.projets).filter(sp => {
-                  const ppmMatch = data?.projects.find(p => String(p.numAO) === sp.numAO && p.entite === sp.entite);
+                  const ppmMatch = findPPMForSoum(data?.projects, sp.numAO, sp.entite);
                   const matchEntity = filterEntity === 'all' || sp.entite === filterEntity;
                   const matchStatus = filterStatus === 'all' || ppmMatch?.situationAvancement === filterStatus;
                   const matchNature = filterNature === 'all' || ppmMatch?.natureBudget === filterNature;
@@ -1870,7 +1887,7 @@ export default function Dashboard() {
                         <tbody>
                           {Object.entries(soumissionnaireData.projets)
                             .filter(([, sp]) => {
-                              const ppmMatch = data?.projects.find(p => String(p.numAO) === sp.numAO && p.entite === sp.entite);
+                              const ppmMatch = findPPMForSoum(data?.projects, sp.numAO, sp.entite);
                               const matchEntity = filterEntity === 'all' || sp.entite === filterEntity;
                               const matchStatus = filterStatus === 'all' || ppmMatch?.situationAvancement === filterStatus;
                               const matchNature = filterNature === 'all' || ppmMatch?.natureBudget === filterNature;
@@ -1888,16 +1905,16 @@ export default function Dashboard() {
                             // Séances uniques
                             const seances = [...new Set(sp.soumissionnaires.map(s => s.seance))].filter(Boolean);
                             // Find matching PPM project for dateJugement & attributaire
-                            const ppmMatch = data?.projects.find(p => String(p.numAO) === sp.numAO && p.entite === sp.entite);
+                            const ppmMatch = findPPMForSoum(data?.projects, sp.numAO, sp.entite);
                             return (
                               <tr key={key} className="border-b border-slate-50 hover:bg-indigo-50/30 transition-colors">
                                 <td className="px-4 py-3">
                                   <Badge
                                     className="bg-indigo-100 text-indigo-700 border-0 text-[10px] font-mono cursor-help"
-                                    title={exAOTitle(sp.numAOComplet)}
+                                    title={exAOTitle(ppmMatch?.numAO || sp.numAOComplet)}
                                   >
-                                    {sp.numAOComplet}
-                                    {sp.numAOComplet.includes('ex') && <span className="ml-1 text-[8px] opacity-60">↻</span>}
+                                    {ppmMatch?.numAO ? `${ppmMatch.numAO}/${sp.numAOComplet.split('/').slice(1).join('/')}` : sp.numAOComplet}
+                                    {(ppmMatch?.numAO && String(ppmMatch.numAO).includes('ex') || sp.numAOComplet.includes('ex')) && <span className="ml-1 text-[8px] opacity-60">↻</span>}
                                   </Badge>
                                 </td>
                                 <td className="px-4 py-3">

@@ -1906,6 +1906,8 @@ export default function Dashboard() {
                 const totalAnnule = perProject.reduce((s, c) => s + c.annule, 0);
                 const totalUniques = filteredSoumProjets.reduce((s, sp) => s + sp.nbSoumissionnairesUniques, 0);
                 const admisRate = totalUniques > 0 ? Math.round(totalAdmis / totalUniques * 100) : 0;
+                const ecartesRate = totalUniques > 0 ? Math.round(totalEcartes / totalUniques * 100) : 0;
+                const enAttenteRate = totalUniques > 0 ? Math.round(totalEnAttente / totalUniques * 100) : 0;
                 const hasSoumFiltersKPI = filterEntity !== 'all' || filterStatus !== 'all' || filterNature !== 'all' || filterType !== 'all' || filterProgramme !== 'all' || filterProjet !== 'all' || filterSource !== 'all' || filterAttributaire !== 'all';
 
                 return (
@@ -1928,14 +1930,14 @@ export default function Dashboard() {
                       <CardContent className="p-4 text-center">
                         <UserX className="w-6 h-6 text-red-500 mx-auto mb-1" />
                         <p className="text-2xl font-bold text-red-700">{totalEcartes}</p>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">Ecartés</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">Ecartés ({ecartesRate}%)</p>
                       </CardContent>
                     </Card>
                     <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #d97706' }}>
                       <CardContent className="p-4 text-center">
                         <Clock className="w-6 h-6 text-amber-500 mx-auto mb-1" />
                         <p className="text-2xl font-bold text-amber-700">{totalEnAttente > 0 ? totalEnAttente : '—'}</p>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">En attente</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">En attente{totalEnAttente > 0 ? ` (${enAttenteRate}%)` : ''}</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -6516,6 +6518,8 @@ export default function Dashboard() {
             {(() => {
               const { admis, ecarts, enAttente, reportee: nbReportee, annule: nbAnnule } = countUniqueByDecision(selectedSoumProjet.soumissionnaires);
               const tauxAdm = selectedSoumProjet.nbSoumissionnairesUniques > 0 ? Math.round(admis / selectedSoumProjet.nbSoumissionnairesUniques * 100) : 0;
+              const tauxEcart = selectedSoumProjet.nbSoumissionnairesUniques > 0 ? Math.round(ecarts / selectedSoumProjet.nbSoumissionnairesUniques * 100) : 0;
+              const tauxEnAttente = selectedSoumProjet.nbSoumissionnairesUniques > 0 ? Math.round(enAttente / selectedSoumProjet.nbSoumissionnairesUniques * 100) : 0;
               // Séances uniques
               const seancesUniques = [...new Set(selectedSoumProjet.soumissionnaires.map(s => s.seance))].filter(Boolean);
               return (
@@ -6538,14 +6542,14 @@ export default function Dashboard() {
                     <CardContent className="p-4 text-center">
                       <UserX className="w-5 h-5 text-red-500 mx-auto mb-1" />
                       <p className="text-2xl font-bold text-red-700">{ecarts}</p>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Ecartés</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Ecartés ({tauxEcart}%)</p>
                     </CardContent>
                   </Card>
                   <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #d97706' }}>
                     <CardContent className="p-4 text-center">
                       <Clock className="w-5 h-5 text-amber-500 mx-auto mb-1" />
                       <p className="text-2xl font-bold text-amber-700">{enAttente > 0 ? enAttente : '—'}</p>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">En attente</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">En attente{enAttente > 0 ? ` (${tauxEnAttente}%)` : ''}</p>
                     </CardContent>
                   </Card>
                   <Card className="border-0 shadow-md" style={{ borderTop: '4px solid #7c3aed' }}>

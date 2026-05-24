@@ -129,3 +129,29 @@ Applied 6 major changes to `/home/z/my-project/src/app/page.tsx` to restore pipe
 - `npx next build` ✓ Compiled successfully
 - `bun run lint` ✓ No errors
 - PM2 process restarted successfully
+
+---
+Task ID: blob-setup
+Agent: Main Agent
+Task: Configure Vercel Blob for persistent file storage and upload functionality
+
+Work Log:
+- Verified @vercel/blob package was already installed (^2.4.0)
+- Verified code already had full Blob integration in both /api/ppm and /api/soumissionnaires routes
+- Found BLOB_READ_WRITE_TOKEN was missing from Vercel environment variables
+- Created new Blob store "ppm-ormvag" (store_iZn9tmwt5kNYqFuV) with public access
+- Successfully linked store to project "my-project" which auto-added BLOB_READ_WRITE_TOKEN
+- Cleaned up unused Blob stores (Dashboard Vercel, ppm-dashboard-blob)
+- Verified Blob upload works: test file uploaded and parsed correctly
+- Uploaded current PPM and Soumissionnaires data to Blob store
+- Deployed to production and verified API loads from Blob (priority 1)
+- Production API now returns blobUrl confirming Blob integration works
+
+Stage Summary:
+- Vercel Blob store "ppm-ormvag" is active and linked to project
+- BLOB_READ_WRITE_TOKEN configured in Production, Preview, and Development environments
+- GET /api/ppm: tries Blob first → local Excel → static JSON → DB
+- POST /api/ppm: parses Excel from memory buffer + uploads to Blob
+- GET /api/soumissionnaires: tries Blob first → local Excel → static JSON
+- POST /api/soumissionnaires: parses Excel from memory buffer + uploads to Blob
+- User can now upload files via the web interface and data persists in Vercel Blob

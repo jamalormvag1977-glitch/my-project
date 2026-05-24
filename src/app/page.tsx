@@ -3180,16 +3180,19 @@ export default function Dashboard() {
             let delaiJugeEng: number | null = null;
             if (isValidDate(p.dateJugement)) {
               const dJuge = new Date(p.dateJugement);
-              delaiOuvJuge = Math.round((dJuge.getTime() - dOuv.getTime()) / (1000 * 60 * 60 * 24));
+              const days = Math.round((dJuge.getTime() - dOuv.getTime()) / (1000 * 60 * 60 * 24));
+              delaiOuvJuge = days >= 0 ? days : null; // negative = anomalie de données, laisser vide
             }
             if (isValidDate(p.dateEngagement)) {
               const dEng = new Date(p.dateEngagement);
-              delaiOuvEng = Math.round((dEng.getTime() - dOuv.getTime()) / (1000 * 60 * 60 * 24));
+              const days = Math.round((dEng.getTime() - dOuv.getTime()) / (1000 * 60 * 60 * 24));
+              delaiOuvEng = days >= 0 ? days : null;
             }
             if (isValidDate(p.dateJugement) && isValidDate(p.dateEngagement)) {
               const dJuge = new Date(p.dateJugement);
               const dEng = new Date(p.dateEngagement);
-              delaiJugeEng = Math.round((dEng.getTime() - dJuge.getTime()) / (1000 * 60 * 60 * 24));
+              const days = Math.round((dEng.getTime() - dJuge.getTime()) / (1000 * 60 * 60 * 24));
+              delaiJugeEng = days >= 0 ? days : null;
             }
             return { id: p.id, objet: p.objet, entite: p.entite, statut: p.situationAvancement, estimation: p.estimationAdmin || 0, dateOuverture: p.dateOuverture, dateJugement: p.dateJugement, dateEngagement: p.dateEngagement, delaiOuvJuge, delaiOuvEng, delaiJugeEng };
           });

@@ -324,13 +324,13 @@ export async function GET() {
 /* ── POST: Upload new Excel file ── */
 export async function POST(request: Request) {
   try {
-    // Check admin role
+    // Check authenticated user (admin or user)
     const session = await getServerSession();
     if (!session) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
     const userRole = (session.user as any)?.role;
-    if (userRole !== 'admin') {
+    if (userRole !== 'admin' && userRole !== 'user') {
       return NextResponse.json({ error: 'Accès réservé aux administrateurs' }, { status: 403 });
     }
 

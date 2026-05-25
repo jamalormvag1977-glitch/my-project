@@ -1387,7 +1387,7 @@ export default function Dashboard() {
             <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
               {/* Visual Pipeline */}
               <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
-                <h3 className="text-sm font-semibold text-slate-700 mb-4">Pipeline des Marchés</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-4">Pipeline des AO</h3>
                 <div className="flex flex-col sm:flex-row items-stretch gap-3">
                   {PIPELINE_ORDER.map((stage, i) => {
                     const dataStatus = PIPELINE_STATUS_MAP[stage] || stage;

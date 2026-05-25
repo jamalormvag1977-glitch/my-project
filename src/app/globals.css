@@ -425,21 +425,14 @@
     padding-bottom: 8px !important;
   }
 
-  /* Force gray/light text to be dark enough for printing */
+  /* Force gray/light text to black for printing */
   .text-slate-300,
   .text-slate-400,
-  .text-gray-300,
-  .text-gray-400 {
-    color: #64748b !important;
-  }
-
   .text-slate-500,
+  .text-gray-300,
+  .text-gray-400,
   .text-gray-500 {
-    color: #475569 !important;
-  }
-
-  .text-slate-300 {
-    color: #94a3b8 !important;
+    color: #000000 !important;
   }
 
   /* Page margins */

@@ -2314,6 +2314,9 @@ export default function Dashboard() {
                 .fiche-timeline { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 .fiche-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 .fiche-bar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                /* Force gray text to be dark enough for printing */
+                .text-slate-300, .text-slate-400, .text-gray-300, .text-gray-400 { color: #64748b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                .text-slate-500, .text-gray-500 { color: #475569 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 @page { margin: 1cm; size: A4; }
               }
             `}</style>
@@ -2806,6 +2809,10 @@ export default function Dashboard() {
                 .print\\:break-before { page-break-before: always; }
                 .print\\:break-after { page-break-after: always; }
                 .print\\:no-break { page-break-inside: avoid; }
+                /* Force gray text to be dark enough for printing */
+                .text-slate-300, .text-slate-400, .text-gray-300, .text-gray-400 { color: #64748b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                .text-slate-500, .text-gray-500 { color: #475569 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                .text-slate-300 { color: #94a3b8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
               }
             `}</style>
 

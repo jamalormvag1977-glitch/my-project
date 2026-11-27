@@ -1483,6 +1483,7 @@ export default function Dashboard() {
                                   <th className="px-3 py-2 text-center w-12">N° AO</th>
                                   <th className="px-3 py-2 text-left">Objet</th>
                                   <th className="px-3 py-2 text-left">Statut</th>
+                                  <th className="px-3 py-2 text-left">Attributaire</th>
                                   <th className="px-3 py-2 text-right">CP</th>
                                   <th className="px-3 py-2 text-right">CE</th>
                                   <th className="px-3 py-2 text-right">Estimation</th>
@@ -1501,6 +1502,7 @@ export default function Dashboard() {
                                     <td className="px-3 py-2 text-center text-slate-600 font-mono text-[10px]" title={exAOTitle(p.numAO) || undefined}>{p.numAO || '—'}{String(p.numAO || '').includes('ex') && <span className="text-[7px] opacity-50 ml-0.5">↻</span>}</td>
                                     <td className="px-3 py-2 text-slate-700 min-w-[200px]">{p.objet}</td>
                                     <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{p.situationAvancement}</Badge></td>
+                                    <td className="px-3 py-2 text-left text-[10px] font-medium text-emerald-700 min-w-[150px]">{p.attributaire || '—'}</td>
                                     <td className="px-3 py-2 text-right text-slate-700">{p.cp ? fmtM(p.cp) : '—'}</td>
                                     <td className="px-3 py-2 text-right text-slate-700">{p.ce ? fmtM(p.ce) : '—'}</td>
                                     <td className="px-3 py-2 text-right text-blue-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>

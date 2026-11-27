@@ -2980,7 +2980,7 @@ export default function Dashboard() {
                 /* Print only the one-page executive report when selected */
                 body:has(.direction-report) * { visibility: hidden !important; }
                 body:has(.direction-report) .direction-report, body:has(.direction-report) .direction-report * { visibility: visible !important; }
-                body:has(.direction-report) .direction-report { position: fixed !important; inset: 0 !important; z-index: 99999 !important; width: 100% !important; height: 198mm !important; max-height: 198mm !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; break-inside: avoid !important; page-break-inside: avoid !important; font-size: 8pt !important; background: #fff !important; }
+                body:has(.direction-report) .direction-report { position: fixed !important; inset: 0 !important; z-index: 99999 !important; width: 100% !important; height: 190mm !important; max-height: 190mm !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; break-inside: avoid !important; page-break-inside: avoid !important; font-size: 8pt !important; background: #fff !important; }
                 body:has(.direction-report) { overflow: hidden !important; }
                 .direction-report .direction-kpi { padding: 7px 9px !important; }
                 .direction-report .direction-title { font-size: 19pt !important; }

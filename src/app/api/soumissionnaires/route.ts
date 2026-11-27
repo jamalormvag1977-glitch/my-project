@@ -181,12 +181,50 @@ function readLocalData() {
   }
 }
 
+
+const validYear = (value: unknown) => { const year = Number(value); return Number.isInteger(year) && year >= 2020 && year <= 2100 ? year : 2027; };
+const storePath = (year: number) => `soumissionnaires-manual-${year}.json`;
+async function readManual(year: number) {
+  const pathname = storePath(year);
+  const blobs = await list({ prefix: pathname });
+  const blob = blobs.blobs.find((item) => item.pathname === pathname);
+  if (!blob) return { projets: {} as Record<string, Projet>, lastUpdated: null as string | null };
+  const response = await fetch(blob.url, { cache: 'no-store' });
+  if (!response.ok) throw new Error('Lecture du registre impossible');
+  const saved = await response.json();
+  return { projets: (saved.projets || {}) as Record<string, Projet>, lastUpdated: saved.lastUpdated || blob.uploadedAt };
+}
+function summarize(projets: Record<string, Projet>) {
+  let totalSoumissionnaires = 0;
+  for (const projet of Object.values(projets)) {
+    const names = new Set(projet.soumissionnaires.map((item) => item.nom?.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().trim()).filter(Boolean));
+    projet.nbSoumissionnairesUniques = names.size;
+    totalSoumissionnaires += names.size;
+    projet.nbSoumissionnaires = Math.max(projet.nbSoumissionnaires || 0, names.size);
+  }
+  return { projets, totalProjets: Object.keys(projets).length, totalSoumissionnaires };
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const numAO = searchParams.get('numAO');
   const entite = searchParams.get('entite');
   const key = searchParams.get('key');
+  const year = validYear(searchParams.get('year'));
   let data: any = null;
+
+  if (year !== 2026) {
+    try {
+      const saved = await readManual(year);
+      const summary = summarize(saved.projets);
+      let projets = summary.projets;
+      if (key) projets = projets[key] ? { [key]: projets[key] } : {};
+      else if (numAO || entite) projets = Object.fromEntries(Object.entries(projets).filter(([, p]) => (!numAO || p.numAO === numAO) && (!entite || p.entite === entite)));
+      return NextResponse.json({ year, lastUpdated: saved.lastUpdated, fileName: `Saisie directe ${year}`, ...summary, projets }, { headers: noStoreHeaders });
+    } catch (error) {
+      return NextResponse.json({ error: 'Impossible de lire le registre des soumissionnaires.' }, { status: 500, headers: noStoreHeaders });
+    }
+  }
 
   // La version Excel persistée dans Blob est prioritaire.
   try {
@@ -248,6 +286,45 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: 'Non authentifié' }, { status: 401, headers: noStoreHeaders });
+    if ((session.user as any)?.role !== 'admin') return NextResponse.json({ error: 'Accès réservé aux administrateurs' }, { status: 403, headers: noStoreHeaders });
+
+    if ((request.headers.get('content-type') || '').includes('application/json')) {
+      const body = await request.json();
+      const year = validYear(body.year);
+      if (year === 2026) return NextResponse.json({ error: 'La saisie directe est activée pour 2027 et les exercices suivants. Le registre Excel 2026 est conservé.' }, { status: 400, headers: noStoreHeaders });
+      const saved = await readManual(year);
+      const projets = saved.projets;
+      const action = body.action || 'save';
+      const key = clean(body.key || `${body.projet?.numAO || ''}/${body.projet?.entite || ''}`);
+      if (action === 'delete') {
+        if (!key || !projets[key]) return NextResponse.json({ error: 'AO introuvable.' }, { status: 404, headers: noStoreHeaders });
+        delete projets[key];
+      } else {
+        const raw = body.projet || {};
+        const ao = parseNumAO(raw.numAOComplet || `${raw.numAO || ''}/${raw.entite || ''}`);
+        if (!ao.num || !ao.entite) return NextResponse.json({ error: 'Le numéro AO et l’entité sont obligatoires.' }, { status: 400, headers: noStoreHeaders });
+        const projectKey = `${ao.num}/${ao.entite}`;
+        const rows = Array.isArray(raw.soumissionnaires) ? raw.soumissionnaires : [];
+        const previous = projets[projectKey];
+        projets[projectKey] = {
+          numAO: ao.num, entite: ao.entite, numAOComplet: ao.complete,
+          objetAO: clean(raw.objetAO), nbSoumissionnaires: Number(raw.nbSoumissionnaires) || rows.length,
+          nbSoumissionnairesUniques: 0,
+          soumissionnaires: rows.map((item: any) => ({
+            semaine: clean(item.semaine), seance: clean(item.seance), objetSeance: clean(item.objetSeance),
+            president: clean(item.president), nom: clean(item.nom) || null,
+            decisionCommission: clean(item.decisionCommission), offreFinanciere: clean(item.offreFinanciere) || null,
+            decisionCommissionOF: clean(item.decisionCommissionOF),
+          })),
+        };
+        if (action === 'update' && !previous) return NextResponse.json({ error: 'AO introuvable pour modification.' }, { status: 404, headers: noStoreHeaders });
+      }
+      const summary = summarize(projets);
+      const updatedAt = new Date().toISOString();
+      await put(storePath(year), JSON.stringify({ ...summary, lastUpdated: updatedAt }), { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
+      return NextResponse.json({ success: true, year, lastUpdated: updatedAt, message: 'Registre des soumissionnaires enregistré.', ...summary }, { headers: noStoreHeaders });
+    }
     if (!session) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401, headers: noStoreHeaders });
     }

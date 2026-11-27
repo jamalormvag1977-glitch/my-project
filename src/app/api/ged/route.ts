@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic';
 const TYPES = ['CPS', 'RC', 'PV_OUVERTURE', 'PV_JUGEMENT', 'EXTRAIT_MARCHE', 'AUTRE'] as const;
 const MAX_FILE_SIZE = 4 * 1024 * 1024;
 const gedToken = () => {
-  const token = process.env.GED_BLOB_READ_WRITE_TOKEN;
-  if (!token) throw new Error('GED_BLOB_READ_WRITE_TOKEN manquant : configurez un Blob Store Vercel privé dédié à la GED.');
+  const token = process.env.GED_BLOB_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) throw new Error('Jeton Vercel Blob absent : connectez le Blob Store privé au projet et vérifiez BLOB_READ_WRITE_TOKEN.');
   return token;
 };
 

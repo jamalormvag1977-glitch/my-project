@@ -1861,6 +1861,34 @@ export default function Dashboard() {
             </div>
 
             <div className="px-6 py-6 space-y-5">
+        {/* ── Classement des attributaires ── */}
+        <Card className="border-0 shadow-md glass-card">
+          <CardContent className="p-5 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">Classement des entreprises attributaires — {selectedYear}</h3>
+                <p className="text-xs text-slate-500">Nombre d'AO attribués et montant extrait cumulé, selon les données disponibles</p>
+              </div>
+              <Badge variant="outline">{classementAttributaires.length} attributaires</Badge>
+            </div>
+            {classementAttributaires.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b text-left text-[10px] uppercase tracking-wide text-slate-400"><th className="py-2 pr-3">Rang</th><th className="py-2 pr-3">Attributaire</th><th className="py-2 pr-3 text-right">Nombre de marchés</th><th className="py-2 text-right">Montant extrait cumulé (DH)</th></tr></thead>
+                  <tbody>{classementAttributaires.map((item,index)=>(
+                    <tr key={item.nom} className="border-b last:border-0 hover:bg-slate-50">
+                      <td className="py-2 pr-3 font-semibold text-slate-500">{index+1}</td>
+                      <td className="py-2 pr-3 font-medium text-slate-800">{item.nom}</td>
+                      <td className="py-2 pr-3 text-right tabular-nums">{item.nombreMarches}</td>
+                      <td className="py-2 text-right tabular-nums font-semibold">{item.montantCumule.toLocaleString('fr-FR',{maximumFractionDigits:2})}</td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+            ) : <p className="py-4 text-center text-xs text-slate-400">Aucun attributaire renseigné pour cet exercice.</p>}
+          </CardContent>
+        </Card>
+
               {/* Upload zone */}
               {showSoumUpload && (
                 <Card className="border-0 shadow-md animate-fade-in-up" style={{ borderTop: '4px solid #6366f1' }}>
@@ -5324,34 +5352,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
-
-        {/* ── Classement des attributaires ── */}
-        <Card className="border-0 shadow-md glass-card">
-          <CardContent className="p-5 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h3 className="text-sm font-bold text-slate-800">Classement des entreprises attributaires — {selectedYear}</h3>
-                <p className="text-xs text-slate-500">Nombre d'AO attribués et montant extrait cumulé, selon les données disponibles</p>
-              </div>
-              <Badge variant="outline">{classementAttributaires.length} attributaires</Badge>
-            </div>
-            {classementAttributaires.length ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead><tr className="border-b text-left text-[10px] uppercase tracking-wide text-slate-400"><th className="py-2 pr-3">Rang</th><th className="py-2 pr-3">Attributaire</th><th className="py-2 pr-3 text-right">Nombre de marchés</th><th className="py-2 text-right">Montant extrait cumulé (DH)</th></tr></thead>
-                  <tbody>{classementAttributaires.map((item,index)=>(
-                    <tr key={item.nom} className="border-b last:border-0 hover:bg-slate-50">
-                      <td className="py-2 pr-3 font-semibold text-slate-500">{index+1}</td>
-                      <td className="py-2 pr-3 font-medium text-slate-800">{item.nom}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{item.nombreMarches}</td>
-                      <td className="py-2 text-right tabular-nums font-semibold">{item.montantCumule.toLocaleString('fr-FR',{maximumFractionDigits:2})}</td>
-                    </tr>
-                  ))}</tbody>
-                </table>
-              </div>
-            ) : <p className="py-4 text-center text-xs text-slate-400">Aucun attributaire renseigné pour cet exercice.</p>}
-          </CardContent>
-        </Card>
 
         {/* ── Global Filters Bar ── */}
         <Card className="border-0 shadow-md glass-card animate-fade-in-up" style={{ animationDelay: '0.1s' }}>

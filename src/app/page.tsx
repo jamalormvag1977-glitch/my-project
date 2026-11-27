@@ -2888,7 +2888,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold text-gray-900">Office Régional de Mise en Valeur Agricole du Gharb</h1>
-                    <p className="text-sm text-gray-600 font-medium">Plan de Passation des Marchés — Exercice 2026</p>
+                    <p className="text-sm text-gray-600 font-medium">Plan de Passation des Marchés — Exercice {selectedYear}</p>
                   </div>
                 </div>
                 <div className="text-right text-xs text-gray-500">
@@ -2925,14 +2925,26 @@ export default function Dashboard() {
             {/* ── Print-specific CSS ── */}
             <style>{`
               @media print {
+                @page { size: A4 landscape; margin: 9mm; }
+                html, body, #__next { width: 100% !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; }
+                body { overflow: visible !important; background: #fff !important; }
                 body * { visibility: visible !important; }
-                aside, .print\\:hidden { display: none !important; }
-                main { margin-left: 0 !important; }
-                .print\\:break-before { page-break-before: always; }
-                .print\\:break-after { page-break-after: always; }
-                .print\\:no-break { page-break-inside: avoid; }
-                /* Force gray text to black for printing */
-                .text-slate-300, .text-slate-400, .text-slate-500, .text-gray-300, .text-gray-400, .text-gray-500 { color: #000000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                aside, .print\\:hidden, .no-print { display: none !important; }
+                main { display: block !important; width: 100% !important; max-width: none !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; }
+                main > div, main section, main article, main .flex-1, main .min-h-screen { height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; }
+                [class*="overflow-auto"], [class*="overflow-hidden"], [class*="overflow-x-hidden"], [class*="overflow-y-auto"] { overflow: visible !important; max-height: none !important; }
+                [class*="sticky"], [class*="fixed"] { position: static !important; }
+                .print\\:break-before { break-before: page !important; page-break-before: always !important; }
+                .print\\:break-after { break-after: page !important; page-break-after: always !important; }
+                .print\\:no-break { break-inside: avoid !important; page-break-inside: avoid !important; }
+                .shadow-sm, .shadow-lg, .shadow-xl { box-shadow: none !important; }
+                [class*="backdrop-blur"] { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+                .max-w-\\[1800px\\], .max-w-\\[1400px\\] { max-width: none !important; width: 100% !important; }
+                table { width: 100% !important; border-collapse: collapse !important; }
+                thead { display: table-header-group !important; }
+                tr, th, td { break-inside: avoid !important; page-break-inside: avoid !important; }
+                .text-slate-300, .text-slate-400, .text-slate-500, .text-gray-300, .text-gray-400, .text-gray-500 { color: #222 !important; }
+                * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
               }
             `}</style>
 
@@ -3051,7 +3063,7 @@ export default function Dashboard() {
                           </div>
                           <div>
                             <h2 className="text-lg font-bold text-white">Rapport de Synthèse Générale</h2>
-                            <p className="text-xs text-slate-300">Plan de Passation des Marchés — ORMVAG — Exercice 2026</p>
+                            <p className="text-xs text-slate-300">Plan de Passation des Marchés — ORMVAG — Exercice {selectedYear}</p>
                           </div>
                         </div>
                         <div className="text-right text-xs text-slate-400">

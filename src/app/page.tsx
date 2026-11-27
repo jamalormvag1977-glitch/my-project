@@ -1996,7 +1996,7 @@ export default function Dashboard() {
                         <colgroup>
                           <col style={{ width: '120px' }} />
                           <col style={{ width: '90px' }} />
-                          <col style={{ width: '280px' }} />
+                          <col style={{ width: '380px' }} />
                           <col style={{ width: '220px' }} />
                           <col style={{ width: '100px' }} />
                           <col style={{ width: '90px' }} />
@@ -2078,7 +2078,7 @@ export default function Dashboard() {
                                     <span className="font-semibold text-slate-700">{sp.entite}</span>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-slate-600 align-top break-words whitespace-normal" style={{ lineHeight: '1.5', overflowWrap: 'anywhere' }}>{sp.objetAO}</td>
+                                <td className="px-4 py-3 text-slate-600 align-top whitespace-normal" style={{ lineHeight: '1.6', wordBreak: 'normal', overflowWrap: 'break-word', hyphens: 'none' }}>{sp.objetAO}</td>
                                 <td className="px-4 py-3">
                                   <div className="space-y-0.5">
                                     {seances.slice(0, 3).map((seance, i) => (

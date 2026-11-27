@@ -32,7 +32,12 @@ const fields: {key:keyof typeof empty;label:string;type?:string;required?:boolea
  {key:'engagementCP',label:'Engagement CP (MDH)',type:'number'},{key:'engagementCE',label:'Engagement CE (MDH)',type:'number'},
  {key:'dateEngagement',label:'Date engagement',type:'date'},{key:'delaisExecution',label:'Délais d’exécution'}
 ];
-export default function PPMManagement({projects,onSaved}:{projects:Project[];onSaved:()=>Promise<void>|void}) {
+export default function PPMManagement({projects:initialProjects,onSaved}:{projects:Project[];onSaved:()=>Promise<void>|void}) {
+ const [selectedYear,setSelectedYear]=useState(2027);
+ const [projects,setProjects]=useState<Project[]>([]);
+ const [loadingYear,setLoadingYear]=useState(true);
+ const loadYear=async(year:number)=>{setLoadingYear(true);try{const r=await fetch(`/api/ppm/manage?year=${year}`,{cache:'no-store'});const j=await r.json();if(!r.ok)throw new Error(j.error||'Chargement impossible');setProjects(j.projects||[]);setAudit(j.auditLog||[]);}catch(err:any){setMessage({ok:false,text:err.message||'Impossible de charger cet exercice.'});}finally{setLoadingYear(false);}};
+ useEffect(()=>{loadYear(selectedYear);setShowForm(false);setEditingId(null);setShowAudit(false);setSearch('');},[selectedYear]);
  const [form,setForm]=useState<any>(empty);
  const [editingId,setEditingId]=useState<number|null>(null);
  const [saving,setSaving]=useState(false);
@@ -48,22 +53,23 @@ export default function PPMManagement({projects,onSaved}:{projects:Project[];onS
  const change=(key:string,value:any)=>setForm((old:any)=>({...old,[key]:value}));
  const save=async(e:React.FormEvent)=>{e.preventDefault();setSaving(true);setMessage(null);try{
    const payload={...form,...(editingId?{id:editingId}:{})};
-   const res=await fetch('/api/ppm/manage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({project:payload})});
+   const res=await fetch('/api/ppm/manage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({year:selectedYear,project:payload})});
    const json=await res.json();if(!res.ok)throw new Error(json.error||'Erreur de sauvegarde');
-   setMessage({ok:true,text:json.message||'AO enregistré.'});await onSaved();setShowForm(false);setEditingId(null);
+   setMessage({ok:true,text:json.message||'AO enregistré.'});await loadYear(selectedYear);if(selectedYear===2026)await onSaved();setShowForm(false);setEditingId(null);
  }catch(err:any){setMessage({ok:false,text:err.message||'Erreur réseau'});}finally{setSaving(false);}};
  const remove=async(p:Project)=>{if(!window.confirm('Confirmer la suppression de l’AO '+(p.numAO||p.id)+' ? La suppression sera inscrite dans le journal d’audit.'))return;
-   setSaving(true);setMessage(null);try{const res=await fetch('/api/ppm/manage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',id:p.id})});const json=await res.json();if(!res.ok)throw new Error(json.error||'Suppression impossible');setMessage({ok:true,text:'AO supprimé. Les analyses ont été actualisées.'});await onSaved();}catch(err:any){setMessage({ok:false,text:err.message||'Erreur réseau'});}finally{setSaving(false);}};
- const loadAudit=async()=>{setShowAudit(v=>!v);setAuditLoading(true);try{const r=await fetch('/api/ppm/manage');const j=await r.json();setAudit(j.auditLog||[]);}catch{}finally{setAuditLoading(false);}};
- useEffect(()=>{if(showAudit){loadAudit();}},[]);
+   setSaving(true);setMessage(null);try{const res=await fetch('/api/ppm/manage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({year:selectedYear,action:'delete',id:p.id})});const json=await res.json();if(!res.ok)throw new Error(json.error||'Suppression impossible');setMessage({ok:true,text:'AO supprimé. Les analyses ont été actualisées.'});await loadYear(selectedYear);if(selectedYear===2026)await onSaved();}catch(err:any){setMessage({ok:false,text:err.message||'Erreur réseau'});}finally{setSaving(false);}};
+ const loadAudit=async()=>{setShowAudit(v=>!v);setAuditLoading(true);try{const r=await fetch(`/api/ppm/manage?year=${selectedYear}`,{cache:'no-store'});const j=await r.json();setAudit(j.auditLog||[]);}catch{}finally{setAuditLoading(false);}};
  return <div className="min-h-screen bg-slate-50 text-slate-800">
   <div className="bg-gradient-to-r from-indigo-700 via-violet-700 to-purple-700 text-white px-5 py-5 sm:px-8">
    <div className="max-w-[1800px] mx-auto flex flex-wrap items-center justify-between gap-3">
-    <div><div className="flex items-center gap-2 text-xl font-bold"><ClipboardList className="w-6 h-6"/> Saisie et gestion du PPM</div><p className="text-indigo-100 text-xs mt-1">Gestion directe des appels d’offres · Exercice 2026</p></div>
-    <div className="flex gap-2"><button onClick={loadAudit} className="rounded-lg bg-white/15 hover:bg-white/25 px-3 py-2 text-xs flex items-center gap-2"><History className="w-4 h-4"/> Historique</button><button onClick={startNew} className="rounded-lg bg-white text-indigo-700 hover:bg-indigo-50 px-3 py-2 text-xs font-semibold flex items-center gap-2"><Plus className="w-4 h-4"/> Nouvel AO</button></div>
+    <div><div className="flex items-center gap-2 text-xl font-bold"><ClipboardList className="w-6 h-6"/> Saisie et gestion du PPM</div><p className="text-indigo-100 text-xs mt-1">Gestion directe des appels d’offres · Exercice {selectedYear}</p></div>
+    <div className="flex items-center gap-2"><label className="text-xs text-indigo-100">Exercice</label><select value={selectedYear} onChange={e=>setSelectedYear(Number(e.target.value))} className="rounded-lg border border-white/30 bg-indigo-900/40 text-white px-3 py-2 text-sm font-semibold outline-none"><option value={2026} className="text-slate-900">2026</option><option value={2027} className="text-slate-900">2027</option></select><button onClick={loadAudit} className="rounded-lg bg-white/15 hover:bg-white/25 px-3 py-2 text-xs flex items-center gap-2"><History className="w-4 h-4"/> Historique</button><button onClick={startNew} className="rounded-lg bg-white text-indigo-700 hover:bg-indigo-50 px-3 py-2 text-xs font-semibold flex items-center gap-2"><Plus className="w-4 h-4"/> Nouvel AO</button></div>
    </div>
   </div>
   <div className="max-w-[1800px] mx-auto p-4 sm:p-7 space-y-4">
+   {selectedYear===2027&&<div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">Vous travaillez sur le PPM de l’exercice 2027. Les données et l’historique de 2026 sont conservés séparément.</div>}
+   {loadingYear&&<div className="rounded-lg bg-white border p-3 text-sm text-slate-500">Chargement de l’exercice {selectedYear}…</div>}
    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
     <div className="bg-white rounded-xl border p-4"><div className="text-xs text-slate-500">AO enregistrés</div><div className="text-2xl font-bold mt-1">{projects.length}</div></div>
     <div className="bg-white rounded-xl border p-4"><div className="text-xs text-slate-500">AO engagés</div><div className="text-2xl font-bold mt-1 text-emerald-600">{projects.filter(p=>p.situationAvancement==='Engagé').length}</div></div>

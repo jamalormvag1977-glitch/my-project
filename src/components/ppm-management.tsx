@@ -54,10 +54,10 @@ export default function PPMManagement({selectedYear,onYearChange,onSaved}:{selec
    const payload={...form,...(editingId?{id:editingId}:{})};
    const res=await fetch('/api/ppm/manage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({year:selectedYear,project:payload})});
    const json=await res.json();if(!res.ok)throw new Error(json.error||'Erreur de sauvegarde');
-   setMessage({ok:true,text:json.message||'AO enregistré.'});await loadYear(selectedYear);if(selectedYear===2026)await onSaved();setShowForm(false);setEditingId(null);
+   setMessage({ok:true,text:json.message||'AO enregistré.'});await loadYear(selectedYear);await onSaved();setShowForm(false);setEditingId(null);
  }catch(err:any){setMessage({ok:false,text:err.message||'Erreur réseau'});}finally{setSaving(false);}};
  const remove=async(p:Project)=>{if(!window.confirm('Confirmer la suppression de l’AO '+(p.numAO||p.id)+' ? La suppression sera inscrite dans le journal d’audit.'))return;
-   setSaving(true);setMessage(null);try{const res=await fetch('/api/ppm/manage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({year:selectedYear,action:'delete',id:p.id})});const json=await res.json();if(!res.ok)throw new Error(json.error||'Suppression impossible');setMessage({ok:true,text:'AO supprimé. Les analyses ont été actualisées.'});await loadYear(selectedYear);if(selectedYear===2026)await onSaved();}catch(err:any){setMessage({ok:false,text:err.message||'Erreur réseau'});}finally{setSaving(false);}};
+   setSaving(true);setMessage(null);try{const res=await fetch('/api/ppm/manage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({year:selectedYear,action:'delete',id:p.id})});const json=await res.json();if(!res.ok)throw new Error(json.error||'Suppression impossible');setMessage({ok:true,text:'AO supprimé. Les analyses ont été actualisées.'});await loadYear(selectedYear);await onSaved();}catch(err:any){setMessage({ok:false,text:err.message||'Erreur réseau'});}finally{setSaving(false);}};
  const loadAudit=async()=>{setShowAudit(v=>!v);setAuditLoading(true);try{const r=await fetch(`/api/ppm/manage?year=${selectedYear}`,{cache:'no-store'});const j=await r.json();setAudit(j.auditLog||[]);}catch{}finally{setAuditLoading(false);}};
  return <div className="min-h-screen bg-slate-50 text-slate-800">
   <div className="bg-gradient-to-r from-indigo-700 via-violet-700 to-purple-700 text-white px-5 py-5 sm:px-8">

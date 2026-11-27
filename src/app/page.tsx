@@ -3137,7 +3137,7 @@ export default function Dashboard() {
                             { label: 'Marchés Conclus', value: avecMarche.length, pct: filteredKpis.totalProjects > 0 ? Math.round(avecMarche.length/filteredKpis.totalProjects*100) : 0, sub: `${avecEngagement.length} engagés au total`, bg: 'from-teal-50 to-teal-100/50', border: 'border-teal-100', iconBg: 'bg-teal-500/10', iconColor: 'text-teal-600', icon: <FileSignature className="w-4 h-4" /> },
                           ];
                           return kpis.map((k, i) => (
-                            <div key={i} className={`bg-gradient-to-br ${k.bg} rounded-xl p-3.5 border ${k.border}`}>
+                            <div key={i} className={`print-keep-card bg-gradient-to-br ${k.bg} rounded-xl p-3.5 border ${k.border}`}
                               <div className="flex items-center gap-2 mb-1.5">
                                 <div className={`w-7 h-7 rounded-lg ${k.iconBg} flex items-center justify-center ${k.iconColor}`}>{k.icon}</div>
                                 <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wide">{k.label}</span>
@@ -3157,7 +3157,7 @@ export default function Dashboard() {
                         <Banknote className="w-4 h-4 text-slate-500" />
                         <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide">Indicateurs Clés — Montants (MDH)</h3>
                       </div>
-                      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                      <div className="print-kpi-grid grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                         {(() => {
                           const engages = filtered.filter(p => p.situationAvancement === 'Engagé');
                           const juges = filtered.filter(p => p.situationAvancement === 'Jugé');

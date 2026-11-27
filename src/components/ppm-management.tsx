@@ -32,8 +32,7 @@ const fields: {key:keyof typeof empty;label:string;type?:string;required?:boolea
  {key:'engagementCP',label:'Engagement CP (MDH)',type:'number'},{key:'engagementCE',label:'Engagement CE (MDH)',type:'number'},
  {key:'dateEngagement',label:'Date engagement',type:'date'},{key:'delaisExecution',label:'Délais d’exécution'}
 ];
-export default function PPMManagement({onSaved}:{projects:Project[];onSaved:()=>Promise<void>|void}) {
- const [selectedYear,setSelectedYear]=useState(2027);
+export default function PPMManagement({selectedYear,onYearChange,onSaved}:{selectedYear:number;onYearChange:(year:number)=>void;projects:Project[];onSaved:()=>Promise<void>|void}) {
  const [projects,setProjects]=useState<Project[]>([]);
  const [loadingYear,setLoadingYear]=useState(true);
  const loadYear=async(year:number)=>{setLoadingYear(true);try{const r=await fetch(`/api/ppm/manage?year=${year}`,{cache:'no-store'});const j=await r.json();if(!r.ok)throw new Error(j.error||'Chargement impossible');setProjects(j.projects||[]);setAudit(j.auditLog||[]);}catch(err:any){setMessage({ok:false,text:err.message||'Impossible de charger cet exercice.'});}finally{setLoadingYear(false);}};
@@ -64,7 +63,7 @@ export default function PPMManagement({onSaved}:{projects:Project[];onSaved:()=>
   <div className="bg-gradient-to-r from-indigo-700 via-violet-700 to-purple-700 text-white px-5 py-5 sm:px-8">
    <div className="max-w-[1800px] mx-auto flex flex-wrap items-center justify-between gap-3">
     <div><div className="flex items-center gap-2 text-xl font-bold"><ClipboardList className="w-6 h-6"/> Saisie et gestion du PPM</div><p className="text-indigo-100 text-xs mt-1">Gestion directe des appels d’offres · Exercice {selectedYear}</p></div>
-    <div className="flex items-center gap-2"><label className="text-xs text-indigo-100">Exercice</label><select value={selectedYear} onChange={e=>setSelectedYear(Number(e.target.value))} className="rounded-lg border border-white/30 bg-indigo-900/40 text-white px-3 py-2 text-sm font-semibold outline-none"><option value={2026} className="text-slate-900">2026</option><option value={2027} className="text-slate-900">2027</option></select><button onClick={loadAudit} className="rounded-lg bg-white/15 hover:bg-white/25 px-3 py-2 text-xs flex items-center gap-2"><History className="w-4 h-4"/> Historique</button><button onClick={startNew} className="rounded-lg bg-white text-indigo-700 hover:bg-indigo-50 px-3 py-2 text-xs font-semibold flex items-center gap-2"><Plus className="w-4 h-4"/> Nouvel AO</button></div>
+    <div className="flex items-center gap-2"><label className="text-xs text-indigo-100">Exercice</label><select value={selectedYear} onChange={e=>onYearChange(Number(e.target.value))} className="rounded-lg border border-white/30 bg-indigo-900/40 text-white px-3 py-2 text-sm font-semibold outline-none"><option value={2026} className="text-slate-900">2026</option><option value={2027} className="text-slate-900">2027</option></select><button onClick={loadAudit} className="rounded-lg bg-white/15 hover:bg-white/25 px-3 py-2 text-xs flex items-center gap-2"><History className="w-4 h-4"/> Historique</button><button onClick={startNew} className="rounded-lg bg-white text-indigo-700 hover:bg-indigo-50 px-3 py-2 text-xs font-semibold flex items-center gap-2"><Plus className="w-4 h-4"/> Nouvel AO</button></div>
    </div>
   </div>
   <div className="max-w-[1800px] mx-auto p-4 sm:p-7 space-y-4">

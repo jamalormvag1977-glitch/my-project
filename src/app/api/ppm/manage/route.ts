@@ -21,7 +21,7 @@ type Project = {
 type AuditEntry = { id: string; action: 'CREATION' | 'MODIFICATION' | 'SUPPRESSION'; projectId: number; numAO: string; at: string; user: string; before?: Project; after?: Project };
 type Store = { projects: Project[]; auditLog: AuditEntry[]; updatedAt: string; source: string };
 
-const STORE_PATH = 'ppm-manual-data.json';
+const STORE_PATH = (year: number) => year === 2026 ? 'ppm-manual-data.json' : `ppm-manual-data-${year}.json`;\nconst validYear = (value: unknown) => { const year = Number(value); return Number.isInteger(year) && year >= 2020 && year <= 2100 ? year : 2027; };
 const DATA_PATH = path.join(process.cwd(), 'public', 'data', 'ppm.json');
 
 function normalizeProject(raw: any, id: number): Project {
@@ -141,8 +141,8 @@ export async function POST(request: Request) {
       store.auditLog.unshift({id:crypto.randomUUID(),action:isEdit?'MODIFICATION':'CREATION',projectId:id,numAO:String(project.numAO||id),at:now,user:auth.user!,before,after:project});
     }
     store.auditLog=store.auditLog.slice(0,2000); store.updatedAt=now; store.source='Saisie directe';
-    const checksum=await saveStore(store);
-    return NextResponse.json({success:true,message:'Modification enregistrée et analyses actualisées.',projects:store.projects,...analytics(store.projects),auditCount:store.auditLog.length,updatedAt:now,fileChecksum:checksum,dataSaved:true});
+    const checksum=await saveStore(store,year);
+    return NextResponse.json({success:true,year,message:`Exercice ${year} : modification enregistrée et analyses actualisées.`,projects:store.projects,...analytics(store.projects),auditCount:store.auditLog.length,updatedAt:now,fileChecksum:checksum,dataSaved:true});
   } catch(e) {
     console.error('PPM manual save failed',e);
     return NextResponse.json({error:'Échec de sauvegarde permanente. Vérifiez la configuration Vercel Blob et réessayez.'},{status:503});

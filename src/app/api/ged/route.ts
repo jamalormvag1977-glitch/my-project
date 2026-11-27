@@ -7,7 +7,12 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const TYPES = ['CPS', 'RC', 'PV_OUVERTURE', 'PV_JUGEMENT', 'EXTRAIT_MARCHE', 'AUTRE'] as const;
-const MAX_FILE_SIZE = 25 * 1024 * 1024;
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
+const gedToken = () => {
+  const token = process.env.GED_BLOB_READ_WRITE_TOKEN;
+  if (!token) throw new Error('GED_BLOB_READ_WRITE_TOKEN manquant : configurez un Blob Store Vercel privé dédié à la GED.');
+  return token;
+};
 
 async function sessionUser() {
   return getServerSession(authOptions);
@@ -33,7 +38,7 @@ export async function GET(request: NextRequest) {
     const prefix = aoId
       ? `ged/${year}/${safeSegment(aoId)}/`
       : `ged/${year}/`;
-    const result = await list({ prefix, access: 'private', limit: 1000 });
+    const result = await list({ prefix, access: 'private', token: gedToken(), limit: 1000 });
     const documents = result.blobs.map(blob => {
       const parts = blob.pathname.split('/');
       return {
@@ -65,13 +70,14 @@ export async function POST(request: NextRequest) {
     if (!(file instanceof File)) return error('Sélectionnez un fichier PDF.');
     if (!year || !aoId || !TYPES.includes(category as any)) return error('Exercice, AO ou catégorie invalide.');
     if (!file.name.toLowerCase().endsWith('.pdf') || (file.type && file.type !== 'application/pdf')) return error('Seuls les fichiers PDF sont acceptés.');
-    if (file.size <= 0 || file.size > MAX_FILE_SIZE) return error('Le PDF doit peser entre 1 octet et 25 Mo.');
+    if (file.size <= 0 || file.size > MAX_FILE_SIZE) return error('Le PDF doit peser entre 1 octet et 4 Mo (limite du dépôt serveur actuel).');
     const bytes = new Uint8Array(await file.slice(0, 5).arrayBuffer());
     if (new TextDecoder().decode(bytes) !== '%PDF-') return error('Le fichier ne semble pas être un PDF valide.');
     const fileName = safeSegment(file.name.replace(/\.pdf$/i, '')) + '.pdf';
     const pathname = `ged/${year}/${safeSegment(aoId)}/${category}/${Date.now()}-${fileName}`;
     const blob = await put(pathname, file, {
       access: 'private',
+      token: gedToken(),
       addRandomSuffix: true,
       contentType: 'application/pdf',
       allowOverwrite: false,
@@ -93,7 +99,7 @@ export async function DELETE(request: NextRequest) {
   const pathname = request.nextUrl.searchParams.get('pathname') || '';
   if (!/^ged\/\d{4}\/[a-zA-Z0-9_-]+\/[A-Z_]+\//.test(pathname)) return error('Document invalide.');
   try {
-    await del(pathname, { access: 'private' });
+    await del(pathname, { access: 'private', token: gedToken() });
     return NextResponse.json({ success: true }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e) {
     console.error('GED delete error', e);

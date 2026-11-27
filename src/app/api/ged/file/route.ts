@@ -6,6 +6,12 @@ import { get } from '@vercel/blob';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+function gedToken() {
+  const token = process.env.GED_BLOB_READ_WRITE_TOKEN;
+  if (!token) throw new Error('GED_BLOB_READ_WRITE_TOKEN manquant.');
+  return token;
+}
+
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: 'Authentification requise.' }, { status: 401 });
@@ -14,12 +20,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Document invalide.' }, { status: 400 });
   }
   try {
-    const result = await get(pathname, { access: 'private' });
+    const result = await get(pathname, { access: 'private', token: gedToken() });
     if (!result || result.statusCode !== 200) return new NextResponse('Document introuvable.', { status: 404 });
     return new NextResponse(result.stream, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': 'inline',
+        'Content-Disposition': request.nextUrl.searchParams.get('download') === '1' ? 'attachment; filename="document.pdf"' : 'inline',
         'X-Content-Type-Options': 'nosniff',
         'Cache-Control': 'private, no-store',
       },

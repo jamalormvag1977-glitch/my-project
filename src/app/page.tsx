@@ -2868,6 +2868,7 @@ export default function Dashboard() {
           const engRate = filteredKpis.totalEstimation > 0 ? Math.round(filteredKpis.totalEngagement / filteredKpis.totalEstimation * 100) : 0;
 
           const reportTypes = [
+            { key: 'direction', icon: <FileText className="w-5 h-5" />, label: 'Reporting Direction – 1 page', desc: 'Synthèse exécutive A4', color: '#0f766e' },
             { key: 'synthese', icon: <BarChart3 className="w-5 h-5" />, label: 'Synthèse Générale', desc: 'Vue d\'ensemble complète', color: '#2563eb' },
             { key: 'entite', icon: <Building2 className="w-5 h-5" />, label: 'Par Entité', desc: 'Répartition par entité', color: '#16a34a' },
             { key: 'statut', icon: <ClipboardList className="w-5 h-5" />, label: 'Par Statut / Étape', desc: 'Pipeline et statuts', color: '#d97706' },
@@ -2976,6 +2977,13 @@ export default function Dashboard() {
                 tr, th, td { break-inside: avoid !important; page-break-inside: avoid !important; }
                 .text-slate-300, .text-slate-400, .text-slate-500, .text-gray-300, .text-gray-400, .text-gray-500 { color: #222 !important; }
                 * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                /* Print only the one-page executive report when selected */
+                body:has(.direction-report) * { visibility: hidden !important; }
+                body:has(.direction-report) .direction-report, body:has(.direction-report) .direction-report * { visibility: visible !important; }
+                body:has(.direction-report) .direction-report { position: fixed !important; inset: 0 !important; z-index: 99999 !important; width: 100% !important; height: 198mm !important; max-height: 198mm !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; break-inside: avoid !important; page-break-inside: avoid !important; font-size: 8pt !important; background: #fff !important; }
+                body:has(.direction-report) { overflow: hidden !important; }
+                .direction-report .direction-kpi { padding: 7px 9px !important; }
+                .direction-report .direction-title { font-size: 19pt !important; }
               }
             `}</style>
 
@@ -3078,6 +3086,128 @@ export default function Dashboard() {
             <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6">
 
               {printHeader}
+
+
+              {/* REPORTING EXECUTIF DIRECTION — UNE PAGE */}
+              {reportType === 'direction' && (() => {
+                const total = filtered.length;
+                const count = (status: string) => filtered.filter(p => p.situationAvancement === status).length;
+                const attributed = filtered.filter(p => Boolean(p.attributaire && p.attributaire.trim())).length;
+                const engaged = count('Engagé');
+                const judged = count('Jugé') + engaged;
+                const unsuccessful = count('Infructueux');
+                const cancelled = count('Annulé');
+                const pending = filtered.filter(p => ['A programmer','DAO Envoyé au CE','Publié sur PMP','Ouvert','En cours de jugement'].includes(p.situationAvancement)).length;
+                const rate = (n: number, d: number) => d > 0 ? Math.round(n / d * 100) : 0;
+                const topEntities = Object.entries(filtered.reduce((acc, p) => {
+                  const key = p.entite || 'Non renseignée';
+                  if (!acc[key]) acc[key] = { count: 0, engagement: 0 };
+                  acc[key].count += 1;
+                  acc[key].engagement += p.montantEngagement || 0;
+                  return acc;
+                }, {} as Record<string, {count:number; engagement:number}>)).sort((a,b) => b[1].engagement - a[1].engagement).slice(0,4);
+                const topWinners = Object.entries(filtered.reduce((acc, p) => {
+                  const name = p.attributaire?.trim();
+                  if (!name) return acc;
+                  if (!acc[name]) acc[name] = { count: 0, amount: 0 };
+                  acc[name].count += 1;
+                  acc[name].amount += p.montantEngagement || p.montantExtrait || 0;
+                  return acc;
+                }, {} as Record<string, {count:number; amount:number}>)).sort((a,b) => b[1].amount - a[1].amount).slice(0,5);
+                const financial = [
+                  {label:'Budget CP + CE', value:filteredKpis.totalBudget, color:'#1d4ed8'},
+                  {label:'Estimation administrative', value:filteredKpis.totalEstimation, color:'#b45309'},
+                  {label:'Engagements', value:filteredKpis.totalEngagement, color:'#15803d'},
+                ];
+                const pipeline = [
+                  {label:'Engagés', value:engaged, color:'#16a34a'},
+                  {label:'Jugés', value:count('Jugé'), color:'#2563eb'},
+                  {label:'En cours', value:count('En cours de jugement') + count('Ouvert'), color:'#d97706'},
+                  {label:'Infructueux', value:unsuccessful, color:'#dc2626'},
+                  {label:'Annulés', value:cancelled, color:'#64748b'},
+                ];
+                return (
+                  <div className="direction-report bg-white text-slate-800 rounded-xl border border-slate-200 p-5 shadow-sm space-y-3">
+                    <div className="flex items-start justify-between border-b-2 border-slate-800 pb-3">
+                      <div>
+                        <div className="text-[9px] font-bold tracking-[0.22em] text-teal-700 uppercase">Office Régional de Mise en Valeur Agricole du Gharb</div>
+                        <h2 className="direction-title text-2xl font-extrabold tracking-tight text-slate-900 mt-1">Reporting exécutif – Plan de Passation des Marchés</h2>
+                        <p className="text-xs text-slate-500 mt-1">Exercice {selectedYear} · Situation consolidée des appels d’offres</p>
+                      </div>
+                      <div className="text-right text-[10px] text-slate-500">
+                        <div className="font-bold text-slate-800">NOTE À LA DIRECTION</div>
+                        <div>Édité le {new Date().toLocaleDateString('fr-FR')}</div>
+                        <div>{total} AO dans le périmètre affiché</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        {label:'Appels d’offres',value:String(total),sub:'Volume suivi',color:'#1d4ed8'},
+                        {label:'Attributaires désignés',value:String(attributed),sub:rate(attributed,total)+'% des AO',color:'#0f766e'},
+                        {label:'Marchés engagés',value:String(engaged),sub:rate(engaged,total)+'% des AO',color:'#15803d'},
+                        {label:'Procédures infructueuses',value:String(unsuccessful),sub:rate(unsuccessful,total)+'% des AO',color:'#dc2626'},
+                      ].map(k => <div key={k.label} className="direction-kpi rounded-lg border border-slate-200 bg-slate-50">
+                        <div className="text-[9px] uppercase tracking-wide text-slate-500">{k.label}</div>
+                        <div className="text-2xl font-extrabold mt-1" style={{color:k.color}}>{k.value}</div>
+                        <div className="text-[9px] text-slate-500">{k.sub}</div>
+                      </div>)}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {financial.map(k => <div key={k.label} className="rounded-lg p-3 border border-slate-200 bg-white">
+                        <div className="text-[9px] uppercase tracking-wide text-slate-500">{k.label}</div>
+                        <div className="text-lg font-extrabold mt-1" style={{color:k.color}}>{fmtMDH(k.value)}</div>
+                      </div>)}
+                    </div>
+                    <div className="grid grid-cols-12 gap-3">
+                      <div className="col-span-7 rounded-lg border border-slate-200 p-3">
+                        <div className="text-[10px] font-bold uppercase tracking-wide text-slate-700 mb-2">État d’avancement des procédures</div>
+                        <div className="flex h-3 overflow-hidden rounded-full bg-slate-100">
+                          {pipeline.map(x => <div key={x.label} title={x.label + ': ' + x.value} style={{width:(total ? x.value/total*100 : 0)+'%',backgroundColor:x.color}} />)}
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2">
+                          {pipeline.map(x => <div key={x.label} className="flex items-center justify-between text-[9px]">
+                            <span className="flex items-center gap-1.5 text-slate-600"><i className="inline-block w-2 h-2 rounded-full" style={{backgroundColor:x.color}} />{x.label}</span>
+                            <strong>{x.value} <span className="font-normal text-slate-400">({rate(x.value,total)}%)</span></strong>
+                          </div>)}
+                        </div>
+                        <div className="border-t border-slate-100 mt-2 pt-2 flex justify-between text-[9px]">
+                          <span className="text-slate-500">Jugés ou engagés</span><strong>{judged} / {total} · {rate(judged,total)}%</strong>
+                          <span className="text-slate-500">En attente / à suivre</span><strong>{pending}</strong>
+                        </div>
+                      </div>
+                      <div className="col-span-5 rounded-lg border border-slate-200 p-3">
+                        <div className="text-[10px] font-bold uppercase tracking-wide text-slate-700 mb-2">Performance financière</div>
+                        <div className="flex justify-between text-[9px] mb-1"><span className="text-slate-500">Taux d’engagement sur estimation</span><strong className="text-green-700">{rate(filteredKpis.totalEngagement,filteredKpis.totalEstimation)}%</strong></div>
+                        <div className="h-2 rounded-full bg-slate-100 overflow-hidden"><div className="h-full bg-green-600 rounded-full" style={{width:Math.min(100,rate(filteredKpis.totalEngagement,filteredKpis.totalEstimation))+'%'}} /></div>
+                        <div className="grid grid-cols-2 gap-2 mt-3">
+                          <div><div className="text-[9px] text-slate-500">CP engagé / CP</div><strong className="text-xs">{rate(filteredKpis.totalEngagementCP,filteredKpis.totalCP)}%</strong></div>
+                          <div><div className="text-[9px] text-slate-500">CE engagé / CE</div><strong className="text-xs">{rate(filteredKpis.totalEngagementCE,filteredKpis.totalCE)}%</strong></div>
+                          <div><div className="text-[9px] text-slate-500">Reste à engager</div><strong className="text-xs">{fmtMDH(Math.max(0,filteredKpis.totalEstimation-filteredKpis.totalEngagement))}</strong></div>
+                          <div><div className="text-[9px] text-slate-500">Montant extrait</div><strong className="text-xs">{fmtMDH(filteredKpis.totalMontantExtrait)}</strong></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-lg border border-slate-200 p-3">
+                        <div className="text-[10px] font-bold uppercase tracking-wide text-slate-700 mb-2">Entités – principaux engagements</div>
+                        <table className="w-full text-[9px]"><thead><tr className="text-slate-400 border-b"><th className="text-left py-1">Entité</th><th className="text-center">AO</th><th className="text-right">Engagement</th></tr></thead>
+                          <tbody>{topEntities.length ? topEntities.map(([name,v]) => <tr key={name} className="border-b border-slate-50"><td className="py-1 font-medium">{name}</td><td className="text-center">{v.count}</td><td className="text-right font-semibold text-green-700">{fmtMDH(v.engagement)}</td></tr>) : <tr><td colSpan={3} className="py-2 text-slate-400">Aucune donnée</td></tr>}</tbody>
+                        </table>
+                      </div>
+                      <div className="rounded-lg border border-slate-200 p-3">
+                        <div className="text-[10px] font-bold uppercase tracking-wide text-slate-700 mb-2">Entreprises attributaires – classement par montant</div>
+                        <table className="w-full text-[9px]"><thead><tr className="text-slate-400 border-b"><th className="text-left py-1">Attributaire</th><th className="text-center">AO</th><th className="text-right">Montant</th></tr></thead>
+                          <tbody>{topWinners.length ? topWinners.map(([name,v]) => <tr key={name} className="border-b border-slate-50"><td className="py-1 font-medium max-w-[220px] truncate">{name}</td><td className="text-center">{v.count}</td><td className="text-right font-semibold text-teal-700">{fmtMDH(v.amount)}</td></tr>) : <tr><td colSpan={3} className="py-2 text-slate-400">Aucun attributaire renseigné</td></tr>}</tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-slate-200 pt-2 text-[8px] text-slate-500">
+                      <span>Source : application ORMVAG PPM · Exercice {selectedYear} · Filtres actifs appliqués au reporting</span>
+                      <span>DPF – Document de pilotage interne</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* ════════════════════════════════════════════════════
                   📊 SYNTHÈSE GÉNÉRALE

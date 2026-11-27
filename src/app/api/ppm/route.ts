@@ -427,30 +427,63 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Format non supporté. Utilisez .xlsx ou .xls' }, { status: 400 });
     }
 
-    // Parse Excel directly from memory buffer
+    // Validate the workbook before touching the currently published PPM file.
+    if (file.size === 0 || file.size > 20 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Fichier vide ou supérieur à 20 Mo.' }, { status: 400 });
+    }
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const projects = parseExcelBuffer(buffer);
+    if (projects.length === 0) {
+      return NextResponse.json({
+        error: 'Aucun appel d’offres exploitable trouvé. Le fichier actuel a été conservé.',
+      }, { status: 400 });
+    }
     const analytics = computeAnalytics(projects);
     const checksum = crypto.createHash('md5').update(buffer).digest('hex');
 
-    // Upload to Vercel Blob (persistent storage — survives serverless restarts)
+    // Persist the new version FIRST. Only after a successful upload do we
+    // clean up old versions, so an upload error never destroys the last PPM.
     let blobUrl = '';
     try {
-      // Delete previous PPM blob files to keep only the latest
-      const existingBlobs = await list({ prefix: 'ppm-' });
-      for (const blob of existingBlobs.blobs) {
-        await del(blob.url);
-      }
-      // Upload new file with standardized name
-      const blobResult = await put(`ppm-${file.name}`, file, {
+      const blobResult = await put(`ppm-${Date.now()}-${file.name}`, file, {
         access: 'public',
-        contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        addRandomSuffix: true,
+        contentType: file.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
       blobUrl = blobResult.url;
       console.log('✅ File uploaded to Vercel Blob:', blobUrl);
+
+      try {
+        const existingBlobs = await list({ prefix: 'ppm-' });
+        await Promise.all(
+          existingBlobs.blobs
+            .filter((blob) => blob.url !== blobUrl)
+            .map((blob) => del(blob.url).catch((cleanupError) => {
+              console.warn('Old PPM Blob cleanup failed:', cleanupError);
+            }))
+        );
+      } catch (cleanupError) {
+        // The new version is already safely stored; cleanup can be retried later.
+        console.warn('Old PPM Blob listing/cleanup failed:', cleanupError);
+      }
     } catch (blobErr) {
-      console.warn('⚠️ Vercel Blob upload failed (check BLOB_READ_WRITE_TOKEN):', (blobErr as Error).message);
+      console.error('⚠️ Vercel Blob upload failed:', blobErr);
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({
+          error: 'Le fichier a été analysé, mais sa sauvegarde permanente a échoué. Les anciennes données ont été conservées. Vérifiez Vercel Blob puis réessayez.',
+        }, { status: 503 });
+      }
+      // Local development fallback only.
+      try {
+        if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+        if (!fs.existsSync(PUBLIC_DATA_DIR)) fs.mkdirSync(PUBLIC_DATA_DIR, { recursive: true });
+        fs.writeFileSync(path.join(UPLOAD_DIR, file.name), buffer);
+        fs.writeFileSync(path.join(PUBLIC_DATA_DIR, 'ppm.xlsx'), buffer);
+      } catch (fsErr) {
+        return NextResponse.json({ error: 'Échec de sauvegarde du fichier PPM.' }, { status: 500 });
+      }
     }
 
     // Also try to save to local filesystem (for local dev)

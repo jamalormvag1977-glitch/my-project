@@ -6,103 +6,177 @@ import fs from 'fs';
 import path from 'path';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-/**
- * API /api/soumissionnaires
- * GET: Retourne les données des soumissionnaires.
- * POST: Upload un nouveau fichier Excel soumissionnaires.
- * 
- * Query params (GET):
- *   - numAO: filtrer par numéro d'AO (ex: "1")
- *   - entite: filtrer par entité (ex: "DPF")
- *   - key: filtrer par clé combinée (ex: "1/DPF")
- */
+type SoumissionnaireRow = {
+  semaine: string;
+  seance: string;
+  objetSeance: string;
+  president: string;
+  nom: string | null;
+  decisionCommission: string;
+  offreFinanciere: string | null;
+  decisionCommissionOF: string;
+};
 
-function parseNumAO(numAO: string) {
-  if (!numAO) return { num: '', entite: '' };
-  const parts = String(numAO).split('/');
-  return { num: parts[0] || '', entite: parts[parts.length - 1] || '' };
+type Projet = {
+  numAO: string;
+  entite: string;
+  numAOComplet: string;
+  objetAO: string;
+  nbSoumissionnaires: number;
+  nbSoumissionnairesUniques: number;
+  soumissionnaires: SoumissionnaireRow[];
+};
+
+const noStoreHeaders = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+};
+
+function clean(value: unknown): string {
+  return value === null || value === undefined ? '' : String(value).trim();
+}
+
+function normalizeHeader(value: unknown): string {
+  return clean(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function parseNumAO(value: unknown) {
+  const complete = clean(value).replace(/\s*\/\s*/g, '/');
+  if (!complete) return { num: '', entite: '', complete: '' };
+  const parts = complete.split('/');
+  return {
+    num: (parts[0] || '').trim(),
+    entite: (parts[parts.length - 1] || '').trim(),
+    complete,
+  };
+}
+
+// Repère les colonnes par leurs intitulés. Le classeur conserve ainsi sa
+// compatibilité même si des colonnes sont déplacées dans Excel.
+function findHeader(rows: any[][]) {
+  const aliases: Record<string, string[]> = {
+    semaine: ['semaine'],
+    seance: ['seance'],
+    numAO: ['nao', 'numeroao', 'numao'],
+    objetAO: ['objetao'],
+    objetSeance: ['objetdelaseance', 'objetseance'],
+    president: ['president'],
+    nbSoumissionnaires: ['nbsoumissionnaires', 'nbsoumissionnaire'],
+    nom: ['soumissionnaire', 'nomsoumissionnaire'],
+    decision: ['decisioncommission', 'decision'],
+    offre: ['offrefinanciereproposee', 'offrefinanciere'],
+    decisionOF: ['decisioncommissionof', 'decisionof'],
+  };
+
+  for (let rowIndex = 0; rowIndex < Math.min(rows.length, 20); rowIndex++) {
+    const normalized = (rows[rowIndex] || []).map(normalizeHeader);
+    const indexes: Record<string, number> = {};
+    for (const [field, candidates] of Object.entries(aliases)) {
+      const index = normalized.findIndex((cell) => candidates.includes(cell));
+      if (index >= 0) indexes[field] = index;
+    }
+    if (indexes.numAO !== undefined && (indexes.nom !== undefined || indexes.objetAO !== undefined)) {
+      return { rowIndex, indexes };
+    }
+  }
+
+  // Compatibilité avec le modèle historique : titre en première ligne,
+  // en-têtes en deuxième ligne, 11 colonnes dans l'ordre initial.
+  return {
+    rowIndex: 1,
+    indexes: {
+      semaine: 0, seance: 1, numAO: 2, objetAO: 3, objetSeance: 4,
+      president: 5, nbSoumissionnaires: 6, nom: 7, decision: 8,
+      offre: 9, decisionOF: 10,
+    } as Record<string, number>,
+  };
 }
 
 function processExcelData(rows: any[][]) {
-  const projets: Record<string, any> = {};
+  if (!Array.isArray(rows) || rows.length < 2) {
+    throw new Error('Le classeur est vide ou ne contient pas de tableau exploitable.');
+  }
 
-  for (let i = 2; i < rows.length; i++) {
-    const row = rows[i];
-    if (!row || !row[2]) continue;
+  const { rowIndex, indexes } = findHeader(rows);
+  const value = (row: any[], field: string) => {
+    const index = indexes[field];
+    return index === undefined ? '' : clean(row?.[index]);
+  };
 
-    const numAOComplet = String(row[2]).trim();
-    const parsed = parseNumAO(numAOComplet);
-    const key = parsed.num + '/' + parsed.entite;
+  const projets: Record<string, Projet> = {};
+  let totalLignes = 0;
 
+  for (let i = rowIndex + 1; i < rows.length; i++) {
+    const row = rows[i] || [];
+    const ao = parseNumAO(value(row, 'numAO'));
+    if (!ao.complete || !ao.num || !ao.entite) continue;
+
+    totalLignes++;
+    const key = `${ao.num}/${ao.entite}`;
     if (!projets[key]) {
       projets[key] = {
-        numAO: parsed.num,
-        entite: parsed.entite,
-        numAOComplet,
-        objetAO: row[3] || '',
-        nbSoumissionnaires: row[6] || 0,
-        soumissionnaires: []
+        numAO: ao.num,
+        entite: ao.entite,
+        numAOComplet: ao.complete,
+        objetAO: value(row, 'objetAO'),
+        nbSoumissionnaires: 0,
+        nbSoumissionnairesUniques: 0,
+        soumissionnaires: [],
       };
     }
 
-    if (row[6] && Number(row[6]) > 0) {
-      projets[key].nbSoumissionnaires = Number(row[6]);
-    }
+    const count = Number(value(row, 'nbSoumissionnaires').replace(',', '.'));
+    if (Number.isFinite(count) && count > 0) projets[key].nbSoumissionnaires = count;
 
+    const nom = value(row, 'nom');
+    const offre = value(row, 'offre');
     projets[key].soumissionnaires.push({
-      semaine: row[0] || '',
-      seance: row[1] || '',
-      objetSeance: row[4] || '',
-      president: row[5] || '',
-      nom: row[7] && row[7] !== '-' ? String(row[7]).trim() : null,
-      decisionCommission: row[8] || '',
-      offreFinanciere: row[9] && row[9] !== '-' ? String(row[9]).trim() : null,
-      decisionCommissionOF: row[10] || ''
+      semaine: value(row, 'semaine'),
+      seance: value(row, 'seance'),
+      objetSeance: value(row, 'objetSeance'),
+      president: value(row, 'president'),
+      nom: nom && nom !== '-' ? nom : null,
+      decisionCommission: value(row, 'decision'),
+      offreFinanciere: offre && offre !== '-' ? offre : null,
+      decisionCommissionOF: value(row, 'decisionOF'),
     });
   }
 
-  // Calculate unique soumissionnaires per project
-  let totalSoumissionnaires = 0;
-  Object.values(projets).forEach((p: any) => {
-    const uniqueSoums = new Set(
-      p.soumissionnaires.filter((s: any) => s.nom).map((s: any) => s.nom)
-    );
-    p.nbSoumissionnairesUniques = uniqueSoums.size;
-    totalSoumissionnaires += uniqueSoums.size;
-  });
-
-  return { projets, totalProjets: Object.keys(projets).length, totalSoumissionnaires };
-}
-
-function readFromExcel(): Record<string, any> | null {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const XLSX = require('xlsx');
-    const excelPath = path.join(process.cwd(), 'public', 'data', 'soumissionnaires.xlsx');
-
-    if (!fs.existsSync(excelPath)) return null;
-
-    const wb = XLSX.readFile(excelPath);
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
-
-    const { projets } = processExcelData(rows);
-    return projets;
-  } catch (e: any) {
-    console.error('Excel read error:', e.message);
-    return null;
+  if (totalLignes === 0) {
+    throw new Error('Aucun numéro d’AO valide trouvé. Vérifiez la colonne « N° AO » et la feuille Excel.');
   }
+
+  let totalSoumissionnaires = 0;
+  for (const projet of Object.values(projets)) {
+    const uniques = new Set(
+      projet.soumissionnaires
+        .map((item) => item.nom?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim())
+        .filter((name): name is string => Boolean(name))
+    );
+    projet.nbSoumissionnairesUniques = uniques.size;
+    totalSoumissionnaires += uniques.size;
+  }
+
+  return {
+    projets,
+    totalProjets: Object.keys(projets).length,
+    totalSoumissionnaires,
+    totalLignes,
+  };
 }
 
-function readFromStaticJson(): Record<string, any> | null {
+function readLocalData() {
   try {
     const jsonPath = path.join(process.cwd(), 'public', 'data', 'soumissionnaires.json');
     if (!fs.existsSync(jsonPath)) return null;
-    const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-    return data.projets || null;
-  } catch (e: any) {
-    console.error('JSON read error:', e.message);
+    return JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+  } catch (error) {
+    console.error('Soumissionnaire JSON read error:', error);
     return null;
   }
 }
@@ -112,152 +186,147 @@ export async function GET(request: Request) {
   const numAO = searchParams.get('numAO');
   const entite = searchParams.get('entite');
   const key = searchParams.get('key');
+  let data: any = null;
 
-  let projets: Record<string, any> | null = null;
-
-  // Priority 1: Try Vercel Blob
+  // La version Excel persistée dans Blob est prioritaire.
   try {
     const blobs = await list({ prefix: 'soumissionnaires-' });
-    if (blobs.blobs.length > 0) {
-      const latestBlob = blobs.blobs.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
-      const response = await fetch(latestBlob.url);
+    const latest = blobs.blobs
+      .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
+
+    if (latest) {
+      const response = await fetch(latest.url, { cache: 'no-store' });
       if (response.ok) {
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        const buffer = Buffer.from(await response.arrayBuffer());
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const XLSX = require('xlsx');
-        const wb = XLSX.read(buffer, { type: 'buffer' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
-        const result = processExcelData(rows);
-        projets = result.projets;
+        const workbook = XLSX.read(buffer, { type: 'buffer' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        data = {
+          ...processExcelData(rows),
+          lastUpdated: latest.uploadedAt,
+          fileName: latest.pathname,
+        };
       }
     }
-  } catch (blobErr) {
-    console.warn('Vercel Blob read failed:', (blobErr as Error).message);
+  } catch (error) {
+    console.error('Vercel Blob soumissionnaire read failed:', error);
   }
 
-  // Priority 2: local Excel
-  if (!projets) {
-    projets = readFromExcel();
-  }
-
-  // Priority 3: static JSON
-  if (!projets) {
-    projets = readFromStaticJson();
-  }
-
-  if (!projets) {
+  if (!data) data = readLocalData();
+  if (!data?.projets) {
     return NextResponse.json(
       { error: 'Aucune donnée soumissionnaire disponible' },
-      { status: 404 }
+      { status: 404, headers: noStoreHeaders }
     );
   }
 
+  let projets: Record<string, Projet> = data.projets;
   if (key) {
     const projet = projets[key] || null;
-    return NextResponse.json({
-      totalProjets: projet ? 1 : 0,
-      projets: projet ? { [key]: projet } : {}
-    });
-  }
-
-  if (numAO || entite) {
-    const filtered: Record<string, any> = {};
-    Object.entries(projets).forEach(([k, p]: [string, any]) => {
-      const match = (!numAO || p.numAO === numAO) && (!entite || p.entite === entite);
-      if (match) filtered[k] = p;
-    });
-    return NextResponse.json({
-      totalProjets: Object.keys(filtered).length,
-      projets: filtered
-    });
+    projets = projet ? { [key]: projet } : {};
+  } else if (numAO || entite) {
+    projets = Object.fromEntries(
+      Object.entries(projets).filter(([, projet]) =>
+        (!numAO || projet.numAO === numAO) && (!entite || projet.entite === entite)
+      )
+    );
   }
 
   return NextResponse.json({
+    lastUpdated: data.lastUpdated || null,
+    fileName: data.fileName || 'soumissionnaires.xlsx',
     totalProjets: Object.keys(projets).length,
-    projets
-  });
+    totalSoumissionnaires: key || numAO || entite
+      ? Object.values(projets).reduce((sum, projet) => sum + (projet.nbSoumissionnairesUniques || 0), 0)
+      : (data.totalSoumissionnaires ?? 0),
+    projets,
+  }, { headers: noStoreHeaders });
 }
 
 export async function POST(request: Request) {
   try {
-    // Check authenticated user (admin or user)
     const session = await getServerSession(authOptions);
     if (!session) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401, headers: noStoreHeaders });
     }
-    const userRole = (session.user as any)?.role;
-    if (userRole !== 'admin') {
-      return NextResponse.json({ error: 'Accès réservé aux administrateurs' }, { status: 403 });
+    if ((session.user as any)?.role !== 'admin') {
+      return NextResponse.json({ error: 'Accès réservé aux administrateurs' }, { status: 403, headers: noStoreHeaders });
     }
 
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-
-    if (!file) {
-      return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 });
+    const file = formData.get('file');
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400, headers: noStoreHeaders });
     }
 
-    // Validate file extension
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     if (!['.xlsx', '.xls'].includes(ext)) {
-      return NextResponse.json({ error: 'Format non supporté. Utilisez .xlsx ou .xls' }, { status: 400 });
+      return NextResponse.json({ error: 'Format non supporté. Utilisez .xlsx ou .xls' }, { status: 400, headers: noStoreHeaders });
+    }
+    if (file.size === 0 || file.size > 20 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Fichier vide ou supérieur à 20 Mo.' }, { status: 400, headers: noStoreHeaders });
     }
 
-    // Read the uploaded file
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
+    const buffer = Buffer.from(await file.arrayBuffer());
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const XLSX = require('xlsx');
-    const wb = XLSX.read(buffer, { type: 'buffer' });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    if (!workbook.SheetNames?.length) throw new Error('Le fichier ne contient aucune feuille Excel.');
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+    const parsed = processExcelData(rows);
 
-    // Process the data
-    const { projets, totalProjets, totalSoumissionnaires } = processExcelData(rows);
-
-    // Upload to Vercel Blob (persistent storage)
+    // IMPORTANT : enregistrer et valider le nouveau Blob AVANT de supprimer
+    // les anciennes versions. Une erreur conserve donc le dernier fichier valide.
     let blobUrl = '';
     try {
-      const existingBlobs = await list({ prefix: 'soumissionnaires-' });
-      for (const blob of existingBlobs.blobs) {
-        await del(blob.url);
-      }
-      const blobResult = await put(`soumissionnaires-${file.name}`, file, {
+      const uploaded = await put(`soumissionnaires-${Date.now()}-${file.name}`, file, {
         access: 'public',
-        contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        addRandomSuffix: true,
+        contentType: file.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
-      blobUrl = blobResult.url;
-    } catch (blobErr) {
-      console.warn('Vercel Blob upload failed:', (blobErr as Error).message);
-    }
+      blobUrl = uploaded.url;
 
-    // Save locally (for local dev — non-critical on Vercel)
-    try {
+      const oldBlobs = await list({ prefix: 'soumissionnaires-' });
+      await Promise.all(
+        oldBlobs.blobs
+          .filter((blob) => blob.url !== uploaded.url)
+          .map((blob) => del(blob.url).catch((error) => {
+            console.warn('Old soumissionnaire Blob cleanup failed:', error);
+          }))
+      );
+    } catch (blobError) {
+      console.error('Vercel Blob upload failed:', blobError);
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({
+          error: 'Le fichier a été analysé, mais sa sauvegarde permanente a échoué. Les anciennes données ont été conservées. Vérifiez la configuration Vercel Blob puis réessayez.',
+        }, { status: 503, headers: noStoreHeaders });
+      }
+
       const excelPath = path.join(process.cwd(), 'public', 'data', 'soumissionnaires.xlsx');
+      const jsonPath = path.join(process.cwd(), 'public', 'data', 'soumissionnaires.json');
       fs.writeFileSync(excelPath, buffer);
-      const jsonData = { lastUpdated: new Date().toISOString(), fileName: file.name, totalProjets, totalSoumissionnaires, projets };
-      fs.writeFileSync(path.join(process.cwd(), 'public', 'data', 'soumissionnaires.json'), JSON.stringify(jsonData, null, 2), 'utf8');
-    } catch (fsErr) {
-      // Expected on Vercel — non-critical
+      fs.writeFileSync(jsonPath, JSON.stringify({
+        ...parsed, lastUpdated: new Date().toISOString(), fileName: file.name,
+      }, null, 2), 'utf8');
     }
 
     return NextResponse.json({
       success: true,
       uploadSuccess: true,
       blobUrl,
-      message: `Fichier "${file.name}" traité avec succès : ${totalProjets} AO, ${totalSoumissionnaires} soumissionnaires`,
-      totalProjets,
-      totalSoumissionnaires,
-      projets,
-    });
-  } catch (e: any) {
-    console.error('Upload soumissionnaire error:', e.message);
+      message: `Fichier "${file.name}" enregistré : ${parsed.totalProjets} AO, ${parsed.totalSoumissionnaires} soumissionnaires uniques (${parsed.totalLignes} lignes analysées).`,
+      ...parsed,
+      lastUpdated: new Date().toISOString(),
+      fileName: file.name,
+    }, { headers: noStoreHeaders });
+  } catch (error: any) {
+    console.error('Upload soumissionnaire error:', error);
     return NextResponse.json(
-      { error: 'Erreur lors du traitement du fichier : ' + e.message },
-      { status: 500 }
+      { error: 'Erreur lors du traitement du fichier : ' + (error?.message || 'erreur inconnue') },
+      { status: 400, headers: noStoreHeaders }
     );
   }
 }

@@ -1369,6 +1369,16 @@ export default function Dashboard() {
                     <div className="relative">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                       <Input placeholder="Rechercher..." className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 w-48" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} />
+                    <Button
+                      onClick={() => window.print()}
+                      variant="outline"
+                      size="icon"
+                      title="Imprimer les rapports"
+                      aria-label="Imprimer les rapports"
+                      className="h-8 w-8 border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"
+                    >
+                      <Printer className="w-4 h-4" />
+                    </Button>
                     </div>
                   </div>
                 </div>

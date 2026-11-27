@@ -269,8 +269,27 @@ type PPMResponse = {
 };
 
 /* ── GET: Load data (Vercel Blob → Excel → static JSON → DB) ── */
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const requestedYear = Number(new URL(request.url).searchParams.get('year') || 2026);
+    const year = Number.isInteger(requestedYear) && requestedYear >= 2020 && requestedYear <= 2100 ? requestedYear : 2026;
+    // Exercise 2027 and later are isolated from the legacy Excel dataset.
+    if (year !== 2026) {
+      const storePath = `ppm-manual-data-${year}.json`;
+      const yearBlobs = await list({ prefix: storePath });
+      const yearBlob = yearBlobs.blobs.find((blob) => blob.pathname === storePath);
+      if (yearBlob) {
+        const response = await fetch(yearBlob.url, { cache: 'no-store' });
+        if (response.ok) {
+          const store = await response.json();
+          const projects = Array.isArray(store.projects) ? store.projects : [];
+          const analytics = computeAnalytics(projects);
+          const checksum = crypto.createHash('sha256').update(JSON.stringify(store)).digest('hex');
+          return NextResponse.json({ lastUpdated: store.updatedAt || yearBlob.uploadedAt, fileChecksum: checksum, fileName: `Saisie directe PPM ${year}`, dataSaved: true, manualMode: true, year, projects, ...analytics });
+        }
+      }
+      return NextResponse.json({ lastUpdated: new Date().toISOString(), fileName: `PPM ${year} — saisie directe`, dataSaved: false, year, projects: [], ...computeAnalytics([]) });
+    }
     // Priority 0: Direct-entry data is authoritative once the PPM is managed in the application.
     try {
       const manualBlobs = await list({ prefix: 'ppm-manual-data.json' });
@@ -546,6 +565,18 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
+    const requestedYear = Number(body.year || 2026);
+    const year = Number.isInteger(requestedYear) && requestedYear >= 2020 && requestedYear <= 2100 ? requestedYear : 2026;
+    if (year !== 2026) {
+      const storePath = `ppm-manual-data-${year}.json`;
+      const yearBlobs = await list({ prefix: storePath });
+      const yearBlob = yearBlobs.blobs.find((blob) => blob.pathname === storePath);
+      if (!yearBlob) return NextResponse.json({ changed: false, noFile: true, checksum: null });
+      const response = await fetch(yearBlob.url, { cache: 'no-store' });
+      const store = await response.json();
+      const checksum = crypto.createHash('sha256').update(JSON.stringify(store)).digest('hex');
+      return NextResponse.json({ changed: body.checksum !== checksum, checksum, fileName: `Saisie directe PPM ${year}`, fileLastModified: store.updatedAt || yearBlob.uploadedAt });
+    }
     // Compare against the authoritative direct-entry store before checking Excel files.
     try {
       const manualBlobs = await list({ prefix: 'ppm-manual-data.json' });

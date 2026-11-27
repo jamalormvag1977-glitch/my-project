@@ -565,6 +565,7 @@ export default function Dashboard() {
   const isAuthenticated = !!session?.user;
   
   const [data, setData] = useState<PPMData | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -619,17 +620,20 @@ export default function Dashboard() {
     if (showSpinner) setLoading(true);
     setRefreshing(true);
     try {
-      const res = await fetch('/api/ppm');
+      const res = await fetch(`/api/ppm?year=${selectedYear}`, { cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
-        if (json.projects && json.projects.length > 0) {
+        if (json.year === selectedYear || (json.projects && json.projects.length > 0)) {
           setData(json);
           lastChecksumRef.current = json.fileChecksum || null;
           setFileChanged(false);
-        } else {
+        } else if (selectedYear === 2026) {
           await fetchStaticJsonFallback();
+        } else {
+          setData(json);
+          lastChecksumRef.current = json.fileChecksum || null;
         }
-      } else {
+      } else if (selectedYear === 2026) {
         await fetchStaticJsonFallback();
       }
     } catch (e) {
@@ -639,7 +643,7 @@ export default function Dashboard() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedYear]);
 
   const fetchStaticJsonFallback = useCallback(async () => {
     try {
@@ -677,13 +681,13 @@ export default function Dashboard() {
         const res = await fetch('/api/ppm', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ checksum: lastChecksumRef.current }),
+          body: JSON.stringify({ checksum: lastChecksumRef.current, year: selectedYear }),
         });
         const json = await res.json();
         if (json.changed) {
           setFileChanged(true);
           // Auto-fetch new data
-          const dataRes = await fetch('/api/ppm');
+          const dataRes = await fetch(`/api/ppm?year=${selectedYear}`, { cache: 'no-store' });
           const newData = await dataRes.json();
           if (dataRes.ok) {
             setData(newData);
@@ -697,7 +701,7 @@ export default function Dashboard() {
     }, 5000);
 
     return () => clearInterval(checkInterval);
-  }, [autoRefresh]);
+  }, [autoRefresh, selectedYear]);
 
   const handleUploadSuccess = useCallback((newData: PPMData) => {
     setData(newData);
@@ -1193,7 +1197,7 @@ export default function Dashboard() {
               </div>
               {!sidebarCollapsed && (
               <div>
-                <p className="text-sm font-bold text-white tracking-tight">PPM 2026</p>
+                <p className="text-sm font-bold text-white tracking-tight">PPM {selectedYear}</p>
                 <p className="text-[9px] text-gray-500 uppercase tracking-wider">ORMVAG</p>
               </div>
               )}
@@ -1275,9 +1279,9 @@ export default function Dashboard() {
           <div className="px-6 py-2">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <h1 className="text-sm font-bold text-slate-800">Vue d&apos;ensemble PPM 2026</h1>
+                <div className="flex items-center gap-2"><h1 className="text-sm font-bold text-slate-800">Vue d&apos;ensemble PPM {selectedYear}</h1><label className="text-[10px] text-slate-500">Exercice</label><select aria-label="Choisir l’exercice PPM" value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700"><option value={2026}>2026</option><option value={2027}>2027</option></select></div>
                 <span className="text-[10px] text-slate-400">
-                  {data.fileName ? data.fileName.replace(/\.xlsx?$/i, '') : 'PPM 2026'}
+                  {data.fileName ? data.fileName.replace(/\.xlsx?$/i, '') : `PPM ${selectedYear}`}
                   {data.fileLastModified && <> · Modifié: {new Date(data.fileLastModified).toLocaleDateString('fr-FR')}</>}
                 </span>
                 <span className="text-[10px] text-slate-400 flex items-center gap-1">
@@ -1330,7 +1334,7 @@ export default function Dashboard() {
           </div>
         </div>
         {sidebarTab === 'gestion' && isAdmin && data && (
-          <PPMManagement projects={data.projects} onSaved={async () => { await fetchData(false); }} />
+          <PPMManagement selectedYear={selectedYear} onYearChange={setSelectedYear} projects={data.projects} onSaved={async () => { await fetchData(false); }} />
         )}
         {/* ── Full-Screen View 3: Par Étape ── */}
         {sidebarTab === 'step' && (
@@ -2851,7 +2855,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <h2 className="text-sm font-bold text-slate-800">Rapports</h2>
-                      <p className="text-[10px] text-slate-500">Génération et impression des rapports PPM 2026</p>
+                      <p className="text-[10px] text-slate-500">Génération et impression des rapports PPM {selectedYear}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -6368,7 +6372,7 @@ export default function Dashboard() {
 
         {/* ── Footer ── */}
         <footer className="text-center text-xs text-slate-400 pb-6 pt-2 space-y-1">
-          <p>Vue d'ensemble PPM 2026 — ORMVA du Gharb</p>
+          <p>Vue d'ensemble PPM {selectedYear} — ORMVA du Gharb</p>
           {data.fileChecksum && (
             <p className="text-[10px] text-slate-300">
               Checksum : {data.fileChecksum.substring(0, 12)}... · Sync auto : {autoRefresh ? 'ON (5s)' : 'OFF'} · Base de données : {data.dataSaved ? 'SQLite ✓' : 'Non synchronisée'}

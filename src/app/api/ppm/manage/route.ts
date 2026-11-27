@@ -21,7 +21,8 @@ type Project = {
 type AuditEntry = { id: string; action: 'CREATION' | 'MODIFICATION' | 'SUPPRESSION'; projectId: number; numAO: string; at: string; user: string; before?: Project; after?: Project };
 type Store = { projects: Project[]; auditLog: AuditEntry[]; updatedAt: string; source: string };
 
-const STORE_PATH = (year: number) => year === 2026 ? 'ppm-manual-data.json' : `ppm-manual-data-${year}.json`;\nconst validYear = (value: unknown) => { const year = Number(value); return Number.isInteger(year) && year >= 2020 && year <= 2100 ? year : 2027; };
+const STORE_PATH = (year: number) => year === 2026 ? 'ppm-manual-data.json' : `ppm-manual-data-${year}.json`;
+const validYear = (value: unknown) => { const year = Number(value); return Number.isInteger(year) && year >= 2020 && year <= 2100 ? year : 2027; };
 const DATA_PATH = path.join(process.cwd(), 'public', 'data', 'ppm.json');
 
 function normalizeProject(raw: any, id: number): Project {

@@ -79,10 +79,11 @@ function analytics(projects: Project[]) {
   for(const [e,v] of Object.entries(entityBudget)) entityEngagementRate[e]=v.estimation>0?Math.round(v.engagement/v.estimation*100):0;
   return {kpis:{totalProjects:projects.length,totalCP,totalCE,totalBudget:totalCP+totalCE,totalEstimation,totalEngagement,totalMontantExtrait,engagementRate:totalEstimation?Math.round(totalEngagement/totalEstimation*1000)/10:0,extractionRate:totalEstimation?Math.round(totalMontantExtrait/totalEstimation*1000)/10:0},statusCount,entityBudget,natureBudget,typeBudget,monthlyTimeline,entityEngagementRate};
 }
-async function readManual(): Promise<Store | null> {
+async function readManual(year: number): Promise<Store | null> {
   try {
-    const blobs=await list({prefix:STORE_PATH});
-    const blob=blobs.blobs.find(b=>b.pathname===STORE_PATH) || blobs.blobs[0];
+    const storePath=STORE_PATH(year);
+    const blobs=await list({prefix:storePath});
+    const blob=blobs.blobs.find(b=>b.pathname===storePath);
     if(!blob) return null;
     const res=await fetch(blob.url,{cache:'no-store'}); if(!res.ok) return null;
     return await res.json() as Store;
@@ -108,20 +109,22 @@ async function saveStore(store: Store) {
   await put(STORE_PATH,payload,{access:'public',addRandomSuffix:false,allowOverwrite:true,contentType:'application/json; charset=utf-8'});
   return crypto.createHash('sha256').update(payload).digest('hex');
 }
-export async function GET() {
+export async function GET(request: Request) {
   const auth=await requireAdmin(); if(auth.error)return auth.error;
   try {
-    const store=await readManual();
-    if(!store) return NextResponse.json({manualMode:false,projects:[],auditLog:[]});
-    return NextResponse.json({manualMode:true,projects:store.projects,auditLog:store.auditLog,updatedAt:store.updatedAt,source:store.source,...analytics(store.projects),fileChecksum:crypto.createHash('sha256').update(JSON.stringify(store)).digest('hex'),dataSaved:true});
+    const year=validYear(new URL(request.url).searchParams.get('year'));
+    const store=await readManual(year);
+    if(!store) { const projects=year===2026?await initialProjects():[]; return NextResponse.json({manualMode:false,year,projects,auditLog:[],...analytics(projects)}); }
+    return NextResponse.json({manualMode:true,year,projects:store.projects,auditLog:store.auditLog,updatedAt:store.updatedAt,source:store.source,...analytics(store.projects),fileChecksum:crypto.createHash('sha256').update(JSON.stringify(store)).digest('hex'),dataSaved:true});
   } catch(e) { return NextResponse.json({error:'Impossible de lire les données de saisie.'},{status:500}); }
 }
 export async function POST(request: Request) {
   const auth=await requireAdmin(); if(auth.error)return auth.error;
   try {
     const body=await request.json();
-    let store=await readManual();
-    if(!store) store={projects:await initialProjects(),auditLog:[],updatedAt:new Date().toISOString(),source:'Import Excel initial'};
+    const year=validYear(body.year);
+    let store=await readManual(year);
+    if(!store) store={projects:year===2026?await initialProjects():[],auditLog:[],updatedAt:new Date().toISOString(),source:year===2026?'Import Excel initial':`Saisie directe ${year}`};
     const now=new Date().toISOString();
     if(body.action==='delete') {
       const id=Number(body.id); const before=store.projects.find(p=>p.id===id);

@@ -3137,7 +3137,7 @@ export default function Dashboard() {
                             { label: 'Marchés Conclus', value: avecMarche.length, pct: filteredKpis.totalProjects > 0 ? Math.round(avecMarche.length/filteredKpis.totalProjects*100) : 0, sub: `${avecEngagement.length} engagés au total`, bg: 'from-teal-50 to-teal-100/50', border: 'border-teal-100', iconBg: 'bg-teal-500/10', iconColor: 'text-teal-600', icon: <FileSignature className="w-4 h-4" /> },
                           ];
                           return kpis.map((k, i) => (
-                            <div key={i} className={`print-keep-card bg-gradient-to-br ${k.bg} rounded-xl p-3.5 border ${k.border}`}
+                            <div key={i} className={`bg-gradient-to-br ${k.bg} rounded-xl p-3.5 border ${k.border}`}>
                               <div className="flex items-center gap-2 mb-1.5">
                                 <div className={`w-7 h-7 rounded-lg ${k.iconBg} flex items-center justify-center ${k.iconColor}`}>{k.icon}</div>
                                 <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wide">{k.label}</span>
@@ -3182,7 +3182,7 @@ export default function Dashboard() {
                             { label: 'Reste à Engager', value: fmtMDH(resteAEngager), pct: filteredKpis.totalEstimation > 0 ? Math.round(resteAEngager/filteredKpis.totalEstimation*100) : 0, sub: `${filteredKpis.totalEstimation > 0 ? Math.round(resteAEngager/filteredKpis.totalEstimation*100) : 0}% de l\'estim.`, bg: 'from-rose-50 to-rose-100/50', border: 'border-rose-100', iconBg: 'bg-rose-500/10', iconColor: 'text-rose-600', icon: <ArrowLeftRight className="w-4 h-4" /> },
                           ];
                           return montantKpis.map((k, i) => (
-                            <div key={i} className={`bg-gradient-to-br ${k.bg} rounded-xl p-3.5 border ${k.border}`}>
+                            <div key={i} className={`print-keep-card bg-gradient-to-br ${k.bg} rounded-xl p-3.5 border ${k.border}`}>
                               <div className="flex items-center gap-2 mb-1.5">
                                 <div className={`w-7 h-7 rounded-lg ${k.iconBg} flex items-center justify-center ${k.iconColor}`}>{k.icon}</div>
                                 <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wide">{k.label}</span>

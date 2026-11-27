@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, Fragment } from 'react';
 import { useSession, signOut } from 'next-auth/react';
+import PPMManagement from '@/components/ppm-management';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area,
@@ -580,7 +581,7 @@ export default function Dashboard() {
   const [showUpload, setShowUpload] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const lastChecksumRef = useRef<string | null>(null);
-  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'soumissionnaires' | 'fiches' | 'reports' | 'alerts' | 'delais' | 'dashboard'>('dashboard');
+  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'soumissionnaires' | 'fiches' | 'reports' | 'alerts' | 'delais' | 'dashboard' | 'gestion'>('dashboard');
   const [expandedAO, setExpandedAO] = useState<number | null>(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
@@ -1225,7 +1226,8 @@ export default function Dashboard() {
               { key: 'alerts' as const, label: 'Alertes', icon: <AlertTriangle className="w-4.5 h-4.5" /> },
               { key: 'fiches' as const, label: 'Fiches AO', icon: <FileSearch className="w-4.5 h-4.5" /> },
               { key: 'reports' as const, label: 'Rapports', icon: <FileText className="w-4.5 h-4.5" /> },
-            ].map(tab => (
+              { key: 'gestion' as const, label: 'Saisie et gestion PPM', icon: <ClipboardList className="w-4.5 h-4.5" /> },
+            ].filter(tab => tab.key !== 'gestion' || isAdmin).map(tab => (
               <button
                 key={tab.key}
                 onClick={() => setSidebarTab(tab.key)}
@@ -1327,6 +1329,9 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+        {sidebarTab === 'gestion' && isAdmin && data && (
+          <PPMManagement projects={data.projects} onSaved={async () => { await fetchData(false); }} />
+        )}
         {/* ── Full-Screen View 3: Par Étape ── */}
         {sidebarTab === 'step' && (
           <div className="min-h-screen bg-white text-slate-800 animate-fade-in-up">

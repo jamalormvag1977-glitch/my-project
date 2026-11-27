@@ -32,12 +32,11 @@ const fields: {key:keyof typeof empty;label:string;type?:string;required?:boolea
  {key:'engagementCP',label:'Engagement CP (MDH)',type:'number'},{key:'engagementCE',label:'Engagement CE (MDH)',type:'number'},
  {key:'dateEngagement',label:'Date engagement',type:'date'},{key:'delaisExecution',label:'Délais d’exécution'}
 ];
-export default function PPMManagement({projects:initialProjects,onSaved}:{projects:Project[];onSaved:()=>Promise<void>|void}) {
+export default function PPMManagement({onSaved}:{projects:Project[];onSaved:()=>Promise<void>|void}) {
  const [selectedYear,setSelectedYear]=useState(2027);
  const [projects,setProjects]=useState<Project[]>([]);
  const [loadingYear,setLoadingYear]=useState(true);
  const loadYear=async(year:number)=>{setLoadingYear(true);try{const r=await fetch(`/api/ppm/manage?year=${year}`,{cache:'no-store'});const j=await r.json();if(!r.ok)throw new Error(j.error||'Chargement impossible');setProjects(j.projects||[]);setAudit(j.auditLog||[]);}catch(err:any){setMessage({ok:false,text:err.message||'Impossible de charger cet exercice.'});}finally{setLoadingYear(false);}};
- useEffect(()=>{loadYear(selectedYear);setShowForm(false);setEditingId(null);setShowAudit(false);setSearch('');},[selectedYear]);
  const [form,setForm]=useState<any>(empty);
  const [editingId,setEditingId]=useState<number|null>(null);
  const [saving,setSaving]=useState(false);
@@ -47,6 +46,7 @@ export default function PPMManagement({projects:initialProjects,onSaved}:{projec
  const [showAudit,setShowAudit]=useState(false);
  const [audit,setAudit]=useState<Audit[]>([]);
  const [auditLoading,setAuditLoading]=useState(false);
+ useEffect(()=>{loadYear(selectedYear);setShowForm(false);setEditingId(null);setShowAudit(false);setSearch('');},[selectedYear]);
  const filtered=useMemo(()=>projects.filter(p=>[p.numAO,p.entite,p.objet,p.attributaire,p.numMarche].join(' ').toLowerCase().includes(search.toLowerCase())),[projects,search]);
  const startNew=()=>{setEditingId(null);setForm({...empty});setMessage(null);setShowForm(true);};
  const startEdit=(p:Project)=>{setEditingId(p.id);setForm({...p});setMessage(null);setShowForm(true);};

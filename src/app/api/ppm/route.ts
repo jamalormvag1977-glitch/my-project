@@ -271,12 +271,41 @@ type PPMResponse = {
 /* ── GET: Load data (Vercel Blob → Excel → static JSON → DB) ── */
 export async function GET() {
   try {
-    // Priority 1: Try loading from Vercel Blob (persisted upload)
+    // Priority 0: Direct-entry data is authoritative once the PPM is managed in the application.
+    try {
+      const manualBlobs = await list({ prefix: 'ppm-manual-data.json' });
+      const manualBlob = manualBlobs.blobs.find((b) => b.pathname === 'ppm-manual-data.json');
+      if (manualBlob) {
+        const manualResponse = await fetch(manualBlob.url, { cache: 'no-store' });
+        if (manualResponse.ok) {
+          const manualStore = await manualResponse.json();
+          if (Array.isArray(manualStore.projects)) {
+            const projects = manualStore.projects;
+            const analytics = computeAnalytics(projects);
+            const checksum = crypto.createHash('sha256').update(JSON.stringify(manualStore)).digest('hex');
+            return NextResponse.json({
+              lastUpdated: manualStore.updatedAt || manualBlob.uploadedAt,
+              fileChecksum: checksum,
+              fileName: 'Saisie directe PPM',
+              dataSaved: true,
+              manualMode: true,
+              projects,
+              ...analytics,
+            });
+          }
+        }
+      }
+    } catch (manualErr) {
+      console.warn('Direct-entry PPM read failed:', (manualErr as Error).message);
+    }
+
+    // Priority 1: Try loading from Vercel Blob (persisted Excel upload)
     try {
       const blobs = await list({ prefix: 'ppm-' });
-      if (blobs.blobs.length > 0) {
-        // Get the most recent blob
-        const latestBlob = blobs.blobs.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
+      const excelBlobs = blobs.blobs.filter((blob) => !blob.pathname.includes('ppm-manual-data.json'));
+      if (excelBlobs.length > 0) {
+        // Get the most recent Excel upload
+        const latestBlob = excelBlobs.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
         const response = await fetch(latestBlob.url);
         if (response.ok) {
           const arrayBuffer = await response.arrayBuffer();
@@ -517,6 +546,26 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
+    // Compare against the authoritative direct-entry store before checking Excel files.
+    try {
+      const manualBlobs = await list({ prefix: 'ppm-manual-data.json' });
+      const manualBlob = manualBlobs.blobs.find((b) => b.pathname === 'ppm-manual-data.json');
+      if (manualBlob) {
+        const manualResponse = await fetch(manualBlob.url, { cache: 'no-store' });
+        if (manualResponse.ok) {
+          const manualStore = await manualResponse.json();
+          const checksum = crypto.createHash('sha256').update(JSON.stringify(manualStore)).digest('hex');
+          return NextResponse.json({
+            changed: body.checksum !== checksum,
+            checksum,
+            fileName: 'Saisie directe PPM',
+            fileLastModified: manualStore.updatedAt || manualBlob.uploadedAt,
+          });
+        }
+      }
+    } catch (manualErr) {
+      console.warn('Direct-entry checksum check failed:', (manualErr as Error).message);
+    }
     const clientChecksum = body.checksum as string | undefined;
     const filePath = findExcelFile();
 

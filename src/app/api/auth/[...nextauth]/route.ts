@@ -4,17 +4,25 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: 'Connexion PPM 2026',
+      name: 'Connexion ORMVAG PPM',
       credentials: {
         password: { label: 'Mot de passe', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.password) return null;
 
-        const adminPassword = process.env.ADMIN_PASSWORD || 'PPM2026@';
-        const userPassword = process.env.USER_PASSWORD || 'DPFPPM2026@';
+        // Fail closed: no hard-coded/default credentials are permitted.
+        // Configure these values only in Vercel Environment Variables.
+        const adminPassword = process.env.ADMIN_PASSWORD;
+        const userPassword = process.env.USER_PASSWORD;
 
-        // Admin password
+        if (!adminPassword || !userPassword || !process.env.NEXTAUTH_SECRET) {
+          console.error(
+            'Authentication configuration incomplete: ADMIN_PASSWORD, USER_PASSWORD and NEXTAUTH_SECRET must be configured.'
+          );
+          return null;
+        }
+
         if (credentials.password === adminPassword) {
           return {
             id: '1',
@@ -24,7 +32,6 @@ export const authOptions: NextAuthOptions = {
           };
         }
 
-        // Observateur password
         if (credentials.password === userPassword) {
           return {
             id: '2',
@@ -57,10 +64,10 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 hours
+    maxAge: 24 * 60 * 60,
   },
+  // NEXTAUTH_SECRET is mandatory in production; never substitute a public default.
   secret: process.env.NEXTAUTH_SECRET,
-  // Auto-detect NEXTAUTH_URL on Vercel
   ...(process.env.VERCEL_URL && !process.env.NEXTAUTH_URL
     ? { url: `https://${process.env.VERCEL_URL}` }
     : {}),

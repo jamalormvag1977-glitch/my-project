@@ -3054,7 +3054,7 @@ export default function Dashboard() {
               {reportType === 'synthese' && (
                 <div className="space-y-6">
                   {/* Professional header */}
-                  <div className="print:no-break bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">

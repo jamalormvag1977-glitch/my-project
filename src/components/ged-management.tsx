@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { upload as uploadBlob } from '@vercel/blob/client';
 import { AlertCircle, Download, Eye, FileText, FolderOpen, Loader2, Plus, RefreshCw, Trash2, UploadCloud } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,7 @@ export default function GedManagement({ year, projects, isAdmin, initialAoId }: 
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -53,32 +55,28 @@ export default function GedManagement({ year, projects, isAdmin, initialAoId }: 
 
   const upload = async (file?: File) => {
     if (!file) return;
-    if (aoId === 'all') {
-      setMessage({ ok: false, text: 'Sélectionnez d’abord un appel d’offres.' });
-      return;
-    }
-    if (!file.name.toLowerCase().endsWith('.pdf') || (file.type && file.type !== 'application/pdf')) {
-      setMessage({ ok: false, text: 'Seuls les fichiers PDF sont acceptés.' });
-      return;
-    }
-    const form = new FormData();
-    form.append('file', file);
-    form.append('year', String(year));
-    form.append('aoId', aoId);
-    form.append('category', category);
-    setUploading(true); setMessage(null);
+    if (aoId === 'all') { setMessage({ ok: false, text: 'Sélectionnez d’abord un appel d’offres.' }); return; }
+    if (!file.name.toLowerCase().endsWith('.pdf') || (file.type && file.type !== 'application/pdf')) { setMessage({ ok: false, text: 'Seuls les fichiers PDF sont acceptés.' }); return; }
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size <= 0 || file.size > maxSize) { setMessage({ ok: false, text: 'Le PDF doit peser au maximum 50 Mo.' }); return; }
+    const signature = new TextDecoder().decode(new Uint8Array(await file.slice(0, 5).arrayBuffer()));
+    if (signature !== '%PDF-') { setMessage({ ok: false, text: 'Le fichier sélectionné ne semble pas être un PDF valide.' }); return; }
+    const safeName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
+    const pathname = `ged/${year}/${aoId}/${category}/${Date.now()}-${safeName}`;
+    setUploading(true); setUploadProgress(0); setMessage(null);
     try {
-      const res = await fetch('/api/ged', { method: 'POST', body: form });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Dépôt impossible.');
-      setMessage({ ok: true, text: 'Document déposé dans le dossier AO.' });
+      await uploadBlob(pathname, file, {
+        access: 'private',
+        handleUploadUrl: '/api/ged/upload-token',
+        contentType: 'application/pdf',
+        clientPayload: JSON.stringify({ year, aoId, category, fileName: file.name }),
+        onUploadProgress: (event) => setUploadProgress(Math.round(event.percentage)),
+      });
+      setUploadProgress(100);
+      setMessage({ ok: true, text: 'Document déposé avec succès dans le dossier GED de cet AO.' });
       await load();
-    } catch (e) {
-      setMessage({ ok: false, text: e instanceof Error ? e.message : 'Erreur pendant le dépôt.' });
-    } finally {
-      setUploading(false);
-      if (inputRef.current) inputRef.current.value = '';
-    }
+    } catch (e) { setMessage({ ok: false, text: e instanceof Error ? e.message : 'Erreur pendant le dépôt du PDF.' }); }
+    finally { setUploading(false); if (inputRef.current) inputRef.current.value = ''; }
   };
 
   const remove = async (doc: DocumentItem) => {
@@ -127,8 +125,9 @@ export default function GedManagement({ year, projects, isAdmin, initialAoId }: 
         {selectedProject && <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-3 text-xs text-indigo-900"><strong>AO {selectedProject.numAO || selectedProject.id} / {selectedProject.entite}</strong><p className="mt-1">{selectedProject.objet}</p></div>}
         {isAdmin ? <div className="flex flex-wrap items-center gap-3">
           <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={e => upload(e.target.files?.[0])} />
-          <Button disabled={uploading || aoId === 'all'} onClick={() => inputRef.current?.click()} className="gap-2"><UploadCloud className="w-4 h-4"/>{uploading ? 'Dépôt en cours…' : 'Ajouter un PDF'}</Button>
-          <span className="text-xs text-slate-500">PDF uniquement · 4 Mo maximum · accès réservé aux utilisateurs connectés</span>
+          <Button disabled={uploading || aoId === 'all'} onClick={() => inputRef.current?.click()} className="gap-2"><UploadCloud className="w-4 h-4"/>{uploading ? `Dépôt… ${uploadProgress}%` : 'Ajouter un PDF'}</Button>
+          <span className="text-xs text-slate-500">PDF uniquement · 50 Mo maximum · stockage privé sécurisé</span>
+          {uploading && <div className="w-full max-w-md space-y-1"><div className="flex justify-between text-xs text-slate-600"><span>Transfert du PDF…</span><span>{uploadProgress}%</span></div><div className="h-2 w-full overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-indigo-600 transition-all duration-200" style={{ width: `${uploadProgress}%` }} /></div></div>}
         </div> : <p className="text-xs text-slate-500">Consultation uniquement. Le dépôt et la suppression sont réservés à l’administrateur.</p>}
         {message && <div className={`flex items-start gap-2 rounded-lg p-3 text-sm ${message.ok ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}><AlertCircle className="w-4 h-4 mt-0.5 shrink-0"/>{message.text}</div>}
       </CardContent></Card>

@@ -128,7 +128,7 @@ export default function GedManagement({ year, projects, isAdmin, initialAoId }: 
         {isAdmin ? <div className="flex flex-wrap items-center gap-3">
           <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={e => upload(e.target.files?.[0])} />
           <Button disabled={uploading || aoId === 'all'} onClick={() => inputRef.current?.click()} className="gap-2"><UploadCloud className="w-4 h-4"/>{uploading ? 'Dépôt en cours…' : 'Ajouter un PDF'}</Button>
-          <span className="text-xs text-slate-500">PDF uniquement · 25 Mo maximum · accès réservé aux utilisateurs connectés</span>
+          <span className="text-xs text-slate-500">PDF uniquement · 4 Mo maximum · accès réservé aux utilisateurs connectés</span>
         </div> : <p className="text-xs text-slate-500">Consultation uniquement. Le dépôt et la suppression sont réservés à l’administrateur.</p>}
         {message && <div className={`flex items-start gap-2 rounded-lg p-3 text-sm ${message.ok ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}><AlertCircle className="w-4 h-4 mt-0.5 shrink-0"/>{message.text}</div>}
       </CardContent></Card>

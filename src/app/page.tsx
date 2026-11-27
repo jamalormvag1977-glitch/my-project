@@ -2492,6 +2492,12 @@ export default function Dashboard() {
                           <span className="text-xs text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md">{p.entite}</span>
                         </div>
                         <p className="text-sm font-semibold text-slate-800">{p.objet}</p>
+                        {p.situationAvancement === 'Engagé' && (
+                          <div className="mt-1 flex items-center gap-1.5 text-xs">
+                            <span className="font-semibold text-slate-500">Attributaire :</span>
+                            <span className="font-semibold text-emerald-700">{p.attributaire || 'Non renseigné'}</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
                           {p.programme && <span className="flex items-center gap-1"><Tag className="w-3 h-3" />{p.programme}</span>}
                           {p.projet && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{p.projet}</span>}
@@ -2579,6 +2585,12 @@ export default function Dashboard() {
                             <span className="text-xs text-slate-500">N° AO</span>
                             <span className="text-xs font-semibold text-slate-800">{p.numAO ?? p.id}</span>
                           </div>
+                          {p.situationAvancement === 'Engagé' && (
+                            <div className="flex justify-between gap-3">
+                              <span className="text-xs text-slate-500">Attributaire</span>
+                              <span className="text-xs font-semibold text-emerald-700 text-right">{p.attributaire || 'Non renseigné'}</span>
+                            </div>
+                          )}
                           <div className="flex justify-between">
                             <span className="text-xs text-slate-500">Type Budget</span>
                             <span className="text-xs font-medium text-slate-700">{p.typeBudget || '—'}</span>

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef, Fragment } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import PPMManagement from '@/components/ppm-management';
+import SoumissionnairesManagement from '@/components/soumissionnaires-management';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area,
@@ -712,12 +713,12 @@ export default function Dashboard() {
   /* ── Fetch Soumissionnaire Data ── */
   const fetchSoumissionnaires = useCallback(async () => {
     try {
-      const res = await fetch('/api/soumissionnaires');
+      const res = await fetch(`/api/soumissionnaires?year=${selectedYear}`, { cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
         setSoumissionnaireData(json);
-      } else {
-        // Fallback to static JSON
+      } else if (selectedYear === 2026) {
+        // Fallback to static JSON for the legacy exercise
         const fallbackRes = await fetch('/data/soumissionnaires.json');
         if (fallbackRes.ok) {
           const json = await fallbackRes.json();
@@ -736,9 +737,9 @@ export default function Dashboard() {
         console.error('Soumissionnaire data fetch failed:', e2);
       }
     }
-  }, []);
+  }, [selectedYear]);
 
-  // Load soumissionnaire data on mount
+  // Load bidder data whenever the fiscal year changes
   useEffect(() => {
     fetchSoumissionnaires();
   }, [fetchSoumissionnaires]);
@@ -1800,6 +1801,7 @@ export default function Dashboard() {
         {/* ── Full-Screen View: Soumissionnaires ── */}
         {sidebarTab === 'soumissionnaires' && (
           <div className="min-h-screen bg-slate-50 text-slate-800 animate-fade-in-up">
+            <div className="px-6 pt-6"><SoumissionnairesManagement year={selectedYear} onChanged={fetchSoumissionnaires} /></div>
             {/* Header */}
             <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-5 text-white">
               <div className="flex items-center justify-between">

@@ -2078,7 +2078,7 @@ export default function Dashboard() {
                                     <span className="font-semibold text-slate-700">{sp.entite}</span>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-slate-600 align-top whitespace-normal" style={{ lineHeight: '1.6', wordBreak: 'normal', overflowWrap: 'break-word', hyphens: 'none' }}>{sp.objetAO}</td>
+                                <td className="px-4 py-3 text-slate-600 align-top whitespace-normal" style={{ lineHeight: '1.6', wordBreak: 'normal', overflowWrap: 'break-word', hyphens: 'none' }}>{ppmMatch?.objet?.trim() || sp.objetAO?.trim() || '—'}</td>
                                 <td className="px-4 py-3">
                                   <div className="space-y-0.5">
                                     {seances.slice(0, 3).map((seance, i) => (

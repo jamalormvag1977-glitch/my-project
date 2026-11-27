@@ -97,7 +97,7 @@ async function initialProjects(): Promise<Project[]> {
   try { const json=JSON.parse(fs.readFileSync(DATA_PATH,'utf8')); if(Array.isArray(json.projects)) return json.projects.map((p:any)=>normalizeProject(p,Number(p.id))); } catch {}
   return [];
 }
-async function requireAdmin() {
+async function requireAdmin(): Promise<{ error?: NextResponse; user?: string }> {
   const session=await getServerSession(authOptions);
   if(!session) return {error:NextResponse.json({error:'Non authentifié'},{status:401})};
   if((session.user as any)?.role!=='admin') return {error:NextResponse.json({error:'Accès réservé aux administrateurs'},{status:403})};

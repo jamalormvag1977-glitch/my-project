@@ -342,101 +342,21 @@
 
 /* ── Print Styles ──────────────────────────────────────── */
 @media print {
-  /* Hide the black sidebar completely */
-  aside[class*="from-gray-950"],
-  aside[class*="bg-gradient-to-b"] {
-    display: none !important;
-  }
-
-  /* Remove sidebar margin from main content */
-  main {
-    margin-left: 0 !important;
-  }
-
-  /* Hide filter bars in all views */
-  .print-hide-filters,
-  [class*="sticky"][class*="top-0"][class*="z-40"],
-  [class*="sticky"][class*="top-0"][class*="z-30"] {
-    position: static !important;
-  }
-
-  /* Hide filter row specifically */
-  .print-filter-bar {
-    display: none !important;
-  }
-
-  /* Hide action buttons (Imprimer, Export CSV) */
-  .print-hide-actions {
-    display: none !important;
-  }
-
-  /* Hide the compact top action bar */
-  .print-hide-topbar {
-    display: none !important;
-  }
-
-  /* Ensure backgrounds print (for dark header) */
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    color-adjust: exact !important;
-  }
-
-  /* Remove shadows and backdrop filters that don't print well */
-  .shadow-sm, .shadow-lg, .shadow-xl {
-    box-shadow: none !important;
-  }
-
-  [class*="backdrop-blur"] {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: white !important;
-  }
-
-  /* Expand content to full width */
-  .max-w-\[1800px\],
-  .max-w-\[1400px\] {
-    max-width: 100% !important;
-  }
-
-  /* Prevent page breaks inside tables and cards */
-  table, .rounded-xl {
-    page-break-inside: avoid;
-  }
-
-  tr {
-    page-break-inside: avoid;
-  }
-
-  /* Ensure the main content takes full page width */
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Reduce padding for more content per page */
-  .px-4, .px-6, .px-8 {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-  }
-
-  .py-6 {
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
-  }
-
-  /* Force gray/light text to black for printing */
-  .text-slate-300,
-  .text-slate-400,
-  .text-slate-500,
-  .text-gray-300,
-  .text-gray-400,
-  .text-gray-500 {
-    color: #000000 !important;
-  }
-
-  /* Page margins */
-  @page {
-    margin: 10mm;
-  }
+  @page { size: A4 landscape; margin: 9mm; }
+  html, body, #__next { width: 100% !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; }
+  body { overflow: visible !important; background: #fff !important; }
+  aside, .print-hide-filters, .print-filter-bar, .print-hide-actions, .print-hide-topbar, .no-print { display: none !important; }
+  main { display: block !important; width: 100% !important; max-width: none !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; }
+  main > div, main section, main article, main .flex-1, main .min-h-screen { height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; }
+  [class*="overflow-auto"], [class*="overflow-hidden"], [class*="overflow-x-hidden"], [class*="overflow-y-auto"] { overflow: visible !important; max-height: none !important; }
+  [class*="sticky"], [class*="fixed"] { position: static !important; }
+  .print-hide-filters, .print-filter-bar { display: none !important; }
+  .shadow-sm, .shadow-lg, .shadow-xl { box-shadow: none !important; }
+  [class*="backdrop-blur"] { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  .max-w-\\[1800px\\], .max-w-\\[1400px\\] { max-width: none !important; width: 100% !important; }
+  table { width: 100% !important; border-collapse: collapse !important; }
+  thead { display: table-header-group !important; }
+  tr, th, td, .print\\:no-break { break-inside: avoid !important; page-break-inside: avoid !important; }
+  .text-slate-300, .text-slate-400, .text-slate-500, .text-gray-300, .text-gray-400, .text-gray-500 { color: #222 !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }

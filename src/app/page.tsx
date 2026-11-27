@@ -922,6 +922,18 @@ export default function Dashboard() {
   const projets = [...new Set(projects.map(p => p.projet).filter(Boolean))].sort();
   const sources = [...new Set(projects.map(p => p.sourceFinancement).filter(Boolean))].sort();
   const attributaires = [...new Set(projects.map(p => p.attributaire).filter(Boolean))].sort();
+  const classementAttributaires = Object.values(projects.reduce((acc, p) => {
+    const nom = (p.attributaire || '').trim();
+    if (!nom) return acc;
+    const key = nom.toLocaleLowerCase('fr');
+    if (!acc[key]) acc[key] = { nom, nombreMarches: 0, montantCumule: 0, ao: [] as string[] };
+    acc[key].nombreMarches += 1;
+    acc[key].montantCumule += Number(p.montantExtrait || 0);
+    acc[key].ao.push(String(p.numAO || p.id || ''));
+    return acc;
+  }, {} as Record<string, { nom: string; nombreMarches: number; montantCumule: number; ao: string[] }>))
+    .sort((a, b) => b.montantCumule - a.montantCumule || b.nombreMarches - a.nombreMarches);
+
   const statuses = [...new Set(projects.map(p => p.situationAvancement))].sort((a, b) => {
     const aIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === a);
     const bIdx = PIPELINE_ORDER.findIndex(p => (PIPELINE_STATUS_MAP[p] || p) === b);
@@ -5300,6 +5312,34 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
+
+        {/* ── Classement des attributaires ── */}
+        <Card className="border-0 shadow-md glass-card">
+          <CardContent className="p-5 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">Classement des entreprises attributaires — {selectedYear}</h3>
+                <p className="text-xs text-slate-500">Nombre d'AO attribués et montant extrait cumulé, selon les données disponibles</p>
+              </div>
+              <Badge variant="outline">{classementAttributaires.length} attributaires</Badge>
+            </div>
+            {classementAttributaires.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b text-left text-[10px] uppercase tracking-wide text-slate-400"><th className="py-2 pr-3">Rang</th><th className="py-2 pr-3">Attributaire</th><th className="py-2 pr-3 text-right">Nombre de marchés</th><th className="py-2 text-right">Montant extrait cumulé (DH)</th></tr></thead>
+                  <tbody>{classementAttributaires.map((item,index)=>(
+                    <tr key={item.nom} className="border-b last:border-0 hover:bg-slate-50">
+                      <td className="py-2 pr-3 font-semibold text-slate-500">{index+1}</td>
+                      <td className="py-2 pr-3 font-medium text-slate-800">{item.nom}</td>
+                      <td className="py-2 pr-3 text-right tabular-nums">{item.nombreMarches}</td>
+                      <td className="py-2 text-right tabular-nums font-semibold">{item.montantCumule.toLocaleString('fr-FR',{maximumFractionDigits:2})}</td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+            ) : <p className="py-4 text-center text-xs text-slate-400">Aucun attributaire renseigné pour cet exercice.</p>}
+          </CardContent>
+        </Card>
 
         {/* ── Global Filters Bar ── */}
         <Card className="border-0 shadow-md glass-card animate-fade-in-up" style={{ animationDelay: '0.1s' }}>

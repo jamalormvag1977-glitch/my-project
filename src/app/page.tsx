@@ -1623,6 +1623,7 @@ export default function Dashboard() {
                                 <th className="px-3 py-2 text-center w-12">N° AO</th>
                                 <th className="px-3 py-2 text-left">Objet</th>
                                 <th className="px-3 py-2 text-left">Statut</th>
+                                <th className="px-3 py-2 text-left">Attributaire</th>
                                 <th className="px-3 py-2 text-right">CP</th>
                                 <th className="px-3 py-2 text-right">CE</th>
                                 <th className="px-3 py-2 text-right">Estimation</th>
@@ -1641,6 +1642,7 @@ export default function Dashboard() {
                                   <td className="px-3 py-2 text-center text-slate-600 font-mono text-[10px]" title={exAOTitle(p.numAO) || undefined}>{p.numAO || '—'}{String(p.numAO || '').includes('ex') && <span className="text-[7px] opacity-50 ml-0.5">↻</span>}</td>
                                   <td className="px-3 py-2 text-slate-700 min-w-[200px]">{p.objet}</td>
                                   <td className="px-3 py-2 text-center"><Badge className="text-[8px] h-4 gap-0.5 font-semibold border-0 text-white shadow-sm whitespace-nowrap" style={{ backgroundColor: statusColor[p.situationAvancement] || '#6b7280' }}>{p.situationAvancement}</Badge></td>
+                                  <td className="px-3 py-2 text-left text-[10px] font-medium text-emerald-700 min-w-[150px]">{p.attributaire || '—'}</td>
                                   <td className="px-3 py-2 text-right text-slate-700">{p.cp ? fmtM(p.cp) : '—'}</td>
                                   <td className="px-3 py-2 text-right text-slate-700">{p.ce ? fmtM(p.ce) : '—'}</td>
                                   <td className="px-3 py-2 text-right text-blue-700">{p.estimationAdmin ? fmtM(p.estimationAdmin) : '—'}</td>
@@ -2340,11 +2342,13 @@ export default function Dashboard() {
               (p.attributaire ?? '').toLowerCase().includes(ficheSearch.toLowerCase());
             const matchStatus = ficheStatusFilter === 'all' || p.situationAvancement === ficheStatusFilter;
             const matchEntity = ficheEntityFilter === 'all' || p.entite === ficheEntityFilter;
-            return matchSearch && matchStatus && matchEntity;
+            const matchAttributaire = filterAttributaire === 'all' || p.attributaire === filterAttributaire;
+            return matchSearch && matchStatus && matchEntity && matchAttributaire;
           });
 
           const uniqueStatuses = [...new Set(filtered.map(p => p.situationAvancement))].sort();
           const uniqueEntities = [...new Set(filtered.map(p => p.entite))].sort();
+          const uniqueAttributairesFiches = [...new Set(projects.map(p => p.attributaire).filter(Boolean))].sort();
 
           return (
           <div className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-violet-50/20">
@@ -2394,6 +2398,11 @@ export default function Dashboard() {
                     className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-300">
                     <option value="all">Tous statuts</option>
                     {uniqueStatuses.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  <select value={filterAttributaire} onChange={e => setFilterAttributaire(e.target.value)}
+                    className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-300">
+                    <option value="all">Tous attributaires</option>
+                    {uniqueAttributairesFiches.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                   <select value={ficheEntityFilter} onChange={e => setFicheEntityFilter(e.target.value)}
                     className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-300">

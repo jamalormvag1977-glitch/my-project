@@ -111,6 +111,14 @@ interface PPMData {
 }
 
 /* ── Helpers ──────────────────────────────────────────── */
+const formatSeanceLabel = (value: string | null | undefined): string => {
+  if (!value) return '—';
+  return String(value)
+    .replace(/\s+/g, ' ')
+    .replace(/Séance\s*du\s*(\d{1,2})\s*([A-Za-zÀ-ÿ]+)\s*(\d{4})/i, 'Séance du $1 $2 $3')
+    .trim();
+};
+
 const isAdmisDecision = (d: string | null | undefined): boolean => {
   if (!d) return false;
   return d === 'Admis' || d.includes('Admis') || d.includes('acceptables') || d.includes('retenue');
@@ -2084,7 +2092,7 @@ export default function Dashboard() {
                                     {seances.slice(0, 3).map((seance, i) => (
                                       <div key={i} className="flex items-center gap-1 text-[10px]">
                                         <CalendarDays className="w-3 h-3 text-indigo-400" />
-                                        <span className="text-slate-600 whitespace-normal break-words leading-4" style={{ overflowWrap: 'anywhere' }}>{seance}</span>
+                                        <span className="text-slate-600 whitespace-nowrap leading-4" style={{ wordBreak: 'normal', overflowWrap: 'normal' }}>{formatSeanceLabel(seance)}</span>
                                       </div>
                                     ))}
                                     {seances.length > 3 && (
@@ -6548,7 +6556,7 @@ export default function Dashboard() {
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-2">
                               <CalendarDays className="w-4 h-4 text-indigo-400" />
-                              <span className="font-semibold text-slate-700">{s.seance}</span>
+                              <span className="font-semibold text-slate-700 whitespace-nowrap">{formatSeanceLabel(s.seance)}</span>
                             </div>
                           </td>
                           <td className="px-5 py-3">

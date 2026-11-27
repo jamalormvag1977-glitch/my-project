@@ -1992,7 +1992,22 @@ export default function Dashboard() {
                 <Card className="border-0 shadow-md overflow-hidden" style={{ borderTop: '4px solid #6366f1' }}>
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
+                      <table className="w-full min-w-[1720px] table-fixed text-xs">
+                        <colgroup>
+                          <col style={{ width: '120px' }} />
+                          <col style={{ width: '90px' }} />
+                          <col style={{ width: '280px' }} />
+                          <col style={{ width: '220px' }} />
+                          <col style={{ width: '100px' }} />
+                          <col style={{ width: '90px' }} />
+                          <col style={{ width: '100px' }} />
+                          <col style={{ width: '120px' }} />
+                          <col style={{ width: '140px' }} />
+                          <col style={{ width: '210px' }} />
+                          <col style={{ width: '130px' }} />
+                          <col style={{ width: '110px' }} />
+                          <col style={{ width: '90px' }} />
+                        </colgroup>
                         <thead>
                           <tr className="bg-gradient-to-r from-indigo-50 to-violet-50 border-b border-indigo-100 text-[10px] text-indigo-700 uppercase tracking-wider">
                             <th className="px-4 py-3 text-left">N° AO</th>
@@ -2063,13 +2078,13 @@ export default function Dashboard() {
                                     <span className="font-semibold text-slate-700">{sp.entite}</span>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-slate-600" style={{ maxWidth: '280px', whiteSpace: 'normal', lineHeight: '1.4' }}>{sp.objetAO}</td>
+                                <td className="px-4 py-3 text-slate-600 align-top break-words whitespace-normal" style={{ lineHeight: '1.5', overflowWrap: 'anywhere' }}>{sp.objetAO}</td>
                                 <td className="px-4 py-3">
                                   <div className="space-y-0.5">
                                     {seances.slice(0, 3).map((seance, i) => (
                                       <div key={i} className="flex items-center gap-1 text-[10px]">
                                         <CalendarDays className="w-3 h-3 text-indigo-400" />
-                                        <span className="text-slate-600">{seance}</span>
+                                        <span className="text-slate-600 whitespace-normal break-words leading-4" style={{ overflowWrap: 'anywhere' }}>{seance}</span>
                                       </div>
                                     ))}
                                     {seances.length > 3 && (
@@ -2126,7 +2141,7 @@ export default function Dashboard() {
                                   {ppmMatch?.attributaire ? (
                                     <div className="flex items-center gap-1.5">
                                       <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                                      <span className="font-semibold text-green-700" style={{ whiteSpace: 'normal', lineHeight: '1.3' }}>{ppmMatch.attributaire}</span>
+                                      <span className="font-semibold text-green-700 whitespace-normal break-words leading-4" style={{ overflowWrap: 'anywhere' }}>{ppmMatch.attributaire}</span>
                                     </div>
                                   ) : (
                                     <span className="text-slate-300">—</span>

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef, Fragment } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import PPMManagement from '@/components/ppm-management';
 import SoumissionnairesManagement from '@/components/soumissionnaires-management';
+import GedManagement from '@/components/ged-management';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area,
@@ -583,7 +584,7 @@ export default function Dashboard() {
   const [showUpload, setShowUpload] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const lastChecksumRef = useRef<string | null>(null);
-  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'soumissionnaires' | 'fiches' | 'reports' | 'alerts' | 'delais' | 'dashboard' | 'gestion'>('dashboard');
+  const [sidebarTab, setSidebarTab] = useState<'entity' | 'step' | 'history' | 'soumissionnaires' | 'fiches' | 'reports' | 'alerts' | 'delais' | 'dashboard' | 'gestion' | 'ged'>('dashboard');
   const [expandedAO, setExpandedAO] = useState<number | null>(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarStatusFilter, setSidebarStatusFilter] = useState('all');
@@ -602,6 +603,7 @@ export default function Dashboard() {
   const [ficheEntityFilter, setFicheEntityFilter] = useState('all');
   const [expandedFiche, setExpandedFiche] = useState<number | null>(null);
   const [fichePrintMode, setFichePrintMode] = useState(false);
+  const [gedAoId, setGedAoId] = useState<string | null>(null);
 
   /* ── Pipeline Order & Status Mapping ── */
   const PIPELINE_ORDER = ['Ouvert','En cours de jugement','Jugé','Engagé','Infructueux','Annulé','Publié sur PMP','DAO Envoyé au CE','A programmer'] as const;
@@ -1242,6 +1244,7 @@ export default function Dashboard() {
               { key: 'history' as const, label: 'Historique', icon: <History className="w-4.5 h-4.5" /> },
               { key: 'alerts' as const, label: 'Alertes', icon: <AlertTriangle className="w-4.5 h-4.5" /> },
               { key: 'fiches' as const, label: 'Fiches AO', icon: <FileSearch className="w-4.5 h-4.5" /> },
+              { key: 'ged' as const, label: 'GED – Documents AO', icon: <FolderOpen className="w-4.5 h-4.5" /> },
               { key: 'reports' as const, label: 'Rapports', icon: <FileText className="w-4.5 h-4.5" /> },
               { key: 'gestion' as const, label: 'Saisie et gestion PPM', icon: <ClipboardList className="w-4.5 h-4.5" /> },
             ].filter(tab => tab.key !== 'gestion' || isAdmin).map(tab => (
@@ -2281,6 +2284,15 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* ── GED centralisée ── */}
+        {sidebarTab === 'ged' && (
+          <div className="min-h-screen bg-slate-50 text-slate-800 animate-fade-in-up">
+            <div className="px-6 py-6">
+              <GedManagement year={selectedYear} projects={data?.projects || []} isAdmin={isAdmin} initialAoId={gedAoId} />
+            </div>
+          </div>
+        )}
+
         {/* ── Full-Screen View 5: Fiches AO ── */}
         {sidebarTab === 'fiches' && (() => {
           /* ── Helpers for Fiches ── */
@@ -2535,6 +2547,9 @@ export default function Dashboard() {
                       </div>
                       <button onClick={(e) => { e.stopPropagation(); printSingleFiche(p.id); }} className="no-print w-7 h-7 rounded-lg bg-slate-100 hover:bg-indigo-100 flex items-center justify-center transition-colors" title="Imprimer cette fiche">
                         <Printer className="w-3.5 h-3.5 text-slate-500 hover:text-indigo-600" />
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); setGedAoId(String(p.id)); setSidebarTab('ged'); }} className="no-print h-7 px-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 flex items-center gap-1.5 text-[10px] font-semibold transition-colors" title="Ouvrir les documents GED de cet AO">
+                        <FolderOpen className="w-3.5 h-3.5" /> GED
                       </button>
                       {!fichePrintMode && (isExpanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />)}
                     </div>

@@ -863,7 +863,7 @@ export default function Dashboard() {
             ))}
           </div>
           {/* Chart skeleton */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="print-rates-grid grid grid-cols-1 lg:grid-cols-2 gap-4">
             {[1,2].map(i => (
               <div key={i} className="rounded-xl border border-slate-100 bg-white p-5">
                 <div className="w-48 h-4 rounded animate-shimmer mb-4" />
@@ -2940,6 +2940,26 @@ export default function Dashboard() {
                 .shadow-sm, .shadow-lg, .shadow-xl { box-shadow: none !important; }
                 [class*="backdrop-blur"] { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
                 .max-w-\\[1800px\\], .max-w-\\[1400px\\] { max-width: none !important; width: 100% !important; }
+                /* Prevent progress bars and delay cards from splitting across pages */
+                .print-rates-grid, .print-delays-grid {
+                  display: block !important;
+                  font-size: 0 !important;
+                }
+                .print-rates-grid > *, .print-delays-grid > * {
+                  display: inline-block !important;
+                  vertical-align: top !important;
+                  width: calc(50% - 8px) !important;
+                  margin: 0 4px 8px !important;
+                  break-inside: avoid !important;
+                  page-break-inside: avoid !important;
+                  -webkit-column-break-inside: avoid !important;
+                  font-size: 10pt !important;
+                }
+                .print-keep-card {
+                  break-inside: avoid !important;
+                  page-break-inside: avoid !important;
+                  -webkit-column-break-inside: avoid !important;
+                }
                 /* Keep KPI cards intact when the report spans printed pages */
                 .print-kpi-grid { display: block !important; font-size: 0 !important; }
                 .print-kpi-grid > * {
@@ -3204,7 +3224,7 @@ export default function Dashboard() {
                             { label: 'Taux AO restants (non lancés)', value: filteredKpis.totalProjects > 0 ? Math.round(((filteredStatusCount['Publié sur PMP']||0) + (filteredStatusCount['DAO Envoyé au CE']||0) + (filteredStatusCount['A programmer']||0)) / filteredKpis.totalProjects * 100) : 0, color: '#6366f1', detail: `${(filteredStatusCount['Publié sur PMP']||0) + (filteredStatusCount['DAO Envoyé au CE']||0) + (filteredStatusCount['A programmer']||0)} AO restants` },
                           ];
                           return rates.map((r, i) => (
-                            <div key={i} className="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
+                            <div key={i} className="print-keep-card bg-slate-50 rounded-xl p-3.5 border border-slate-100">
                               <div className="flex items-center justify-between mb-1.5">
                                 <span className="text-[10px] font-semibold text-slate-700">{r.label}</span>
                                 <span className="text-xs font-bold" style={{ color: r.color }}>{r.value}%</span>
@@ -3223,7 +3243,7 @@ export default function Dashboard() {
                         <Timer className="w-4 h-4 text-slate-500" />
                         <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide">Délais Moyens & Soumissionnaires</h3>
                       </div>
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="print-delays-grid grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {(() => {
                           const validOJ = filtered.filter(p => p.dateOuverture && p.dateJugement && new Date(p.dateOuverture) < new Date(p.dateJugement));
                           const validJE = filtered.filter(p => p.dateJugement && p.dateEngagement && new Date(p.dateJugement) < new Date(p.dateEngagement));
@@ -3236,7 +3256,7 @@ export default function Dashboard() {
                             { label: 'Délai moyen Jugé→Eng.', value: avgJE > 0 ? `${avgJE} j` : '—', sub: `${validJE.length} AO exploitables`, bg: 'bg-amber-50', border: 'border-amber-100', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', icon: <Gavel className="w-3.5 h-3.5" /> },
                             { label: 'Délai moyen Ouv.→Eng.', value: avgOE > 0 ? `${avgOE} j` : '—', sub: `${validOE.length} AO exploitables`, bg: 'bg-indigo-50', border: 'border-indigo-100', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', icon: <Clock className="w-3.5 h-3.5" /> },
                           ].map((k, i) => (
-                            <div key={i} className={`${k.bg} rounded-lg p-3 border ${k.border} flex items-center gap-3`}>
+                            <div key={i} className={`print-keep-card ${k.bg} rounded-lg p-3 border ${k.border} flex items-center gap-3`}>
                               <div className={`w-8 h-8 rounded-lg ${k.iconBg} flex items-center justify-center ${k.iconColor}`}>{k.icon}</div>
                               <div>
                                 <div className="text-[9px] text-slate-500 uppercase">{k.label}</div>

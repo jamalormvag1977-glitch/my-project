@@ -109,6 +109,7 @@ async function saveStore(store: Store) {
   return crypto.createHash('sha256').update(payload).digest('hex');
 }
 export async function GET() {
+  const auth=await requireAdmin(); if(auth.error)return auth.error;
   try {
     const store=await readManual();
     if(!store) return NextResponse.json({manualMode:false,projects:[],auditLog:[]});

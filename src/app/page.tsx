@@ -2940,6 +2940,17 @@ export default function Dashboard() {
                 .shadow-sm, .shadow-lg, .shadow-xl { box-shadow: none !important; }
                 [class*="backdrop-blur"] { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
                 .max-w-\\[1800px\\], .max-w-\\[1400px\\] { max-width: none !important; width: 100% !important; }
+                /* Keep KPI cards intact when the report spans printed pages */
+                .print-kpi-grid { display: block !important; font-size: 0 !important; }
+                .print-kpi-grid > * {
+                  display: inline-block !important;
+                  vertical-align: top !important;
+                  width: calc(50% - 8px) !important;
+                  margin: 0 4px 8px !important;
+                  break-inside: avoid !important;
+                  page-break-inside: avoid !important;
+                  font-size: 10pt !important;
+                }
                 table { width: 100% !important; border-collapse: collapse !important; }
                 thead { display: table-header-group !important; }
                 tr, th, td { break-inside: avoid !important; page-break-inside: avoid !important; }
@@ -3079,7 +3090,7 @@ export default function Dashboard() {
                         <Hash className="w-4 h-4 text-slate-500" />
                         <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide">Indicateurs Clés — Nombres</h3>
                       </div>
-                      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                      <div className="print-kpi-grid grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                         {(() => {
                           const engages = filtered.filter(p => p.situationAvancement === 'Engagé');
                           const juges = filtered.filter(p => p.situationAvancement === 'Jugé');
